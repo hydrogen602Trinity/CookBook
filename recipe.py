@@ -1,7 +1,7 @@
 from fractions import Fraction
 from typing import List # List[int]
 import uuid
-
+import base64
 
 class Ingredient:
 
@@ -18,6 +18,5 @@ class Recipe:
         self.ingredients: List[Ingredient] = ingredients
         self.instructions: List[str] = instructions
         self.notes: str = notes 
-        self.id: uuid.UUID = uuid.uuid4()
-        
+        self.id: str = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode()
         
