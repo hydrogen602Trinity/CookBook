@@ -31,7 +31,9 @@ class Ingredient:
         return Ingredient(name, unit, amount)
     
     def toJsonSerializable(self) -> Dict[str, object]:
-        return self.__dict__
+        d = dict(self.__dict__)
+        d['amount'] = str(d['amount'])
+        return d
 
 
 class Recipe:
