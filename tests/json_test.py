@@ -10,7 +10,7 @@ def test_ingredient():
 
     assert i.toJsonSerializable() == {'name': 'spam', 'unit': 'can', 'amount': '1/2'}
     assert json.dumps(i.toJsonSerializable()) == '{"name": "spam", "unit": "can", "amount": "1/2"}'
-    
+
     x = json.dumps(i.toJsonSerializable())
 
     i2 = recipe.Ingredient.fromJson(x)
@@ -18,3 +18,8 @@ def test_ingredient():
     assert i2.amount == i.amount
     assert i2.name == i.name
     assert i2.unit == i.unit
+
+def test_recipe():
+    r = recipe.Recipe('ham', [recipe.Ingredient('salt', 'g', fractions.Fraction(10)), recipe.Ingredient('pork', 'kg', fractions.Fraction(1))], ['add salt', 'smoke'], 'idk')
+
+    #assert r.toJson() == {'recipeName'}
