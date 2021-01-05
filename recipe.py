@@ -1,10 +1,13 @@
 from __future__ import annotations
 from fractions import Fraction
 import fractions
-from typing import Dict, List, Union # List[int]
+from typing import Dict, List, Union, Iterator # List[int]
 import uuid
 import base64
 import json
+import sqlite3
+import atexit
+from collections.abc import MutableMapping
 
 class Ingredient:
 
@@ -34,17 +37,20 @@ class Ingredient:
         d = dict(self.__dict__)
         d['amount'] = str(d['amount'])
         return d
+    
+    def toJson(self) -> str:
+        return json.dumps(self.toJsonSerializable())
 
 
 class Recipe:
 
-    def __init__(self, recipeName: str, ingredients: List[Ingredient], instructions: List[str], notes: str = "", myId:str = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode() ):
+    def __init__(self, recipeName: str, ingredients: List[Ingredient], instructions: List[str], notes: str = "", myId:str = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode()):
         self.recipeName: str = recipeName
         self.ingredients: List[Ingredient] = ingredients
         self.instructions: List[str] = instructions
         self.notes: str = notes 
         self.id: str = myId
-    
+
     def toJson(self) -> str:
         return json.dumps(self.__dict__, default=jsonEncoderHelper)
 
@@ -94,3 +100,44 @@ def jsonEncoderHelper(obj):
         return str(obj)
     else:
         raise TypeError
+
+
+class RecipeDB(MutableMapping):
+
+    def __init__(self, dbFileName: str) -> None:
+        self.__conn: sqlite3.Connection = sqlite3.connect(dbFileName)
+        atexit.register(self.__cleanup)
+
+        self.__cur: sqlite3.Cursor = self.__conn.cursor()
+
+        # self.__cur.execute('DROP TABLE IF EXISTS recipes')
+        self.__cur.execute('''
+        CREATE TABLE recipes (
+            recipeID TEXT NOT NULL,
+            name TEXT NOT NULL,
+            ingredients TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            notes TEXT NOT NULL
+        )
+        ''')
+        self.__conn.commit()
+
+    def __cleanup(self):
+        # self.__cur.execute('DROP TABLE IF EXISTS recipes')
+        self.__conn.commit()
+        self.__conn.close()
+
+    def __getitem__(self, recipeID: str) -> Recipe:
+        ...
+
+    def __setitem__(self, recipeID: str, val: Recipe) -> None:
+        ...
+    
+    def __delitem__(self, recipeID: str) -> None:
+        ...
+    
+    def __iter__(self) -> Iterator[str]:
+        ...
+    
+    def __len__(self) -> int:
+        ...
