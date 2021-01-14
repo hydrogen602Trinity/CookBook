@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.join(sys.path[0], '..'))
 
-from recipe import RecipeDB, Recipe, Ingredient
+from recipedb import RecipeDB, Recipe, Ingredient
 
 i0 = [Ingredient('Egg', 'eggs', 2), Ingredient('Mozzarella', 'handful', 1), Ingredient('Salt', 'teaspoon', 1)]
 i1 = [Ingredient('Egg', 'eggs', 3), Ingredient('Salt', 'teaspoon', 1)]
