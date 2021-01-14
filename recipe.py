@@ -41,14 +41,21 @@ class Ingredient:
     def toJson(self) -> str:
         return json.dumps(self.toJsonSerializable())
 
+    def __eq__(self, o: object) -> bool:
+        return isinstance(o, Ingredient) and o.name == self.name and o.unit == self.unit and o.amount == self.amount
+    
+    def __ne__(self, o: object) -> bool:
+        return not self.__eq__(o)
 
 class Recipe:
+
+    # TODO: change from uuid to incrementing int
 
     def __init__(self, recipeName: str, ingredients: List[Ingredient], instructions: List[str], notes: str = "", myId: Union[str, int, uuid.UUID, None] = None):
         self.recipeName: str = recipeName
         self.ingredients: List[Ingredient] = ingredients
         self.instructions: List[str] = instructions
-        self.notes: str = notes 
+        self.notes: str = notes
 
         self.__uuid: uuid.UUID
         if myId is None:
@@ -61,18 +68,19 @@ class Recipe:
             self.__uuid = myId
         else:
             raise TypeError(f"Expected 'str', 'int', 'uuid.UUID', or None but got '{type(myId)}'")
-    
-    @staticmethod
-    def strIDtoInt(recipeID: str) -> int:
-        uuid_ = uuid.UUID(bytes=base64.urlsafe_b64decode(recipeID.encode()))
-        return uuid_.int
+
+    def __eq__(self, r: object) -> bool:
+        if isinstance(r, Recipe):
+            return r.__uuid == self.__uuid
+        else:
+            return False
+
+    def __ne__(self, r: object) -> bool:
+        return not self.__eq__(r)
 
     @property
     def id(self) -> str:
-        return base64.urlsafe_b64encode(uuid.uuid4().bytes).decode()
-    
-    def getIDasInt(self) -> int:
-        return self.__uuid.int
+        return base64.urlsafe_b64encode(self.__uuid.bytes).decode()
 
     def toJson(self) -> str:
         return json.dumps(self.__dict__, default=jsonEncoderHelper)
@@ -158,14 +166,13 @@ class IngredientsDB:
         self.__conn.commit()
         self.__conn.close()
 
-    def __getitem__(self, recipeIDasInt: int) -> List[Ingredient]:
-        self.__cur.execute('SELECT (name,unit,amountNumerator, amountDenominator, recipeID) FROM ingredients WHERE recipeID=?', (recipeIDasInt,))
+    def __getitem__(self, recipeID: str) -> List[Ingredient]:
+        self.__cur.execute('SELECT name, unit, amountNumerator, amountDenominator FROM ingredients WHERE recipeID=?', (recipeID,))
 
         output = []
         row = self.__cur.fetchone()
         while row is not None:
-            name, unit, amountNum, amountDenom, recipeIDFromDB = row
-            assert recipeIDasInt == recipeIDFromDB
+            name, unit, amountNum, amountDenom = row
             assert isinstance(name, str) and len(name) > 0
             assert isinstance(unit, str)
             assert isinstance(amountNum, int)
@@ -176,20 +183,20 @@ class IngredientsDB:
 
         return output
 
-    def addIngredients(self, recipeIDasInt: int, ingredients: List[Ingredient]) -> None:
+    def addIngredients(self, recipeID: str, ingredients: List[Ingredient]) -> None:
         for ingredient in ingredients:
             sql = '''INSERT INTO ingredients(name,unit,amountNumerator, amountDenominator, recipeID)
             VALUES(?,?,?,?,?)'''
-            self.__cur.execute(sql, (ingredient.name, ingredient.unit, ingredient.amount.numerator, ingredient.amount.denominator, recipeIDasInt))
+            self.__cur.execute(sql, (ingredient.name, ingredient.unit, ingredient.amount.numerator, ingredient.amount.denominator, recipeID))
         self.__conn.commit()
 
-    def __delitem__(self, recipeIDasInt: int) -> None:
+    def __delitem__(self, recipeID: str) -> None:
         sql = '''DELETE FROM ingredients WHERE recipeID=?'''
-        self.__cur.execute(sql, (recipeIDasInt,))
+        self.__cur.execute(sql, (recipeID,))
         self.__conn.commit()
 
-    def deleteItems(self, recipeIDasInt: int) -> None:
-        self.__delitem__(recipeIDasInt)
+    def deleteItems(self, recipeID: str) -> None:
+        self.__delitem__(recipeID)
 
 
 class RecipeDB(MutableMapping):
@@ -203,7 +210,7 @@ class RecipeDB(MutableMapping):
         # self.__cur.execute('DROP TABLE IF EXISTS recipes')
         self.__cur.execute('''
         CREATE TABLE IF NOT EXISTS recipes (
-            recipeID INT NOT NULL PRIMARY KEY,
+            recipeID TEXT NOT NULL UNIQUE,
             name TEXT NOT NULL,
             instructions TEXT NOT NULL,
             notes TEXT NOT NULL
@@ -217,18 +224,12 @@ class RecipeDB(MutableMapping):
         self.__conn.commit()
         self.__conn.close()
 
-    def __getitem__(self, recipeID: Union[int, str]) -> Recipe:
-        recipeIDasInt: int
-        if isinstance(recipeID, str):
-            recipeIDasInt = Recipe.strIDtoInt(recipeID)
-        else:
-            recipeIDasInt = recipeID
-
-        sql = 'SELECT (name, instructions, notes) FROM recipes WHERE recipeID=?'
-        self.__cur.execute(sql, (recipeIDasInt,))
+    def __getitem__(self, recipeID: str) -> Recipe:
+        sql = 'SELECT name, instructions, notes FROM recipes WHERE recipeID=?'
+        self.__cur.execute(sql, (recipeID,))
         row = self.__cur.fetchone()
         if row is None:
-            raise KeyError(recipeIDasInt)
+            raise KeyError(recipeID)
         name, instructions, notes = row
         assert isinstance(name, str) and len(name) > 0
         assert isinstance(instructions, str)
@@ -238,38 +239,37 @@ class RecipeDB(MutableMapping):
         assert isinstance(ls, list)
         assert all(isinstance(e, str) for e in ls)
 
-        ingredients = self.__ingredientsDB[recipeIDasInt]
+        ingredients = self.__ingredientsDB[recipeID]
 
-        return Recipe(name, ingredients, ls, notes, recipeIDasInt)
+        return Recipe(name, ingredients, ls, notes, recipeID)
 
-    def __setitem__(self, recipeID: Union[str, int], val: Recipe) -> None:
-        recipeIDasInt: int
-        if isinstance(recipeID, str):
-            recipeIDasInt = Recipe.strIDtoInt(recipeID)
-        else:
-            recipeIDasInt = recipeID
-        
-        assert recipeIDasInt == val.getIDasInt()
+    def __setitem__(self, recipeID: str, val: Recipe) -> None:
+        assert recipeID == val.id
         
         sql = 'INSERT INTO recipes (recipeID, name, instructions, notes) VALUES (?, ?, ?, ?)'
-        self.__cur.execute(sql, (recipeIDasInt, val.recipeName, json.dumps(val.instructions), val.notes))
+        self.__cur.execute(sql, (recipeID, val.recipeName, json.dumps(val.instructions), val.notes))
         self.__conn.commit()
 
-        self.__ingredientsDB.addIngredients(recipeIDasInt, val.ingredients)
+        self.__ingredientsDB.addIngredients(recipeID, val.ingredients)
 
-    def __delitem__(self, recipeID: Union[str, int]) -> None:
-        recipeIDasInt: int
-        if isinstance(recipeID, str):
-            recipeIDasInt = Recipe.strIDtoInt(recipeID)
-        else:
-            recipeIDasInt = recipeID
+    def addRecipe(self, val: Recipe) -> None:
+        self.__setitem__(val.id, val)
 
+    def __delitem__(self, recipeID: str) -> None:
         sql = 'DELETE FROM recipes WHERE recipeID=?'
-        self.__cur.execute(sql, (recipeIDasInt,))
+        self.__cur.execute(sql, (recipeID,))
+        self.__conn.commit()
+    
+    def clear(self) -> None:
+        sql = 'DELETE FROM recipes'
+        self.__cur.execute(sql)
         self.__conn.commit()
 
     def __iter__(self) -> Iterator[str]:
-        return NotImplemented
+        sql = 'SELECT recipeID FROM recipes'
+        self.__cur.execute(sql)
+        ls = self.__cur.fetchall()
+        return map(lambda x: x[0], ls)
 
     def __len__(self) -> int:
         sql = 'SELECT COUNT(*) FROM recipes'
