@@ -119,7 +119,6 @@ class RecipeDB(MutableMapping):
 
     def __setitem__(self, recipeID: str, val: Recipe) -> None:
         assert recipeID == val.id
-        
         sql = 'INSERT INTO recipes (recipeID, name, instructions, notes) VALUES (?, ?, ?, ?)'
         self.__cur.execute(sql, (recipeID, val.recipeName, json.dumps(val.instructions), val.notes))
         self.__conn.commit()
@@ -141,6 +140,12 @@ class RecipeDB(MutableMapping):
 
     def __iter__(self) -> Iterator[str]:
         sql = 'SELECT recipeID FROM recipes'
+        self.__cur.execute(sql)
+        ls = self.__cur.fetchall()
+        return map(lambda x: x[0], ls)
+    
+    def getNames(self) -> Iterator[str]:
+        sql = 'SELECT name FROM recipes'
         self.__cur.execute(sql)
         ls = self.__cur.fetchall()
         return map(lambda x: x[0], ls)
