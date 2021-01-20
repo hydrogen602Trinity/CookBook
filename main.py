@@ -1,20 +1,24 @@
 from flask.json import jsonify
 from recipedb import RecipeDB
 from flask import Flask, abort, request
+import recipe
+import os
+
 app = Flask(__name__)
 
-import recipe
-from typing import Dict
-import fractions 
-
-tempRecipe = recipe.Recipe("Chocolate Milk", [
-    recipe.Ingredient("Milk", "cup", fractions.Fraction(1)), 
-    recipe.Ingredient("Chocolate", "teaspoon", fractions.Fraction(2))], ["Add chocolate to milk", "Stir"], "Can add more chocolate if desired")
+# tempRecipe = recipe.Recipe("Chocolate Milk", [
+#     recipe.Ingredient("Milk", "cup", 1), 
+#     recipe.Ingredient("Chocolate", "teaspoon", 2)], ["Add chocolate to milk", "Stir"], "Can add more chocolate if desired")
 #recipes: Dict[str, recipe.Recipe] = { tempRecipe.id: tempRecipe } # temporary
-recipes: RecipeDB = RecipeDB(':memory:')
-recipes.addRecipe(tempRecipe)
 
-print(tempRecipe.id)
+path: str = ':memory:'
+if 'DATABASE_PATH' in os.environ:
+    path = os.environ['DATABASE_PATH']
+
+recipes: RecipeDB = RecipeDB(path)
+
+# recipes.addRecipe(tempRecipe)
+# print(tempRecipe.id)
 
 @app.route('/')
 def hello_world():
