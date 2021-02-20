@@ -22,7 +22,8 @@ recipes: RecipeDB = RecipeDB(path)
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
+    with open('frontend/test.html') as f:
+        return f.read()
 
 @app.route('/recipe/<string:recipeID>', methods = ['GET', 'DELETE'])
 def getRecipe(recipeID: str) -> str:
