@@ -79,7 +79,11 @@ class Recipe:
 
     @property
     def id(self) -> str:
-        return base64.urlsafe_b64encode(self.__uuid.bytes).decode()
+        return self.uuidToStr(self.__uuid)
+
+    @staticmethod
+    def uuidToStr(u: uuid.UUID) -> str:
+        return base64.urlsafe_b64encode(u.bytes).decode()
 
     def toJson(self) -> str:
         return json.dumps(self.__dict__, default=jsonEncoderHelper)
@@ -128,5 +132,7 @@ def jsonEncoderHelper(obj):
         return obj.toJsonSerializable()
     elif isinstance(obj, fractions.Fraction):
         return str(obj)
+    elif isinstance(obj, uuid.UUID):
+        return Recipe.uuidToStr(obj)
     else:
-        raise TypeError
+        raise TypeError(f"Got unhandled type {type(obj)}")

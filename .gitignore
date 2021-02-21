@@ -134,3 +134,4 @@ dmypy.json
 .vscode
 test.db
 testing.db
+default.db

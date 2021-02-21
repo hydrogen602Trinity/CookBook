@@ -1,27 +1,36 @@
 import sqlite3
-import atexit
 import fractions
 import json
 from collections.abc import MutableMapping
-from typing import Iterator, List
+from typing import Iterator, List, Optional, Tuple, Type
 from recipe import Recipe, Ingredient
 
 
 class IngredientsDB:
 
     def __init__(self, dbFileName: str) -> None:
-        self.__conn: sqlite3.Connection = sqlite3.connect(dbFileName)
-        atexit.register(self.__cleanup)
+        self.__conn: Optional[sqlite3.Connection] = None
+        self.__dbFileName: str = dbFileName
 
-        self.__cur: sqlite3.Cursor = self.__conn.cursor()
+        self.__cur: Optional[sqlite3.Cursor] = None
+        
+    def __enter__(self):
+        self.__conn = sqlite3.connect(self.__dbFileName)
+        self.__cur = self.__conn.cursor()
+        return self
 
-        self.__cur.execute('PRAGMA foreign_keys = ON;')
-        self.__conn.commit()
+    @staticmethod
+    def createTable(dbFileName: str):
+        conn = sqlite3.connect(dbFileName)
+        cur = conn.cursor()
 
-        self.__cur.execute('PRAGMA foreign_keys;')
-        assert self.__cur.fetchone() == (1,) # foreign keys enabled
+        cur.execute('PRAGMA foreign_keys = ON;')
+        conn.commit()
 
-        self.__cur.execute('''
+        cur.execute('PRAGMA foreign_keys;')
+        assert cur.fetchone() == (1,) # foreign keys enabled
+        cur.execute('DROP TABLE IF EXISTS ingredients')
+        cur.execute('''
         CREATE TABLE IF NOT EXISTS ingredients (
             name     TEXT NOT NULL,
             unit     TEXT NOT NULL,
@@ -34,13 +43,20 @@ class IngredientsDB:
                     ON DELETE CASCADE
         )
         ''')
-        self.__conn.commit()
+        conn.commit()
+        conn.close()
 
-    def __cleanup(self):
+    def __exit__(self, exc_type: Type[BaseException], exc_value: BaseException, traceback):
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         self.__conn.commit()
         self.__conn.close()
 
     def __getitem__(self, recipeID: str) -> List[Ingredient]:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         self.__cur.execute('SELECT name, unit, amountNumerator, amountDenominator FROM ingredients WHERE recipeID=?', (recipeID,))
 
         output = []
@@ -58,6 +74,9 @@ class IngredientsDB:
         return output
 
     def addIngredients(self, recipeID: str, ingredients: List[Ingredient]) -> None:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         for ingredient in ingredients:
             sql = '''INSERT INTO ingredients(name,unit,amountNumerator, amountDenominator, recipeID)
             VALUES(?,?,?,?,?)'''
@@ -65,6 +84,9 @@ class IngredientsDB:
         self.__conn.commit()
 
     def __delitem__(self, recipeID: str) -> None:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = '''DELETE FROM ingredients WHERE recipeID=?'''
         self.__cur.execute(sql, (recipeID,))
         self.__conn.commit()
@@ -76,13 +98,31 @@ class IngredientsDB:
 class RecipeDB(MutableMapping):
 
     def __init__(self, dbFileName: str) -> None:
-        self.__conn: sqlite3.Connection = sqlite3.connect(dbFileName)
-        atexit.register(self.__cleanup)
+        self.__conn: Optional[sqlite3.Connection] = None
+        self.__dbFileName: str = dbFileName
+        self.__cur: Optional[sqlite3.Cursor] = None
 
-        self.__cur: sqlite3.Cursor = self.__conn.cursor()
+        # self.__cur: sqlite3.Cursor = self.__conn.cursor()
 
         # self.__cur.execute('DROP TABLE IF EXISTS recipes')
-        self.__cur.execute('''
+        # self.__cur.execute('''
+        # CREATE TABLE IF NOT EXISTS recipes (
+        #     recipeID TEXT NOT NULL UNIQUE,
+        #     name TEXT NOT NULL,
+        #     instructions TEXT NOT NULL,
+        #     notes TEXT NOT NULL
+        # )
+        # ''')
+        # self.__conn.commit()
+
+        self.__ingredientsDB = IngredientsDB(dbFileName)
+
+    @staticmethod
+    def createTable(dbFileName: str):
+        conn = sqlite3.connect(dbFileName)
+        cur = conn.cursor()
+        cur.execute('DROP TABLE IF EXISTS recipes')
+        cur.execute('''
         CREATE TABLE IF NOT EXISTS recipes (
             recipeID TEXT NOT NULL UNIQUE,
             name TEXT NOT NULL,
@@ -90,15 +130,30 @@ class RecipeDB(MutableMapping):
             notes TEXT NOT NULL
         )
         ''')
-        self.__conn.commit()
+        conn.commit()
+        conn.close()
+        print('Created recipes table')
+        IngredientsDB.createTable(dbFileName)
 
-        self.__ingredientsDB = IngredientsDB(dbFileName)
+    def __enter__(self):
+        print(self.__dbFileName)
+        self.__conn: sqlite3.Connection = sqlite3.connect(self.__dbFileName)
+        self.__cur: sqlite3.Cursor = self.__conn.cursor()
+        self.__ingredientsDB.__enter__()
+        return self
 
-    def __cleanup(self):
+    def __exit__(self, exc_type: Type[BaseException], exc_value: BaseException, traceback):
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         self.__conn.commit()
         self.__conn.close()
+        self.__ingredientsDB.__exit__(exc_type, exc_value, traceback)
 
     def __getitem__(self, recipeID: str) -> Recipe:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'SELECT name, instructions, notes FROM recipes WHERE recipeID=?'
         self.__cur.execute(sql, (recipeID,))
         row = self.__cur.fetchone()
@@ -118,6 +173,9 @@ class RecipeDB(MutableMapping):
         return Recipe(name, ingredients, ls, notes, recipeID)
 
     def __setitem__(self, recipeID: str, val: Recipe) -> None:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         assert recipeID == val.id
         sql = 'INSERT INTO recipes (recipeID, name, instructions, notes) VALUES (?, ?, ?, ?)'
         self.__cur.execute(sql, (recipeID, val.recipeName, json.dumps(val.instructions), val.notes))
@@ -129,28 +187,52 @@ class RecipeDB(MutableMapping):
         self.__setitem__(val.id, val)
 
     def __delitem__(self, recipeID: str) -> None:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'DELETE FROM recipes WHERE recipeID=?'
         self.__cur.execute(sql, (recipeID,))
         self.__conn.commit()
-    
+
     def clear(self) -> None:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'DELETE FROM recipes'
         self.__cur.execute(sql)
         self.__conn.commit()
 
     def __iter__(self) -> Iterator[str]:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'SELECT recipeID FROM recipes'
         self.__cur.execute(sql)
         ls = self.__cur.fetchall()
         return map(lambda x: x[0], ls)
-    
+
     def getNames(self) -> Iterator[str]:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'SELECT name FROM recipes'
         self.__cur.execute(sql)
         ls = self.__cur.fetchall()
         return map(lambda x: x[0], ls)
+    
+    def getNamesAndIDs(self) -> List[Tuple[str, str]]:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+        
+        sql = 'SELECT recipeID, name FROM recipes'
+        self.__cur.execute(sql)
+        ls = self.__cur.fetchall()
+        return ls
 
     def __len__(self) -> int:
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
         sql = 'SELECT COUNT(*) FROM recipes'
         self.__cur.execute(sql)
         count, = self.__cur.fetchone()
