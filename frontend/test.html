@@ -60,14 +60,17 @@
                 font-size: large;
             }
 
-            .main button {
+            .main > div {
                 border: 0px;
                 text-transform: inherit;
-                font-size: inherit;
+                font-size: large;
+                text-align: center;
+                padding: 1em;
             }
 
-            .main h3 {
+            .main h3, p {
                 font-size: inherit;
+                text-align: left;
             }
 
             .recipe {
@@ -78,6 +81,11 @@
             .recipe ol {
                 padding-left: 1.5em;
                 margin-top: 0em;
+                text-align: left;
+            }
+
+            .recipe li {
+                margin-left: 0.5em;
             }
 
             .recipe > div {
@@ -103,6 +111,17 @@
                 border: 0px;
                 font-size: x-large;
                 padding: 5px;
+            }
+
+            /* https://stackoverflow.com/questions/924916/is-there-a-way-to-make-a-div-unselectable */
+            .unselectable {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                -o-user-select: none;
+                user-select: none;
             }
         </style>
     </head>
@@ -158,9 +177,10 @@
             }
 
             function createRecipeButton(name, id) {
-                let elem = document.createElement("button");
+                let elem = document.createElement("div");
                 elem.innerText = name;
                 elem.onclick = () => getRecipe(id);
+                elem.classList.add('unselectable');
                 return elem;
             }
 
