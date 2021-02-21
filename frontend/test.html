@@ -3,27 +3,28 @@
         <style>
             :root {
                 --black: #252323;
-                --blue: #38AECC; /*#38AECC;*/
-                --green: #A7E8BD;
-                --orange: #F05B3D; /*#F05B3D; /*#FC5130;*/
-                --gray: #BBB5BD;
+                --green: #629E83;
+                --orange: #E16826; /*#F05B3D; /*#FC5130;*/
+                --gray: #DEDEDE;
+                --beige: #FFF5BA;
+                --yellow: #F7C825;
             }
             body {
                 margin: 0px;
                 font-family: Arial, Helvetica, sans-serif;
-                background-color: #f6f8fa;
+                background-color: white; /*#ffffea;*/
             }
 
             .frame {
                 display: grid;
-                grid-template-columns: 15% auto 5%;
+                grid-template-columns: 5% auto 5%;
                 grid-template-rows: 15% auto 5%;
                 height: 100%;
                 width: 100%;
                 grid-template-areas: 
                     "header header header"
-                    "sidebar main ."
-                    "sidebar main .";
+                    ". main ."
+                    ". main .";
             }
 
             .frame > div {
@@ -32,7 +33,7 @@
 
             .header {
                 grid-area: header;
-                background-color: var(--blue);
+                background-color: var(--yellow);
                 display: flex;
                 align-items: center;
             }
@@ -48,17 +49,25 @@
                 justify-content: flex-start;
                 flex-wrap: nowrap;
                 overflow-y: scroll;
+                /*font-size: 8px;*/
+                text-transform: uppercase;
             }
 
             .main * {
-                background-color: var(--gray);
+                background-color: var(--beige);
                 padding: 5px;
                 margin-bottom: 10px;
+                font-size: large;
             }
 
             .main button {
                 border: 0px;
-                font-size: large;
+                text-transform: inherit;
+                font-size: inherit;
+            }
+
+            .main h3 {
+                font-size: inherit;
             }
 
             .recipe {
@@ -67,7 +76,7 @@
             }
 
             .recipe ol {
-                margin-left: 1em;
+                padding-left: 1.5em;
                 margin-top: 0em;
             }
 
@@ -105,15 +114,15 @@
                 </h1>
             </div>
             <div class="main" id="content">Content</div>
-            <div class="sidebar">
+            <!--<div class="sidebar">
                 <button onclick="getAllRecipes()">
                     Recipes
                 </button>
-            </div>
+            </div>-->
         </div>
 
         <script>
-            const domain = "http://localhost:5000/";
+            const domain = "";//"http://localhost:5000/";
 
             let recipes = [];
 
@@ -187,7 +196,7 @@
                     box.append(createBox('Notes', notes));
 
                     for (e of content.children) {
-                        if (e.innerText == name) {
+                        if (e.innerText.toUpperCase() == name.toUpperCase()) {
                             content.replaceChild(box, e);
                             break;
                         }
