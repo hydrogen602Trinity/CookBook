@@ -45,7 +45,7 @@ def serveCss():
 
 @app.route('/main.js')
 def serveJS():
-    with open('frontend/main.js') as f:
+    with open('frontend/main2.js') as f:
         return Response(f.read(), mimetype='text/javascript')
 
 @app.route('/recipe/<string:recipeID>', methods = ['GET', 'DELETE'])

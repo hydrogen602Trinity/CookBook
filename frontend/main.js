@@ -71,7 +71,7 @@ function getRecipe(id) {
             }
         }
 
-        box.append(createOptions(name, id, content, box))
+        box.append(createOptions(name, id, content, box));
     })
 }
 
