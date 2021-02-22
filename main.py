@@ -1,7 +1,7 @@
 import fractions
 from flask.json import jsonify
 from recipedb import RecipeDB
-from flask import Flask, abort, request
+from flask import Flask, abort, request, Response
 from recipe import Ingredient, Recipe
 import os
 
@@ -37,6 +37,16 @@ with RecipeDB(path) as recipes:
 def hello_world():
     with open('frontend/test.html') as f:
         return f.read()
+
+@app.route('/main.css')
+def serveCss():
+    with open('frontend/main.css') as f:
+        return Response(f.read(), mimetype='text/css')
+
+@app.route('/main.js')
+def serveJS():
+    with open('frontend/main.js') as f:
+        return Response(f.read(), mimetype='text/javascript')
 
 @app.route('/recipe/<string:recipeID>', methods = ['GET', 'DELETE'])
 def getRecipe(recipeID: str) -> str:
