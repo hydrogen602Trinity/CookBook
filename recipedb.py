@@ -4,6 +4,7 @@ import json
 from collections.abc import MutableMapping
 from typing import Iterator, List, Optional, Tuple, Type
 from recipe import Recipe, Ingredient
+from exceptions import NameTakenError
 
 
 class IngredientsDB:
@@ -72,6 +73,10 @@ class IngredientsDB:
             row = self.__cur.fetchone()
 
         return output
+    
+    def __setitem__(self, recipeID: str, ingredients: List[Ingredient]) -> None:
+        self.__delitem__(recipeID)
+        self.addIngredients(recipeID, ingredients)
 
     def addIngredients(self, recipeID: str, ingredients: List[Ingredient]) -> None:
         if self.__cur is None or self.__conn is None:
@@ -125,7 +130,7 @@ class RecipeDB(MutableMapping):
         cur.execute('''
         CREATE TABLE IF NOT EXISTS recipes (
             recipeID TEXT NOT NULL UNIQUE,
-            name TEXT NOT NULL,
+            name TEXT NOT NULL UNIQUE,
             instructions TEXT NOT NULL,
             notes TEXT NOT NULL
         )
@@ -173,18 +178,51 @@ class RecipeDB(MutableMapping):
         return Recipe(name, ingredients, ls, notes, recipeID)
 
     def __setitem__(self, recipeID: str, val: Recipe) -> None:
+        '''
+        Only for modifying recipes. Use addRecipe for adding a new entry
+        '''
         if self.__cur is None or self.__conn is None:
             raise RuntimeError("Not yet connected to database")
 
+        oldRecipe = self.__getitem__(recipeID)
+
         assert recipeID == val.id
-        sql = 'INSERT INTO recipes (recipeID, name, instructions, notes) VALUES (?, ?, ?, ?)'
-        self.__cur.execute(sql, (recipeID, val.recipeName, json.dumps(val.instructions), val.notes))
+        assert isinstance(val.recipeName, str) and len(val.recipeName) > 0
+        assert all(map(lambda x: isinstance(x, str), val.instructions))
+        assert isinstance(val.notes, str)
+
+        sql = 'UPDATE recipes SET name=?, instructions=?, notes=? WHERE recipeID=?'
+
+        self.__cur.execute(sql, (val.recipeName, json.dumps(val.instructions), val.notes, val.id))
         self.__conn.commit()
 
-        self.__ingredientsDB.addIngredients(recipeID, val.ingredients)
+        self.__ingredientsDB[recipeID] = val.ingredients
 
     def addRecipe(self, val: Recipe) -> None:
-        self.__setitem__(val.id, val)
+        if self.__cur is None or self.__conn is None:
+            raise RuntimeError("Not yet connected to database")
+
+        sql = 'SELECT name FROM recipes WHERE recipeID=?'
+        self.__cur.execute(sql, (val.id,))
+        row = self.__cur.fetchone()
+        if row is not None:
+            raise KeyError(f'recipeID already exists: {val.id}')
+
+        sql = 'SELECT recipeID FROM recipes WHERE name=?'
+        self.__cur.execute(sql, (val.recipeName,))
+        row = self.__cur.fetchone()
+        if row is not None:
+            raise NameTakenError(f'Name already exists: {val.recipeName}')
+
+        assert isinstance(val.recipeName, str) and len(val.recipeName) > 0
+        assert all(map(lambda x: isinstance(x, str), val.instructions))
+        assert isinstance(val.notes, str)
+
+        sql = 'INSERT INTO recipes (recipeID, name, instructions, notes) VALUES (?, ?, ?, ?)'
+        self.__cur.execute(sql, (val.id, val.recipeName, json.dumps(val.instructions), val.notes))
+        self.__conn.commit()
+
+        self.__ingredientsDB.addIngredients(val.id, val.ingredients)
 
     def __delitem__(self, recipeID: str) -> None:
         if self.__cur is None or self.__conn is None:

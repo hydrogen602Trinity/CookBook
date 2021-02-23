@@ -70,7 +70,7 @@ class Recipe:
 
     def __eq__(self, r: object) -> bool:
         if isinstance(r, Recipe):
-            return r.__uuid == self.__uuid
+            return r.__uuid == self.__uuid and r.recipeName == self.recipeName and r.ingredients == self.ingredients and r.instructions == self.instructions and r.notes == self.notes
         else:
             return False
 
