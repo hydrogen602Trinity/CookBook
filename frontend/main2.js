@@ -68,8 +68,6 @@ const util = {
     }
 };
 
-
-
 class Recipe {
     constructor(name, id) {
         this.name = name;
@@ -81,6 +79,7 @@ class Recipe {
         this.ref = undefined;
 
         this.needsUpdate = true;
+        this.editMode = false;
     }
 
     fetchData(onComplete) {
@@ -134,15 +133,34 @@ class Recipe {
             box.append(recipeTitle);
 
             const ingredients = this.recipeData.ingredients.map(e =>
-                e['name'] + ': ' + e['amount'] + ' ' + e['unit']
+                e['amount'] + ' ' + e['unit'] + ' ' + e['name']
             );
             const instructions = this.recipeData.instructions;
             const notes = this.recipeData.notes;
 
-            box.append(this._createRecipeDisplay('Ingredients', ingredients));
+            const helper = (iconCls) => {
+                const button = document.createElement('button');
+                button.classList.add('addLineEdit');
+                button.append(util.createIcon(iconCls));
+                return button;
+            };
+
+            box.append(this._createRecipeDisplay('Ingredients', ingredients, 'ul'));
+
+            if (this.editMode) {
+                box.append(helper('fas fa-plus'));
+            }
+            
+
             box.append(this._createRecipeDisplay('Instructions', instructions));
             box.append(this._createRecipeDisplay('Notes', notes));
-            box.append(this._createOptions());
+
+            if (this.editMode) {
+                box.append(this._createEditOptions());
+            }
+            else {
+                box.append(this._createOptions());
+            }
 
             this.ref = box;
         }
@@ -158,25 +176,42 @@ class Recipe {
         return this.ref;
     }
 
-    _createRecipeDisplay(titleName, stringOrArr) {
+    _createRecipeDisplay(titleName, stringOrArr, listStyle='ol') {
         const box = document.createElement('div');
         const title = document.createElement('h3');
         title.innerText = titleName;
         title.style.margin = "0";
         box.append(title);
 
+        const createInput = function (text) {
+            const input = document.createElement('input');
+            input.value = text;
+            return input;
+        }
+
         if (Array.isArray(stringOrArr)) {
-            const list = document.createElement('ol');
+            const list = document.createElement(listStyle);
             for (const e of stringOrArr) {
                 const elem = document.createElement('li');
-                elem.innerText = e;
+                if (this.editMode) {
+                    elem.appendChild(createInput(e));
+                }
+                else {
+                    elem.innerText = e;
+                }
+                
                 list.append(elem);
             }
             box.append(list);
         }
         else {
             const oneStr = document.createElement('p');
-            oneStr.innerText = stringOrArr;
+            if (this.editMode) {
+                oneStr.appendChild(createInput(stringOrArr));
+            }
+            else {
+                oneStr.innerText = stringOrArr;
+            }
             box.append(oneStr);
         }
 
@@ -203,10 +238,36 @@ class Recipe {
         collapseButton.onclick = this.collapse.bind(this);
     
         const editButton = helper("fas fa-edit");
+        editButton.onclick = this.editEntry.bind(this);
     
         box.append(deleteButton);
         box.append(collapseButton);
         box.append(editButton);
+    
+        return box;
+    }
+
+    _createEditOptions() {
+        const box = document.createElement('div');
+        box.style.display = 'flex';
+        box.style.flexDirection = 'row';
+        box.style.justifyContent = 'space-between';
+
+        const helper = (iconCls) => {
+            const button = document.createElement('button');
+            button.classList.add('editOrDel');
+            button.append(util.createIcon(iconCls));
+            return button;
+        };
+    
+        const deleteButton = helper("fas fa-trash-alt");
+        deleteButton.onclick = this.delete.bind(this);
+    
+        const saveButton = helper("fas fa-save");
+        saveButton.onclick = this.saveEntry.bind(this);
+    
+        box.append(deleteButton);
+        box.append(saveButton);
     
         return box;
     }
@@ -219,6 +280,18 @@ class Recipe {
         util.doREST('DELETE', 'recipe/' + this.id, (text) => {
             recipesBox.deleteRow(this.ref);
         });
+    }
+
+    editEntry() {
+        this.editMode = true;
+        this.needsUpdate = true;
+        recipesBox.buildAll();
+    }
+
+    saveEntry() {
+        this.editMode = false;
+        this.needsUpdate = true;
+        recipesBox.buildAll();
     }
 }
 

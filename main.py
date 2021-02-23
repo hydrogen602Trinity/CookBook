@@ -23,8 +23,8 @@ if 'DATABASE_PATH' in os.environ:
 
 RecipeDB.createTable(path)
 
-i0 = [Ingredient('Egg', 'eggs', 2), Ingredient('Mozzarella', 'handful', 1), Ingredient('Salt', 'teaspoon', 1)]
-i1 = [Ingredient('Egg', 'eggs', 3), Ingredient('Salt', 'teaspoon', fractions.Fraction(1,8))]
+i0 = [Ingredient('Eggs', '', 2), Ingredient('Mozzarella', 'handful', 1), Ingredient('Salt', 'teaspoon', 1)]
+i1 = [Ingredient('Eggs', '', 3), Ingredient('Salt', 'teaspoon', fractions.Fraction(1,8))]
 
 r0 = Recipe('Omelette', i0, ['Break and beat eggs with fork', 'add salt', 'let cook in a pan', 'add cheese and fold'], "Don't turn the stove up too much")
 r1 = Recipe('Scrambled Eggs', i1, ['Break and beat eggs with fork, adding salt', 'fry in pan and tear into little pieces'])

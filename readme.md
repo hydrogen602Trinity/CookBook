@@ -27,3 +27,5 @@ how do we deal with units?
 ## Sqlite DB
 Store data somehow?
 
+add checkboxes
+
