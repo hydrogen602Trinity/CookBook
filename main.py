@@ -3,6 +3,7 @@ from flask.json import jsonify
 from recipedb import RecipeDB
 from flask import Flask, abort, request, Response
 from recipe import Ingredient, Recipe
+from exceptions import NameTakenError
 import os
 
 app = Flask(__name__)
@@ -48,7 +49,7 @@ def serveJS():
     with open('frontend/main2.js') as f:
         return Response(f.read(), mimetype='text/javascript')
 
-@app.route('/recipe/<string:recipeID>', methods = ['GET', 'DELETE'])
+@app.route('/recipe/<string:recipeID>', methods = ['GET', 'DELETE', 'PUT'])
 def getRecipe(recipeID: str) -> str:
     with RecipeDB(path) as recipes:
         if recipeID in recipes:
@@ -56,6 +57,14 @@ def getRecipe(recipeID: str) -> str:
                 return recipes[recipeID].toJson()
             elif request.method == 'DELETE':
                 del recipes[recipeID]
+                return ''
+            elif request.method == 'PUT':
+                data = request.get_json(force=True)
+                r = Recipe.fromJson(data)
+                if r.id != recipeID:
+                    print(f'recipeID in url and recipeID in json do not match: url had "{recipeID}", but the json had "{r.id}"')
+                    abort(400)
+                recipes[recipeID] = r
                 return ''
             else:
                 print(f'Unknown method: "{request.method}" for id = "{recipeID}"')
@@ -71,6 +80,9 @@ def addRecipe() -> str:
             data = request.get_json(force=True)
             r = Recipe.fromJson(data)
             recipes.addRecipe(r)
+        except NameTakenError as e:
+            print(f'Name taken: {r.recipeName}')
+            abort(409)
         except Exception as e:
             print(repr(e))
             raise

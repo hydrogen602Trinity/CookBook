@@ -120,5 +120,6 @@ def test_update():
         assert rdb[r1.id] != r1
 
         assert rdb[r1.id] == r1_alt
+        assert rdb[r1.id].ingredients == i1_alt
 
         assert len(rdb) == 2
