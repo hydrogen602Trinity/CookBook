@@ -20,9 +20,15 @@ const recipesBox = {
         });
     },
 
+    deleteRow: function (elem) {
+        const root = document.getElementById(this.rootID);
+        root.removeChild(elem);
+        this.recipes = this.recipes.filter(r => r.ref != elem);
+    },
+
     updateRecipes: function () {
         util.doREST('GET', 'allrecipes', (text) => {
-            const data = JSON.parse(text).sort((a, b) => (a == b) ? 0 : (a < b) ? 1 : -1);
+            const data = JSON.parse(text).sort((a, b) => (a[1] == b[1]) ? 0 : (a[1] > b[1]) ? 1 : -1);
 
             this.recipes = [];
 
@@ -85,7 +91,7 @@ class Recipe {
             if (id != this.id) {
                 throw Error('ID received does not match requested');
             }
-    
+
             const ingredients = data['ingredients'];
             const instructions = data['instructions'];
             const notes = data['notes'];
@@ -191,6 +197,7 @@ class Recipe {
         };
     
         const deleteButton = helper("fas fa-trash-alt");
+        deleteButton.onclick = this.delete.bind(this);
     
         const collapseButton = helper("fas fa-chevron-up");
         collapseButton.onclick = this.collapse.bind(this);
@@ -202,6 +209,16 @@ class Recipe {
         box.append(editButton);
     
         return box;
+    }
+
+    delete() {
+        if (!confirm('Are you sure you want to delete the ' + this.name + ' recipe')) {
+            return; // delete cancelled
+        }
+
+        util.doREST('DELETE', 'recipe/' + this.id, (text) => {
+            recipesBox.deleteRow(this.ref);
+        });
     }
 }
 
