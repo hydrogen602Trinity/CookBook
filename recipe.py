@@ -1,7 +1,7 @@
 from __future__ import annotations
 from fractions import Fraction
 import fractions
-from typing import Dict, List, Union # List[int]
+from typing import Dict, List, Union, Any # List[int]
 import uuid
 import base64
 import json
@@ -24,7 +24,7 @@ class Ingredient:
         unit = data['unit']
         amount = data['amount']
         assert isinstance(name, str) and name != ''
-        assert isinstance(unit, str) and unit != ''
+        assert isinstance(unit, str)  # and unit != ''
         assert isinstance(amount, (str, int, float)) and amount != ''
         amount = fractions.Fraction(amount)
         assert amount > 0
@@ -56,6 +56,8 @@ class Recipe:
         self.instructions: List[str] = instructions
         self.notes: str = notes
 
+        # print(myId, recipeName)
+
         self.__uuid: uuid.UUID
         if myId is None:
             self.__uuid = uuid.uuid4()
@@ -86,11 +88,19 @@ class Recipe:
         return base64.urlsafe_b64encode(u.bytes).decode()
 
     def toJson(self) -> str:
-        return json.dumps(self.__dict__, default=jsonEncoderHelper)
+        d = dict(self.__dict__)
+        for key in self.__dict__:
+            if key.startswith('_'):
+                del d[key]
+
+        d['id'] = self.id
+        return json.dumps(d, default=jsonEncoderHelper)
 
     @staticmethod
-    def fromJson(jsonStr: str) -> Recipe:
-        temp = json.loads(jsonStr)
+    def fromJson(jsonStr: Union[str, Any]) -> Recipe:
+        temp = json.loads(jsonStr) if isinstance(jsonStr, str) else jsonStr
+        
+        assert isinstance(temp, dict)
         name = temp["recipeName"]
         ingredients = temp["ingredients"]
         instructions = temp["instructions"]
