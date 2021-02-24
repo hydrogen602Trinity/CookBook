@@ -131,6 +131,8 @@ class Recipe {
     }
 
     collapse() {
+        this.editMode = false;
+        this.tempRecipeData = undefined;
         this.expanded = false;
         this.needsUpdate = true;
         // content.replaceChild(createRecipeButton(this.name, this.id), recipeBox);
@@ -181,12 +183,7 @@ class Recipe {
 
             box.append(this._createRecipeDisplay('Notes', notes, func));
 
-            if (this.editMode) {
-                box.append(this._createEditOptions());
-            }
-            else {
-                box.append(this._createOptions());
-            }
+            box.append(this._createOptions());
 
             this.ref = box;
         }
@@ -272,50 +269,24 @@ class Recipe {
         box.style.flexDirection = 'row';
         box.style.justifyContent = 'space-between';
 
-        const helper = (iconCls) => {
+        const makeButtonAndAddToBox = (iconCls, func) => {
             const button = document.createElement('button');
             button.classList.add('editOrDel');
             button.append(util.createIcon(iconCls));
-            return button;
+            button.onclick = func;
+            box.appendChild(button);
         };
     
-        const deleteButton = helper("fas fa-trash-alt");
-        deleteButton.onclick = this.delete.bind(this);
+        makeButtonAndAddToBox("fas fa-trash-alt", this.delete.bind(this));
     
-        const collapseButton = helper("fas fa-chevron-up");
-        collapseButton.onclick = this.collapse.bind(this);
+        makeButtonAndAddToBox("fas fa-chevron-up", this.collapse.bind(this));
     
-        const editButton = helper("fas fa-edit");
-        editButton.onclick = this.editEntry.bind(this);
-    
-        box.append(deleteButton);
-        box.append(collapseButton);
-        box.append(editButton);
-    
-        return box;
-    }
-
-    _createEditOptions() {
-        const box = document.createElement('div');
-        box.style.display = 'flex';
-        box.style.flexDirection = 'row';
-        box.style.justifyContent = 'space-between';
-
-        const helper = (iconCls) => {
-            const button = document.createElement('button');
-            button.classList.add('editOrDel');
-            button.append(util.createIcon(iconCls));
-            return button;
-        };
-    
-        const deleteButton = helper("fas fa-trash-alt");
-        deleteButton.onclick = this.delete.bind(this);
-    
-        const saveButton = helper("fas fa-save");
-        saveButton.onclick = this.saveEntry.bind(this);
-    
-        box.append(deleteButton);
-        box.append(saveButton);
+        if (this.editMode) {
+            makeButtonAndAddToBox("fas fa-save", this.saveEntry.bind(this));
+        }
+        else {
+            makeButtonAndAddToBox("fas fa-edit", this.editEntry.bind(this));
+        }
     
         return box;
     }
