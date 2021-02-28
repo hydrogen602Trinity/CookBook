@@ -68,6 +68,28 @@ const util = {
         };
         xhttp.open(method, domain + path, true);
         xhttp.send(body);
+    },
+
+    createIconButton: function (iconCls, func=undefined, classOrArr) {
+        const button = document.createElement('button');
+        if (Array.isArray(classOrArr)) {
+            classOrArr.forEach(e => { button.classList.add(e); });
+        }
+        else {
+            button.classList.add(classOrArr);
+        }
+        button.append(util.createIcon(iconCls));
+        if (func) {
+            button.onclick = func;
+        }
+        return button;
+    },
+
+    createInput: function (text, onchange) {
+        const input = document.createElement('input');
+        input.value = text;
+        input.onchange = onchange;
+        return input;
     }
 };
 
@@ -147,10 +169,12 @@ class Recipe {
 
         console.log("building " + this.name);
         if (this.expanded) {
+            let data = this.recipeData;
             if (this.editMode) {
                 if (!this.tempRecipeData) {
                     this.tempRecipeData = this.recipeData.copy();
                 }
+                data = this.tempRecipeData;
             }
 
             const box = document.createElement("div");
@@ -161,11 +185,11 @@ class Recipe {
             recipeTitle.classList.add("recipeName");
             box.append(recipeTitle);
 
-            const ingredients = ((this.editMode) ? this.tempRecipeData : this.recipeData).ingredients.map(e =>
+            const ingredients = data.ingredients.map(e =>
                 e['amount'] + ' ' + e['unit'] + ' ' + e['name']
             );
-            const instructions = ((this.editMode) ? this.tempRecipeData : this.recipeData).instructions;
-            const notes = ((this.editMode) ? this.tempRecipeData : this.recipeData).notes;
+            const instructions = data.instructions;
+            const notes = data.notes;
 
             let funcArr = (this.editMode) ? ingredients.map((e, i) => this.tempRecipeData.generateOnIngredientChange(i)) : undefined;
 
@@ -177,7 +201,7 @@ class Recipe {
             funcArr = (this.editMode) ? instructions.map((e, i) => this.tempRecipeData.generateOnInstructionsChange(i)) : undefined;
             
 
-            box.append(this._createRecipeDisplay('Instructions', instructions, funcArr));
+            box.append(this._createRecipeDisplay('Instructions', instructions, funcArr, 'ol', ));
 
             const func = (this.editMode) ? this.tempRecipeData.onNotesChange.bind(this.tempRecipeData) : undefined;
 
@@ -199,33 +223,19 @@ class Recipe {
         return this.ref;
     }
 
-    _createRecipeDisplay(titleName, stringOrArr, funcOrArr=undefined, listStyle='ol') {
+    _createRecipeDisplay(titleName, stringOrArr, funcOrArr=undefined, listStyle='ol', onAdd=undefined, onClear=undefined) {
         const box = document.createElement('div');
         const title = document.createElement('h3');
         title.innerText = titleName;
         title.style.margin = "0";
         box.append(title);
 
-        const createInput = function (text, onchange) {
-            const input = document.createElement('input');
-            input.value = text;
-            input.onchange = onchange;
-            return input;
-        }
-
-        const createButton = (iconCls) => {
-            const button = document.createElement('button');
-            button.classList.add('addLineEdit');
-            button.append(util.createIcon(iconCls));
-            return button;
-        };
-
         if (Array.isArray(stringOrArr)) {
             if (this.editMode) {
                 if (!Array.isArray(funcOrArr) || funcOrArr.length != stringOrArr.length) {
                     throw Error("funcOrArr should be the same length as stringOrArr");
                 }
-                title.appendChild(createButton('fas fa-plus'));
+                title.appendChild(util.createIconButton('fas fa-plus', undefined, 'addLineEdit'));
             }
 
             const list = document.createElement(listStyle);
@@ -235,8 +245,8 @@ class Recipe {
                 const elem = document.createElement('li');
                 if (this.editMode) {
                     
-                    elem.appendChild(createInput(e, func));
-                    elem.appendChild(createButton('fas fa-minus-circle'));
+                    elem.appendChild(util.createInput(e, func));
+                    elem.appendChild(util.createIconButton('fas fa-minus-circle', onAdd, 'addLineEdit'));
                 }
                 else {
                     elem.innerText = e;
@@ -252,7 +262,7 @@ class Recipe {
                 if (Array.isArray(funcOrArr)) {
                     throw Error("stringOrArr is not array, but funcOrArr is");
                 }
-                oneStr.appendChild(createInput(stringOrArr, funcOrArr));
+                oneStr.appendChild(util.createInput(stringOrArr, funcOrArr));
             }
             else {
                 oneStr.innerText = stringOrArr;
@@ -346,6 +356,18 @@ class RecipeData {
         return (ev) => {
             this.instructions[index] = ev.target.value;
         };
+    }
+
+    setInstructionEvent(index, ev) {
+        this.instructions[index] = ev.target.value;
+    }
+
+    deleteInstructionsEvent(index) {
+        this.instructions[index] = '';
+    }
+
+    addInstructionsEvent() {
+        this.instructions.push("");
     }
 
     generateOnIngredientChange(index) {
