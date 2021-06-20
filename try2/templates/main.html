@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="main.css">
     <script src="https://kit.fontawesome.com/9c4b3dab13.js" crossorigin="anonymous"></script>
 </head>
-<body onload="contentFetch()">
+<body>
     <div class="frame">
         <div class="header">
             <h1>
@@ -15,39 +15,62 @@
         </div>
 
         <div id="content">
+            <ul>
+                <li v-for="note in notes" :key="note.id">
+                    {{ note.content }}
+                </li>
+            </ul>
+            <div>
+                <input name="note" v-model="noteInput">
+                <button name="submit" v-on:click="submitNote">Submit</button>
+            </div>
         </div>
-        <!-- <div id='form'>
-            <input name="name">
-            <button onclick="submit()">Submit</button>
-        </div> -->
     </div>
 
-    <form method="POST" action="{{ url_for('api.notes') }}">
-        <input name="note">
-        <input type="submit">
-    </form>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 
     <script>
-        function contentFetch() {
-            const content = document.getElementById('content');
-            
-            const xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    // Typical action to be performed when the document is ready:
-                    console.log(xhttp.responseText)
-                    content.innerText = xhttp.responseText;
+        const app = new Vue({
+            el: '#content',
+            data: {
+                notes: [{id: 1, content: 'hi'}],
+                noteInput: ""
+            },
+            created() {
+                this.updateNotes()
+            },
+            methods: {
+                updateNotes() {
+                    fetch("%% url_for('api.notes') %%")
+                        .then(response => response.json())
+                        .then(json => {
+                            this.notes = json;
+                            })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                },
+                submitNote() {
+                    fetch("%% url_for('api.notes') %%", {
+                        method: "POST",
+                        body: JSON.stringify({note: this.noteInput}),
+                        headers: {
+                            'Content-type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        this.updateNotes();
+                        
+                        return response;
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                    this.noteInput = '';
                 }
-            };
-            xhttp.open("GET", "{{ url_for('api.notes') }}", true);
-            xhttp.send();
-        }
-
-        // const app = new Vue({
-        //     el: '#content'
-        // });
+            }
+        });
     </script>
 </body>
 </html>

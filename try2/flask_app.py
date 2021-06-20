@@ -6,7 +6,14 @@ from models import Note
 import views
 
 
-app = Flask(__name__)
+class CustomFlask(Flask):
+    jinja_options = Flask.jinja_options.copy()
+    jinja_options.update(dict(
+        variable_start_string='%%',  # default collides with Vue.js
+        variable_end_string='%%',
+    ))
+
+app = CustomFlask(__name__)
 
 app.register_blueprint(views.core)
 app.register_blueprint(views.api, url_prefix='/api/v1')
