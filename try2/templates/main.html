@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="main.css">
     <script src="https://kit.fontawesome.com/9c4b3dab13.js" crossorigin="anonymous"></script>
 </head>
-<body>
+<body onload="contentFetch()">
     <div class="frame">
         <div class="header">
             <h1>
@@ -14,7 +14,7 @@
             </h1>
         </div>
 
-        <div id="content" onload="contentFetch()">
+        <div id="content">
         </div>
         <!-- <div id='form'>
             <input name="name">
@@ -41,9 +41,13 @@
                     content.innerText = xhttp.responseText;
                 }
             };
-            xhttp.open("GET", "/api/v1/notes", true);
+            xhttp.open("GET", "{{ url_for('api.notes') }}", true);
             xhttp.send();
         }
+
+        // const app = new Vue({
+        //     el: '#content'
+        // });
     </script>
 </body>
 </html>
