@@ -9,7 +9,7 @@ from flask_app import create_app
 from database import db
 
 
-class BaseCase(TestCase):
+class NoteCase(TestCase):
 
     SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
     TESTING = True
@@ -81,3 +81,21 @@ class BaseCase(TestCase):
 
         self.assert400(response)
         self.assertEqual({'message': {'error': 'The url paramter "note_id" should not exist in url'}}, response.json)
+
+    def test_get_note(self):
+        response = self.client.get(self.GET_API_NOTE(1))
+
+        self.assert200(response)
+        self.assertEqual({'id': 1, 'content': 'Test Note 1'}, response.json)
+
+    def test_get_note_wrong(self):
+        response = self.client.get(self.API_NOTE)
+
+        self.assert400(response)
+        self.assertEqual({'message': {'error': 'The url paramter "note_id" should exist in url'}}, response.json)
+
+    def test_get_note_wrong2(self):
+        response = self.client.get(self.GET_API_NOTE(2))
+
+        self.assert404(response)
+        self.assertEqual({'message': {'error': 'entry not found in database'}}, response.json)
