@@ -66,14 +66,14 @@ class NoteCase(TestCase):
         response = self.client.post(self.API_NOTE, data=data)
 
         self.assert400(response)
-        self.assertEqual({'message': {'error': 'note missing or empty in data'}}, response.json)
+        self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
 
     def test_add_notes_wrong2(self):
         data = {'note': ''}
         response = self.client.post(self.API_NOTE, data=data)
 
         self.assert400(response)
-        self.assertEqual({'message': {'error': 'note missing or empty in data'}}, response.json)
+        self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
     
     def test_add_notes_wrong3(self):
         data = {'note': 'abc'}

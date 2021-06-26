@@ -1,10 +1,11 @@
-from typing import Any, List, Optional, Union
+from typing import Optional
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint, abort
 from functools import wraps
 
 from models import Note, db
+from .util import optional_param_check, require_truthy_values, handle_nonexistance
 
 
 api_blueprint = Blueprint(
@@ -15,27 +16,6 @@ api_blueprint = Blueprint(
 
 
 api = Api(api_blueprint)
-
-
-def optional_param_check(should_exist: bool, arg_list: Union[str, List[str]]):
-    if isinstance(arg_list, str):
-        arg_list = (arg_list,)
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, **kwargs):
-            for arg in arg_list:
-                v = kwargs.get(arg)
-                if (should_exist and v is None) or (not should_exist and v is not None):
-                    abort(400, {
-                        'error': f'The url paramter "{arg}" should { "" if should_exist else "not " }exist in url'})
-            return func(self, **kwargs)
-        return wrapper
-    return decorator
-
-
-def handle_nonexistance(value: Any):
-    if value is None:
-        abort(404, {'error': 'entry not found in database'})
 
 
 class NoteList(Resource):
@@ -52,9 +32,7 @@ class NoteResource(Resource):
 
     @optional_param_check(False, 'note_id')
     def post(self, note_id: Optional[int] = None):
-        data = note_parser.parse_args()
-        if not data['note']:
-            abort(400, {'error': 'note missing or empty in data'})
+        data = require_truthy_values(note_parser.parse_args())
 
         newNote = Note(data['note'])
         db.session.add(newNote)
