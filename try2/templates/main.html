@@ -13,7 +13,6 @@
                 Recipe Book
             </h1>
         </div>
-
         <div id="content">
             <ul>
                 <li v-for="note in notes" :key="note.id">
@@ -22,7 +21,7 @@
             </ul>
             <div>
                 <input name="note" v-model="noteInput">
-                <button name="submit" v-on:click="submitNote">Submit</button>
+                <button name="submit" v-on:click="submitNote()">Submit</button>
             </div>
         </div>
     </div>
@@ -34,7 +33,7 @@
         const app = new Vue({
             el: '#content',
             data: {
-                notes: [{id: 1, content: 'hi'}],
+                notes: [],
                 noteInput: ""
             },
             created() {
@@ -61,7 +60,6 @@
                     })
                     .then(response => {
                         this.updateNotes();
-                        
                         return response;
                     })
                     .catch((error) => {

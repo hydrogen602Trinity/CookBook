@@ -1,9 +1,10 @@
+from typing import Optional
 from flask import Flask, render_template, request
-from os import getenv
 
 from database import db
 from models import Note
 import views
+from util import getenv
 
 
 class CustomFlask(Flask):
@@ -13,22 +14,8 @@ class CustomFlask(Flask):
         variable_end_string='%%',
     ))
 
-app = CustomFlask(__name__)
 
-app.register_blueprint(views.core)
-app.register_blueprint(views.api, url_prefix='/api/v1')
-
-SQLALCHEMY_DATABASE_URI = "sqlite:///{dbfile}".format(
-    dbfile='test.db'
-)
-app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
-# app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db.init_app(app)
-
-
-def setup_database(app):
+def setup_database(app: Flask):
     with app.app_context():
         db.create_all()
     
@@ -37,9 +24,22 @@ def setup_database(app):
         db.session.commit()
 
 
-init_db = getenv('INIT_DB')
-if init_db and init_db.strip() == '1':
-    setup_database(app) 
+def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
+    app = CustomFlask(__name__)
 
+    app.register_blueprint(views.core)
+    app.register_blueprint(views.api, url_prefix='/api/v1')
 
-print(app.url_map)
+    SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+    # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config['TESTING'] = testing
+
+    db.init_app(app)
+
+    init_db = getenv('INIT_DB')
+    if init_db and init_db.strip() == '1':
+        setup_database(app)
+
+    return app

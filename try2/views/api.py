@@ -13,6 +13,7 @@ api = Blueprint(
 def base():
     return 'api?'
 
+
 @api.route('/note', methods=['POST', 'GET'])
 def notes():
     if request.method == 'GET':
@@ -30,3 +31,7 @@ def notes():
         db.session.commit()
         return '', 201
 
+
+@api.route('/note/<int:param>', methods=['DELETE'])
+def remove_note(param: int):
+    Note.query.get(param)
