@@ -35,11 +35,14 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
     # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config['TESTING'] = testing
+    app.config["SERVER_NAME"] = "localhost:5000"
+    app.config["APPLICATION_ROOT"] = "/"
 
     db.init_app(app)
 
-    init_db = getenv('INIT_DB')
-    if init_db and init_db.strip() == '1':
-        setup_database(app)
+    if not testing:
+        init_db = getenv('INIT_DB')
+        if init_db and init_db.strip() == '1':
+            setup_database(app)
 
     return app

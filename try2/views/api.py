@@ -23,8 +23,8 @@ def notes():
         if not data:
             data = request.form.to_dict()
 
-        if 'note' not in data or not isinstance(data['note'], str):
-            return {'error': 'note key missing or wrong type in data'}, 400
+        if 'note' not in data or not isinstance(data['note'], str) or not data['note']:
+            return {'error': 'note key missing, empty or wrong type in data'}, 400
         
         newNote = Note(data['note'])
         db.session.add(newNote)

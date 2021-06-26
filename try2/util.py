@@ -1,4 +1,5 @@
 from os import getenv as os_getenv
+from typing import Any
 
 
 def getenv(name: str) -> str:
