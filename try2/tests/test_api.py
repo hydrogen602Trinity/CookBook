@@ -22,7 +22,9 @@ class BaseCase(TestCase):
 
         with app.app_context():
             self.API_NOTES = url_for_rest('resources.notelist', _external=False)
-            self.API_NOTE = url_for_rest('resources.noteresource', _external=False)
+            self.GET_API_NOTE = \
+                lambda note_id: url_for_rest('resources.noteresource', _external=False, note_id=note_id)
+            self.API_NOTE = self.GET_API_NOTE(None)
         return app
 
     def setUp(self):
@@ -64,11 +66,18 @@ class BaseCase(TestCase):
         response = self.client.post(self.API_NOTE, data=data)
 
         self.assert400(response)
-        self.assertEqual({'error': 'note missing or empty in data'}, response.json)
+        self.assertEqual({'message': {'error': 'note missing or empty in data'}}, response.json)
 
     def test_add_notes_wrong2(self):
         data = {'note': ''}
         response = self.client.post(self.API_NOTE, data=data)
 
         self.assert400(response)
-        self.assertEqual({'error': 'note missing or empty in data'}, response.json)
+        self.assertEqual({'message': {'error': 'note missing or empty in data'}}, response.json)
+    
+    def test_add_notes_wrong3(self):
+        data = {'note': 'abc'}
+        response = self.client.post(self.GET_API_NOTE(3), data=data)
+
+        self.assert400(response)
+        self.assertEqual({'message': {'error': 'The url paramter "note_id" should not exist in url'}}, response.json)

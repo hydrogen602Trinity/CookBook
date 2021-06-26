@@ -29,8 +29,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
     app = CustomFlask(__name__)
 
     app.register_blueprint(views.core)
-    app.register_blueprint(views.api, url_prefix='/api/v1')
-    app.register_blueprint(restapi.api_blueprint, url_prefix='/api/v2')
+    app.register_blueprint(restapi.api_blueprint, url_prefix='/api/v1')
 
     SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
     app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI

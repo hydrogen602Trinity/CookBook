@@ -14,5 +14,6 @@ html
 - `api.py` -> rest api
 - `core.py` -> serving the frontend
 
+## restapi/resources
 
-
+allows for rest api calls
