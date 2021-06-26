@@ -3,6 +3,7 @@ from models.note import Note
 from flask import json, url_for
 from flask.testing import FlaskClient
 from flask_testing import TestCase
+from flask_restful import url_for as url_for_rest
 
 from flask_app import create_app
 from database import db
@@ -20,7 +21,8 @@ class BaseCase(TestCase):
         app = create_app(testing=True, db_uri=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
-            self.API_NOTES = url_for('api.notes', _external=False)
+            self.API_NOTES = url_for_rest('resources.notelist', _external=False)
+            self.API_NOTE = url_for_rest('resources.noteresource', _external=False)
         return app
 
     def setUp(self):
@@ -39,14 +41,14 @@ class BaseCase(TestCase):
 
         self.assertEqual(list, type(response.json))
         self.assertEqual([{'id': 1, 'content': 'Test Note 1'}], response.json)
-        self.assertEqual(200, response.status_code)
+        self.assert200(response)
 
     def test_add_notes(self):
         data = {'note': 'foobar'}
-        response = self.client.post(self.API_NOTES, data=data)
+        response = self.client.post(self.API_NOTE, data=data)
 
-        self.assertEqual(201, response.status_code)
-        self.assertEqual(None, response.json)
+        self.assertStatus(response, 201)
+        self.assertFalse(response.json)
 
         response = self.client.get(self.API_NOTES)
 
@@ -55,18 +57,18 @@ class BaseCase(TestCase):
             {'id': 1, 'content': 'Test Note 1'}, 
             {'id': 2, 'content': 'foobar'}
             ], response.json)
-        self.assertEqual(200, response.status_code)
+        self.assert200(response)
 
     def test_add_notes_wrong(self):
         data = {}
-        response = self.client.post(self.API_NOTES, data=data)
+        response = self.client.post(self.API_NOTE, data=data)
 
-        self.assertEqual(400, response.status_code)
-        self.assertEqual({'error': 'note key missing, empty or wrong type in data'}, response.json)
+        self.assert400(response)
+        self.assertEqual({'error': 'note missing or empty in data'}, response.json)
 
     def test_add_notes_wrong2(self):
         data = {'note': ''}
-        response = self.client.post(self.API_NOTES, data=data)
+        response = self.client.post(self.API_NOTE, data=data)
 
-        self.assertEqual(400, response.status_code)
-        self.assertEqual({'error': 'note key missing, empty or wrong type in data'}, response.json)
+        self.assert400(response)
+        self.assertEqual({'error': 'note missing or empty in data'}, response.json)

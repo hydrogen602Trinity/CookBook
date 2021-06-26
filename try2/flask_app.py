@@ -1,3 +1,4 @@
+import restapi
 from typing import Optional
 from flask import Flask, render_template, request
 
@@ -29,6 +30,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
 
     app.register_blueprint(views.core)
     app.register_blueprint(views.api, url_prefix='/api/v1')
+    app.register_blueprint(restapi.api_blueprint, url_prefix='/api/v2')
 
     SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
     app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
@@ -37,6 +39,8 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
     app.config['TESTING'] = testing
     app.config["SERVER_NAME"] = "localhost:5000"
     app.config["APPLICATION_ROOT"] = "/"
+    if testing:
+        app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
 
     db.init_app(app)
 
