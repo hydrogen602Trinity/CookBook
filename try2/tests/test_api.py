@@ -21,7 +21,6 @@ class NoteCase(TestCase):
         app = create_app(testing=True, db_uri=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
-            self.API_NOTES = url_for_rest('resources.notelist', _external=False)
             self.GET_API_NOTE = \
                 lambda note_id: url_for_rest('resources.noteresource', _external=False, note_id=note_id)
             self.API_NOTE = self.GET_API_NOTE(None)
@@ -39,7 +38,7 @@ class NoteCase(TestCase):
         db.drop_all()
 
     def test_get_all_notes(self):
-        response = self.client.get(self.API_NOTES)
+        response = self.client.get(self.API_NOTE)
 
         self.assertEqual(list, type(response.json))
         self.assertEqual([{'id': 1, 'content': 'Test Note 1'}], response.json)
@@ -52,7 +51,7 @@ class NoteCase(TestCase):
         self.assertStatus(response, 201)
         self.assertFalse(response.json)
 
-        response = self.client.get(self.API_NOTES)
+        response = self.client.get(self.API_NOTE)
 
         self.assertEqual(list, type(response.json))
         self.assertEqual([
@@ -87,12 +86,6 @@ class NoteCase(TestCase):
 
         self.assert200(response)
         self.assertEqual({'id': 1, 'content': 'Test Note 1'}, response.json)
-
-    def test_get_note_wrong(self):
-        response = self.client.get(self.API_NOTE)
-
-        self.assert400(response)
-        self.assertEqual({'message': {'error': 'The url paramter "note_id" should exist in url'}}, response.json)
 
     def test_get_note_wrong2(self):
         response = self.client.get(self.GET_API_NOTE(2))
