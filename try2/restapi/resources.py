@@ -5,7 +5,7 @@ from flask import Blueprint, abort
 from functools import wraps
 
 from models import Note, db
-from .util import optional_param_check, require_truthy_values, handle_nonexistance
+from .util import optional_param_check, require_truthy_values, handle_nonexistance, add_resource
 
 
 api_blueprint = Blueprint(
@@ -22,6 +22,7 @@ note_parser = reqparse.RequestParser()
 note_parser.add_argument('note', type=str, help='The content of the note')
 
 
+@add_resource(api, '/note', '/note/<int:note_id>')
 class NoteResource(Resource):
 
     @optional_param_check(False, 'note_id')
@@ -40,6 +41,3 @@ class NoteResource(Resource):
             return jsonify(note.toJson())
         else:
             return jsonify([note.toJson() for note in Note.query.all()])
-
-
-api.add_resource(NoteResource, '/note', '/note/<int:note_id>')

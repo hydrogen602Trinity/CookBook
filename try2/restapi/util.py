@@ -1,7 +1,11 @@
-
+from __future__ import annotations
 from functools import wraps
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union, TYPE_CHECKING
 from flask import abort
+
+
+if TYPE_CHECKING:
+    from flask_restful import Api
 
 
 def optional_param_check(should_exist: bool, arg_list: Union[str, List[str]]):
@@ -43,3 +47,10 @@ def require_truthy_values(data: dict) -> dict:
         if not v:
             abort(400, {'error': f'field "{k}" missing or empty in data'})
     return data
+
+
+def add_resource(api: Api, *paths: str) -> Callable[[type], type]:
+    def decorator(cls: type) -> type:
+        api.add_resource(cls, *paths)
+        return cls
+    return decorator

@@ -41,7 +41,7 @@
             },
             methods: {
                 updateNotes() {
-                    fetch("%% url_for('resources.notelist') %%")
+                    fetch("%% url_for('resources.noteresource') %%")
                         .then(response => response.json())
                         .then(json => {
                             this.notes = json;
@@ -51,7 +51,7 @@
                         });
                 },
                 submitNote() {
-                    fetch("%% url_for('resources.notelist') %%", {
+                    fetch("%% url_for('resources.noteresource') %%", {
                         method: "POST",
                         body: JSON.stringify({note: this.noteInput}),
                         headers: {

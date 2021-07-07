@@ -1,3 +1,4 @@
+from models.note import Ingredient, Recipe
 import restapi
 from typing import Optional
 from flask import Flask, render_template, request
@@ -18,11 +19,34 @@ class CustomFlask(Flask):
 
 def setup_database(app: Flask):
     with app.app_context():
+        db.drop_all()
         db.create_all()
     
         note = Note('Test a b c')
         db.session.add(note)
         db.session.commit()
+
+        recipe = Recipe()
+        db.session.add(recipe)
+        db.session.commit()
+
+        ing = Ingredient(recipe.id, 'eggs')
+        db.session.add(ing)
+        db.session.commit()
+
+        ing = Ingredient(recipe.id, 'salt')
+        db.session.add(ing)
+        db.session.commit()
+
+        print(recipe.ingredient_ids)
+        print(ing.recipe.id)
+
+        print('all:', Ingredient.query.all())
+
+        db.session.delete(recipe)
+        db.session.commit()
+
+        print('all:', Ingredient.query.all())
 
 
 def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
