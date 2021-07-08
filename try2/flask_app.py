@@ -1,4 +1,4 @@
-from models.note import Ingredient, Recipe
+from models import Ingredient, Recipe
 import restapi
 from typing import Optional
 from flask import Flask, render_template, request
@@ -26,25 +26,15 @@ def setup_database(app: Flask):
         db.session.add(note)
         db.session.commit()
 
-        recipe = Recipe()
+        recipe = Recipe('Scrambled Eggs', 'instructions', [
+            Ingredient('eggs', 2),
+            Ingredient('salt', 1/8)
+        ])
+
         db.session.add(recipe)
         db.session.commit()
 
-        ing = Ingredient(recipe.id, 'eggs')
-        db.session.add(ing)
-        db.session.commit()
-
-        ing = Ingredient(recipe.id, 'salt')
-        db.session.add(ing)
-        db.session.commit()
-
-        print(recipe.ingredient_ids)
-        print(ing.recipe.id)
-
-        print('all:', Ingredient.query.all())
-
-        db.session.delete(recipe)
-        db.session.commit()
+        print(recipe.ingredients)
 
         print('all:', Ingredient.query.all())
 

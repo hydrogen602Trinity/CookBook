@@ -1,4 +1,4 @@
-from models.note import Note
+from models import Note, Recipe, Ingredient
 
 from flask import json, url_for
 from flask.testing import FlaskClient
@@ -92,3 +92,91 @@ class NoteCase(TestCase):
 
         self.assert404(response)
         self.assertEqual({'message': {'error': 'entry not found in database'}}, response.json)
+
+
+class RecipeCase(TestCase):
+
+    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    TESTING = True
+
+    client: FlaskClient
+
+    def create_app(self):
+        # pass in test configuration
+        app = create_app(testing=True, db_uri=self.SQLALCHEMY_DATABASE_URI)
+
+        with app.app_context():
+            self.GET_API_NODE = \
+                lambda recipe_id: url_for_rest('resources.reciperesource', _external=False, recipe_id=recipe_id)
+            self.API_NODE = self.GET_API_NODE(None)
+        return app
+
+    def setUp(self):
+        db.create_all()
+
+        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [])
+        db.session.add(note)
+        db.session.commit()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+    
+    def assert201(self, response):
+        self.assertStatus(response, 201)
+
+    def test_get(self):
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+    
+    def test_create(self):
+        data = {
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'eggs',
+                'num': 2,
+                'denom': 1
+            }]
+        }
+        response = self.client.post(self.API_NODE, data=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+        self.assertEqual([
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []},
+            {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': []}], response.json)
+
+    def test_create_invalid(self):
+        invalid_data = [
+            {
+                'name': '',
+                'notes': 'Cook for 4 and and a half for a liquid inside'
+            },
+            {
+                'name': 'Cooked Eggs',
+                'notes': ''
+            },
+            {
+                'notes': 'Cook for 4 and and a half for a liquid inside'
+            },
+            {
+                'name': 'Cooked Eggs'
+            }
+        ]
+        
+        for data in invalid_data:
+            response = self.client.post(self.API_NODE, data=data)
+
+            self.assert400(response)
+
+            response = self.client.get(self.API_NODE)
+
+            self.assert200(response)
+            self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)

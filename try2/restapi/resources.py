@@ -1,11 +1,12 @@
+from fractions import Fraction
 from typing import Optional
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint, abort
 from functools import wraps
 
-from models import Note, db
-from .util import optional_param_check, require_truthy_values, handle_nonexistance, add_resource
+from models import Ingredient, Note, Recipe, db
+from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 
 api_blueprint = Blueprint(
@@ -20,6 +21,12 @@ api = Api(api_blueprint)
 
 note_parser = reqparse.RequestParser()
 note_parser.add_argument('note', type=str, help='The content of the note')
+
+
+recipe_parser = reqparse.RequestParser()
+recipe_parser.add_argument('name', type=str, help='Recipe name')
+recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
+recipe_parser.add_argument('ingredients', default=[])
 
 
 @add_resource(api, '/note', '/note/<int:note_id>')
@@ -41,3 +48,39 @@ class NoteResource(Resource):
             return jsonify(note.toJson())
         else:
             return jsonify([note.toJson() for note in Note.query.all()])
+
+
+@add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
+class RecipeResource(Resource):
+
+    ingredient_requirements = {
+        'name': str,
+        'num': int,
+        'denom': int
+    }
+
+    @optional_param_check(False, 'recipe_id')
+    def post(self, _=None):
+        data = require_truthy_values(recipe_parser.parse_args(), exceptions=('ingredients',))
+
+        ingredients = []
+        print(data['ingredients'])
+        for ingredient in data['ingredients']:
+            
+            ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
+            ingredients.append(Ingredient(ingredient['name'], 
+                                          Fraction(ingredient['num'], 
+                                                   ingredient['denom'])))
+
+        newRecipe = Recipe(data['name'], data['notes'], ingredients)
+        db.session.add(newRecipe)
+        db.session.commit()
+        return '', 201
+
+    def get(self, recipe_id: Optional[int] = None):
+        if recipe_id:
+            recipe = db.session.query(Recipe).get(recipe_id)
+            handle_nonexistance(recipe)
+            return jsonify(recipe.toJson())
+        else:
+            return jsonify([recipe.toJson() for recipe in Recipe.query.all()])
