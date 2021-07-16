@@ -2,7 +2,7 @@ from fractions import Fraction
 from typing import Optional
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
-from flask import Blueprint, abort
+from flask import Blueprint
 from functools import wraps
 
 from models import Ingredient, Note, Recipe, db
@@ -26,7 +26,7 @@ note_parser.add_argument('note', type=str, help='The content of the note')
 recipe_parser = reqparse.RequestParser()
 recipe_parser.add_argument('name', type=str, help='Recipe name')
 recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
-recipe_parser.add_argument('ingredients', default=[])
+recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
 
 
 @add_resource(api, '/note', '/note/<int:note_id>')

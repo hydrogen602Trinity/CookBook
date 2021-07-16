@@ -46,7 +46,7 @@ class NoteCase(TestCase):
 
     def test_add_notes(self):
         data = {'note': 'foobar'}
-        response = self.client.post(self.API_NOTE, data=data)
+        response = self.client.post(self.API_NOTE, json=data)
 
         self.assertStatus(response, 201)
         self.assertFalse(response.json)
@@ -62,21 +62,21 @@ class NoteCase(TestCase):
 
     def test_add_notes_wrong(self):
         data = {}
-        response = self.client.post(self.API_NOTE, data=data)
+        response = self.client.post(self.API_NOTE, json=data)
 
         self.assert400(response)
         self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
 
     def test_add_notes_wrong2(self):
         data = {'note': ''}
-        response = self.client.post(self.API_NOTE, data=data)
+        response = self.client.post(self.API_NOTE, json=data)
 
         self.assert400(response)
         self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
     
     def test_add_notes_wrong3(self):
         data = {'note': 'abc'}
-        response = self.client.post(self.GET_API_NOTE(3), data=data)
+        response = self.client.post(self.GET_API_NOTE(3), json=data)
 
         self.assert400(response)
         self.assertEqual({'message': {'error': 'The url paramter "note_id" should not exist in url'}}, response.json)
@@ -131,7 +131,7 @@ class RecipeCase(TestCase):
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
-    
+
     def test_create(self):
         data = {
             'name': 'Cooked Eggs',
@@ -142,7 +142,7 @@ class RecipeCase(TestCase):
                 'denom': 1
             }]
         }
-        response = self.client.post(self.API_NODE, data=data)
+        response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
 
@@ -151,7 +151,12 @@ class RecipeCase(TestCase):
         self.assert200(response)
         self.assertEqual([
             {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []},
-            {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': []}], response.json)
+            {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
+                'name': 'eggs',
+                'id': 1,
+                'num': 2,
+                'denom': 1
+            }]}], response.json)
 
     def test_create_invalid(self):
         invalid_data = [
@@ -170,9 +175,9 @@ class RecipeCase(TestCase):
                 'name': 'Cooked Eggs'
             }
         ]
-        
+
         for data in invalid_data:
-            response = self.client.post(self.API_NODE, data=data)
+            response = self.client.post(self.API_NODE, json=data)
 
             self.assert400(response)
 
