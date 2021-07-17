@@ -19,22 +19,15 @@ api_blueprint = Blueprint(
 api = Api(api_blueprint)
 
 
-note_parser = reqparse.RequestParser()
-note_parser.add_argument('note', type=str, help='The content of the note')
-
-
-recipe_parser = reqparse.RequestParser()
-recipe_parser.add_argument('name', type=str, help='Recipe name')
-recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
-recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
-
-
 @add_resource(api, '/note', '/note/<int:note_id>')
 class NoteResource(Resource):
 
+    note_parser = reqparse.RequestParser()
+    note_parser.add_argument('note', type=str, help='The content of the note')
+
     @optional_param_check(False, 'note_id')
     def post(self, _=None):
-        data = require_truthy_values(note_parser.parse_args())
+        data = require_truthy_values(self.note_parser.parse_args())
 
         newNote = Note(data['note'])
         db.session.add(newNote)
@@ -53,6 +46,11 @@ class NoteResource(Resource):
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
 class RecipeResource(Resource):
 
+    recipe_parser = reqparse.RequestParser()
+    recipe_parser.add_argument('name', type=str, help='Recipe name')
+    recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
+    recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
+
     ingredient_requirements = {
         'name': str,
         'num': int,
@@ -61,7 +59,7 @@ class RecipeResource(Resource):
 
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
-        data = require_truthy_values(recipe_parser.parse_args(), exceptions=('ingredients',))
+        data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients',))
 
         ingredients = []
         for ingredient in data['ingredients']:
