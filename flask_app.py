@@ -2,6 +2,8 @@ from models import Ingredient, Recipe
 import restapi
 from typing import Optional
 from flask import Flask, render_template, request
+from flask_cors import CORS
+
 
 from database import db
 from models import Note
@@ -44,6 +46,8 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
 
     app.register_blueprint(views.core)
     app.register_blueprint(restapi.api_blueprint, url_prefix='/api/v1')
+
+    CORS(app)
 
     SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
     app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
