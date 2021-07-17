@@ -120,7 +120,7 @@ class RecipeCase(TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-    
+
     def assert201(self, response):
         self.assertStatus(response, 201)
 
