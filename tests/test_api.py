@@ -1,6 +1,5 @@
 from models import Note, Recipe, Ingredient
 
-from flask import json, url_for
 from flask.testing import FlaskClient
 from flask_testing import TestCase
 from flask_restful import url_for as url_for_rest

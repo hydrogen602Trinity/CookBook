@@ -1,3 +1,0 @@
-
-class NameTakenError(Exception):
-    pass
