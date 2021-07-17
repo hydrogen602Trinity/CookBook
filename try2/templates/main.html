@@ -34,14 +34,15 @@
             el: '#content',
             data: {
                 notes: [],
-                noteInput: ""
+                noteInput: "",
+                noteResource: "%% url_for('resources.noteresource') %%",
             },
             created() {
                 this.updateNotes()
             },
             methods: {
                 updateNotes() {
-                    fetch("%% url_for('resources.noteresource') %%")
+                    fetch(this.noteResource)
                         .then(response => response.json())
                         .then(json => {
                             this.notes = json;
@@ -51,7 +52,7 @@
                         });
                 },
                 submitNote() {
-                    fetch("%% url_for('resources.noteresource') %%", {
+                    fetch(this.noteResource, {
                         method: "POST",
                         body: JSON.stringify({note: this.noteInput}),
                         headers: {

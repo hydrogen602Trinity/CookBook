@@ -3,7 +3,6 @@ from typing import Optional
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
-from functools import wraps
 
 from models import Ingredient, Note, Recipe, db
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
