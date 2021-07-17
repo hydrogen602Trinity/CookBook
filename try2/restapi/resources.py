@@ -64,9 +64,7 @@ class RecipeResource(Resource):
         data = require_truthy_values(recipe_parser.parse_args(), exceptions=('ingredients',))
 
         ingredients = []
-        print(data['ingredients'])
         for ingredient in data['ingredients']:
-            
             ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
             ingredients.append(Ingredient(ingredient['name'], 
                                           Fraction(ingredient['num'], 

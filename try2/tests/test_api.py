@@ -157,6 +157,17 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 1
             }]}], response.json)
+        
+        response = self.client.get(self.GET_API_NODE(2))
+
+        self.assert200(response)
+        self.assertEqual({
+            'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
+                'name': 'eggs',
+                'id': 1,
+                'num': 2,
+                'denom': 1
+            }]}, response.json)
 
     def test_create_invalid(self):
         invalid_data = [
