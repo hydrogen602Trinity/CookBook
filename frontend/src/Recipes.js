@@ -1,4 +1,4 @@
-import RecipeEntry from './parts/RecipeEntry';
+import RecipeEntry from './components/RecipeEntry';
 import './Recipes.css'
 import './root.css'
 import { useFetchAPI } from './util/fetchAPI';

@@ -1,0 +1,19 @@
+
+.recipe-details {
+    margin-top: 0.5em;
+    text-transform: none;
+    font-size: large;
+}
+
+.recipe-entry {
+    background-color: var(--beige);
+    margin-bottom: 20px;
+    border: 0px;
+    text-transform: inherit;
+    font-size: x-large;
+    text-align: center;
+    padding: 1em;
+
+    box-shadow: 5px 5px 5px gainsboro;
+    transition: height 2s;
+}
