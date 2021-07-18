@@ -1,29 +1,33 @@
-import { useEffect, useState, useCallback } from 'react';
+// import { useEffect, useState, useCallback } from 'react';
 
-export function useAPIState(path, onFailure = null) {
-    const fullPath = 'http://' + process.env.REACT_APP_API + '/' + path;
-    const [data, setData] = useState([]);
-
-    const onFailureFunc = useCallback(onFailure, []);
-
-    function update() {
-        fetch(fullPath)
-            .then(response => response.json())
-            .then(json => {
-                    setData(json);
-                })
-            .catch((error) => {
-                console.error('Error:', error);
-                if (onFailureFunc) {
-                    onFailureFunc(error);
-                }
-            });
-    }
-
-    useEffect(update, [fullPath, onFailureFunc]);
-
-    return [data, update];
+export function fullPath(path) {
+    return 'http://' + process.env.REACT_APP_API + '/' + path;
 }
+
+// export function useAPIState(path, onFailure = null) {
+//     const fullPath = 'http://' + process.env.REACT_APP_API + '/' + path;
+//     const [data, setData] = useState([]);
+
+//     const onFailureFunc = useCallback(onFailure, []);
+
+//     function update() {
+//         fetch(fullPath)
+//             .then(response => response.json())
+//             .then(json => {
+//                     setData(json);
+//                 })
+//             .catch((error) => {
+//                 console.error('Error:', error);
+//                 if (onFailureFunc) {
+//                     onFailureFunc(error);
+//                 }
+//             });
+//     }
+
+//     useEffect(update, [fullPath, onFailureFunc]);
+
+//     return [data, update];
+// }
 
 // export function getFetchAPIFunc(path, method = 'GET', onSuccess = null, onFailure = null) {
 //     const fullPath = 'http://' + process.env.REACT_APP_API + '/' + path;

@@ -1,10 +1,17 @@
 import RecipeEntry from './parts/RecipeEntry';
 import './Recipes.css'
-import { useAPIState } from './util/fetchAPI';
+import './root.css'
+import { fullPath } from './util/fetchAPI';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import Grow from '@material-ui/core/Grow';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { useEffect, useState, createRef, forwardRef } from 'react';
+import createTrigger from "react-use-trigger";
+import useTrigger from "react-use-trigger/useTrigger";
+import useFetch from "react-fetch-hook";
+
+const updateRecipesTrigger = createTrigger();
 
 const Alert = forwardRef((props, ref) => {
     return <MuiAlert ref={ref} elevation={6} variant="filled" {...props} />;
@@ -17,9 +24,15 @@ const GrowTransition = forwardRef((props, ref) => {
 
 export default function Recipes() {
     const [state, setState] = useState({snackbar: null});
-    const [recipes, updateRecipes] = useAPIState('recipe', 
-        e => setState({snackbar: 'Failed to load recipes'}));
     const snackbarRef = createRef(null);
+
+    const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
+    
+    const { isLoading, data, error } = useFetch(fullPath('recipe'), {
+        depends: [updateRecipesTriggerValue]
+    });
+
+    useEffect(() => setState({snackbar: (error ? 'Failed to load recipes' : null)}), [error]);
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -28,11 +41,11 @@ export default function Recipes() {
         setState({snackbar: null});
     };
 
-    const setSnackbar = (msg) => {
-        setState({snackbar: null});
-    };
+    // const setSnackbar = (msg) => {
+    //     setState({snackbar: null});
+    // };
 
-    console.log(recipes);
+    console.log(data, isLoading);
 
     return (
         <div className="frame">
@@ -50,7 +63,9 @@ export default function Recipes() {
                 <button>Delete</button>
             </div> */}
             <div className="main" id="content">
-                {recipes.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe}/>)}
+                {isLoading ? 
+                    <CircularProgress className="recipe-circular-progress"/> : 
+                    data.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe}/>)}
             </div>
             {/* <div className="sidebar" hidden={true}>
                 <button onClick={() => console.log('getAllRecipes')}>
