@@ -73,7 +73,7 @@ class Ingredient(db.Model):
             self.recipe_id = recipe_id
         self.name = name
         self.amount = amount
-        self.unit = unit
+        self.unit = unit if unit else None
 
     def __repr__(self) -> str:
         return f'Ingredient(id={self.id}, name={self.name}, amount={self.amount}, unit={self.unit})'

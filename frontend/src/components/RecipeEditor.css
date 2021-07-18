@@ -1,0 +1,35 @@
+
+.popup-outer {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.popup-outer > div {
+    /* border: 1px solid red; */
+    margin: 1.5rem;
+    background-color: var(--beige);
+    padding: 1.5rem;
+    font-size: large;
+    box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.3);
+}
+
+.recipe-editor input {
+    font-size: large;
+}
+
+.recipe-editor h1 {
+    text-align: center;
+    font-size: x-large;
+}
+
+.recipe-editor-form {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.recipe-editor-form > input {
+    display: block;
+}
