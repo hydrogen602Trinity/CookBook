@@ -1,7 +1,17 @@
 // import { useEffect, useState, useCallback } from 'react';
+import useFetch from "react-fetch-hook";
 
 export function fullPath(path) {
     return 'http://' + process.env.REACT_APP_API + '/' + path;
+}
+
+export function useFetchAPI(path, dependsArray = null) {
+    const { isLoading, data, error } = useFetch(
+        fullPath(path), 
+        (dependsArray ? {
+                depends: dependsArray
+            } : null));
+    return [isLoading, data, error];
 }
 
 // export function useAPIState(path, onFailure = null) {

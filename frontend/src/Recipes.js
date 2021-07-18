@@ -1,7 +1,7 @@
 import RecipeEntry from './parts/RecipeEntry';
 import './Recipes.css'
 import './root.css'
-import { fullPath } from './util/fetchAPI';
+import { useFetchAPI } from './util/fetchAPI';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import Grow from '@material-ui/core/Grow';
@@ -9,7 +9,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { useEffect, useState, createRef, forwardRef } from 'react';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
-import useFetch from "react-fetch-hook";
+
 
 const updateRecipesTrigger = createTrigger();
 
@@ -28,9 +28,7 @@ export default function Recipes() {
 
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
     
-    const { isLoading, data, error } = useFetch(fullPath('recipe'), {
-        depends: [updateRecipesTriggerValue]
-    });
+    const [ isLoading, recipes, error ] = useFetchAPI('recipe', [updateRecipesTriggerValue]);
 
     useEffect(() => setState({snackbar: (error ? 'Failed to load recipes' : null)}), [error]);
 
@@ -45,7 +43,7 @@ export default function Recipes() {
     //     setState({snackbar: null});
     // };
 
-    console.log(data, isLoading);
+    console.log(recipes, isLoading);
 
     return (
         <div className="frame">
@@ -65,7 +63,7 @@ export default function Recipes() {
             <div className="main" id="content">
                 {isLoading ? 
                     <CircularProgress className="recipe-circular-progress"/> : 
-                    data.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe}/>)}
+                    recipes.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe}/>)}
             </div>
             {/* <div className="sidebar" hidden={true}>
                 <button onClick={() => console.log('getAllRecipes')}>

@@ -74,7 +74,7 @@ class RecipeResource(Resource):
         return '', 201
 
     def get(self, recipe_id: Optional[int] = None):
-        sleep(20)  # simulate slow internet 
+        # sleep(20)  # simulate slow internet 
         if recipe_id:
             recipe = db.session.query(Recipe).get(recipe_id)
             handle_nonexistance(recipe)
