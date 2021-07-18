@@ -28,7 +28,7 @@ def setup_database(app: Flask):
         db.session.add(note)
         db.session.commit()
 
-        recipe = Recipe('Scrambled Eggs', 'instructions', [
+        recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
             Ingredient('eggs', 2),
             Ingredient('salt', 1/8)
         ])
@@ -54,7 +54,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
     # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config['TESTING'] = testing
-    app.config["SERVER_NAME"] = "localhost:5000"
+    #app.config["SERVER_NAME"] = "localhost:5000"
     app.config["APPLICATION_ROOT"] = "/"
     if testing:
         app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False

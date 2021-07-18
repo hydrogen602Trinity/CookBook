@@ -54,6 +54,7 @@ body {
     background-color: transparent;
     font-size: var(--iconSize);
     margin-right: 5%;
+    padding: 1%;
 }
 
 .bar {
@@ -85,14 +86,14 @@ body {
     padding-top: 20px !important;
 }
 
-.main * {
-    background-color: var(--beige);
-    padding: 5px;
-    margin-bottom: 20px;
-    font-size: x-large;
-}
-
 .main > div {
+    background-color: var(--beige);
+    /* padding: 5px; */
+    margin-bottom: 20px;
+    /* font-size: x-large; */
+/* }
+
+.main > div { */
     border: 0px;
     text-transform: inherit;
     font-size: x-large;

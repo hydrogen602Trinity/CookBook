@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
-export function useAPIState(path) {
+export function useAPIState(path, onFailure = null) {
     const fullPath = 'http://' + process.env.REACT_APP_API + '/' + path;
     const [data, setData] = useState([]);
+
+    const onFailureFunc = useCallback(onFailure, []);
 
     function update() {
         fetch(fullPath)
@@ -12,10 +14,13 @@ export function useAPIState(path) {
                 })
             .catch((error) => {
                 console.error('Error:', error);
+                if (onFailureFunc) {
+                    onFailureFunc(error);
+                }
             });
     }
 
-    useEffect(update, [fullPath]);
+    useEffect(update, [fullPath, onFailureFunc]);
 
     return [data, update];
 }
