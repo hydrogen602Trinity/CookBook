@@ -154,7 +154,8 @@ class RecipeCase(TestCase):
                 'name': 'eggs',
                 'id': 1,
                 'num': 2,
-                'denom': 1
+                'denom': 1,
+                'unit': None
             }]}], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
@@ -165,7 +166,48 @@ class RecipeCase(TestCase):
                 'name': 'eggs',
                 'id': 1,
                 'num': 2,
-                'denom': 1
+                'denom': 1,
+                'unit': None
+            }]}, response.json)
+
+    def test_create2(self):
+        data = {
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 2,
+                'unit': 'g'
+            }]
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+        self.assertEqual([
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []},
+            {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
+                'name': 'flour',
+                'id': 1,
+                'num': 1,
+                'denom': 1,
+                'unit': 'g'
+            }]}], response.json)
+        
+        response = self.client.get(self.GET_API_NODE(2))
+
+        self.assert200(response)
+        self.assertEqual({
+            'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
+                'name': 'flour',
+                'id': 1,
+                'num': 1,
+                'denom': 1,
+                'unit': 'g'
             }]}, response.json)
 
     def test_create_invalid(self):

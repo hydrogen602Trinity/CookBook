@@ -54,7 +54,7 @@ class RecipeResource(Resource):
     ingredient_requirements = {
         'name': str,
         'num': int,
-        'denom': int
+        'denom': int,
     }
 
     @optional_param_check(False, 'recipe_id')
@@ -66,7 +66,8 @@ class RecipeResource(Resource):
             ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
             ingredients.append(Ingredient(ingredient['name'], 
                                           Fraction(ingredient['num'], 
-                                                   ingredient['denom'])))
+                                                   ingredient['denom']),
+                                          ingredient.get('unit')))
 
         newRecipe = Recipe(data['name'], data['notes'], ingredients)
         db.session.add(newRecipe)

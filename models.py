@@ -66,15 +66,17 @@ class Ingredient(db.Model):
     name: str = db.Column(db.String(128))
     _num: int = db.Column(db.Integer)
     _denom: int = db.Column(db.Integer)
+    unit: str = db.Column(db.String(20))
 
-    def __init__(self, name: str, amount: Union[Fraction, int, float, str], recipe_id: Optional[int] = None) -> None:
+    def __init__(self, name: str, amount: Union[Fraction, int, float, str], unit: Optional[str] = None, recipe_id: Optional[int] = None) -> None:
         if recipe_id:
             self.recipe_id = recipe_id
         self.name = name
         self.amount = amount
+        self.unit = unit
 
     def __repr__(self) -> str:
-        return f'Ingredient(id={self.id}, name={self.name}, amount={self.amount})'
+        return f'Ingredient(id={self.id}, name={self.name}, amount={self.amount}, unit={self.unit})'
 
     @property
     def amount(self) -> Fraction:
@@ -91,5 +93,6 @@ class Ingredient(db.Model):
             'id': self.id,
             'name': self.name,
             'num': self._num,
-            'denom': self._denom
+            'denom': self._denom,
+            'unit': self.unit
         }
