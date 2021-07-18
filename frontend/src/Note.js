@@ -1,42 +1,19 @@
 // import logo from './logo.svg';
 // import './App.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { fetchAPI, useAPIState } from './util/fetchAPI'
 
 function Note() {
 
     const [noteInput, setNoteInput] = useState('');
-    const [notes, setNotes] = useState([]);
-
-    function updateNotes() {
-        fetch('http://' + process.env.REACT_APP_API + '/note')
-            .then(response => response.json())
-            .then(json => {
-                    setNotes(json);
-                })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-    }
+    const [notes, updateNotes] = useAPIState('note');
 
     function submitNote() {
-        fetch('http://' + process.env.REACT_APP_API + '/note', {
-            method: "POST",
-            body: JSON.stringify({note: noteInput}),
-            headers: {
-                'Content-type': 'application/json'
-            }
-        })
-        .then(response => {
+        fetchAPI('note', {note: noteInput}, 'POST', res => {
             updateNotes();
-            return response;
-        })
-        .catch((error) => {
-            console.error('Error:', error);
+            setNoteInput('');
         });
-        setNoteInput('');
     }
-
-    useEffect(() => updateNotes(), []);
 
     return (
         <div className="frame">

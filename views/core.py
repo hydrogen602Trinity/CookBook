@@ -13,4 +13,5 @@ def hello_world():
 
 @core.route('/assets/<path:path>')
 def send_js(path):
-    return send_from_directory('frontend/assets', path)
+    print('test', path)
+    return send_from_directory('assets', path)
