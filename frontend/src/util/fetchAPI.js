@@ -70,7 +70,7 @@ export function fetchAPI(path, data, method = 'GET', onSuccess = null, onFailure
 
     fetch(fullPath, {
         method: method,
-        body: JSON.stringify(data),
+        body: (data) ? JSON.stringify(data) : null,
         headers: {
             'Content-type': 'application/json'
         }

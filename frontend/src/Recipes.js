@@ -66,7 +66,7 @@ export default function Recipes() {
             <div className="main" id="content">
                 {isLoading ? 
                     <CircularProgress className="recipe-circular-progress"/> : 
-                    recipes.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe}/>)}
+                    recipes.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe} updateRecipesTrigger={updateRecipesTrigger}/>)}
             </div>
             {/* <div className="sidebar" hidden={true}>
                 <button onClick={() => console.log('getAllRecipes')}>

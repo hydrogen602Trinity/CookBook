@@ -35,8 +35,6 @@ function RecipeEditor(props) {
             unit: null
     }};
 
-    
-
     return (
         <div className="popup-outer">
             <div className="recipe-editor">
