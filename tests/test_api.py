@@ -124,6 +124,9 @@ class RecipeCase(TestCase):
     def assert201(self, response):
         self.assertStatus(response, 201)
 
+    def assert204(self, response):
+        self.assertStatus(response, 204)
+
     def test_get(self):
         response = self.client.get(self.API_NODE)
 
@@ -237,3 +240,19 @@ class RecipeCase(TestCase):
 
             self.assert200(response)
             self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+    def test_delete(self):
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+        response = self.client.delete(self.GET_API_NODE(1))
+
+        self.assert204(response)
+
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+        self.assertEqual([], response.json)
+

@@ -81,4 +81,10 @@ class RecipeResource(Resource):
             handle_nonexistance(recipe)
             return jsonify(recipe.toJson())
         else:
-            return jsonify([recipe.toJson() for recipe in Recipe.query.all()])
+            return jsonify([recipe.toJson() for recipe in Recipe.query.filter(Recipe.deleted == 0).all()])
+
+    @optional_param_check(True, 'recipe_id')
+    def delete(self, recipe_id: Optional[int] = None):
+        db.session.query(Recipe).get(recipe_id).deleted = True
+        db.session.commit()
+        return '', 204

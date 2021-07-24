@@ -36,6 +36,13 @@ def setup_database(app: Flask):
         db.session.add(recipe)
         db.session.commit()
 
+        recipe2 = Recipe('Boiled Eggs', 'Bring water to a boil. Put eggs into water and let cook in boiling water for some minutes. Idk how many.', [
+            Ingredient('eggs', 2)
+        ])
+
+        db.session.add(recipe2)
+        db.session.commit()
+
         print(recipe.ingredients)
 
         print('all:', Ingredient.query.all())

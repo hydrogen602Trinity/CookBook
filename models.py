@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
-from sqlalchemy.orm import backref
+# from sqlalchemy.orm import backref
+from sqlalchemy.sql import expression
 from fractions import Fraction
 
 from database import db
@@ -35,6 +36,7 @@ class Recipe(db.Model):
                                      passive_deletes=True)
     name: str = db.Column(db.String(128), nullable=False)
     notes: str = db.Column(db.String(4096), nullable=False)
+    deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
 
     def __init__(self, name: str, notes: str, ingredients: List[Ingredient]) -> None:
         self.name = name
