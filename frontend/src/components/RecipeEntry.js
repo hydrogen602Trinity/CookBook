@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createRef, useLayoutEffect, useState } from "react";
 import Collapse from '@material-ui/core/Collapse';
 import './RecipeEntry.css'
 
@@ -13,16 +13,11 @@ import { fetchAPI } from "../util/fetchAPI";
 function RecipeEntry(props) {
     const [isExpanded, setExpanded] = useState(false);
 
-    const [state, setState] = useBetterState({
-        editTitle: false,
-        title: props.recipe.name
+    const [recipe, setRecipe] = useBetterState({
+        ...props.recipe
     });
 
-    function strAssembly(i) {
-        return `${i.name}: ${i.num}${i.denom > 1 ? '/'+i.denom : ''}${i.unit ? ' '+i.unit : ''}`
-    }
-
-    console.log(state);
+    const [edit, setEdit] = useState(false);
 
     function expand() {
         if (!isExpanded) {
@@ -38,13 +33,52 @@ function RecipeEntry(props) {
         }, f);
     }
 
+    const textAreaRef = createRef();
+    useLayoutEffect(() => {
+        if (edit && textAreaRef.current) {
+            textAreaRef.current.style.height = "";
+            textAreaRef.current.style.height = textAreaRef.current.scrollHeight +  "px";
+            console.log('yeet');
+        }
+    }, [edit]);
+
+    function generateIngredientInput(index) {
+        // not a react component but a helper func
+        const i = recipe.ingredients[index];
+
+        function onChange(ev) {
+            setRecipe(prevRecipe => {
+                const newIngredients = prevRecipe.ingredients.map((e,i) => {
+                    if (index === i) {
+                        e.name = ev.target.value;
+                    }
+                    return e;
+                });
+                return newIngredients;
+            })
+        };
+
+        return (
+            <p className="recipe-ingredient" key={i.id}>
+                {edit ? 
+                    <input type="text" value={i.name} onChange={onChange}/> 
+                : 
+                    <span>{i.name}</span>
+                }
+                <span>{`${i.num}${i.denom > 1 ? '/'+i.denom : ''}`}</span>
+                <span>{i.unit}</span>
+            </p>
+        );
+        
+    }
+
     return (
         <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
-            <div>
-                {state.editTitle ? 
-                    <input value={state.title} onChange={(ev) => setState({title: ev.target.value})}></input>
+            <div className="recipe-field">
+                {edit ? 
+                    <input type="text" value={recipe.name} onChange={(ev) => setRecipe({name: ev.target.value})}></input>
                 : 
-                    <span>{state.title}</span>
+                    <span>{recipe.name}</span>
                 }
             </div>
             <Collapse 
@@ -52,21 +86,40 @@ function RecipeEntry(props) {
                 timeout={200} 
                 unmountOnExit>
                 <div className="recipe-details">
-                    {props.recipe.ingredients.map(i => 
-                        <p key={i.id} style={{textTransform: "capitalize"}}>
-                            {strAssembly(i)}
-                        </p>)}
-                    <p>
-                        {props.recipe.notes}
+                    {recipe.ingredients.map((_,i) => 
+                        generateIngredientInput(i)
+                    )}
+                    { edit ? 
+                    <textarea 
+                        className="recipe-notes"
+                        ref={textAreaRef}
+                        maxLength={4096}
+                        value={recipe.notes} 
+                        onChange={
+                            (ev) => {
+                                setRecipe({notes: ev.target.value});
+                                ev.target.style.height = "";
+                                ev.target.style.height = ev.target.scrollHeight +  "px";
+                            }
+                        }>    
+                    </textarea>
+                    :
+                    <p className="recipe-notes">
+                        {recipe.notes}
                     </p>
+                    }
+                    
                     <div className="recipe-menu">
                         <IconButton onClick={deleteThis}>
                             <DeleteIcon className="recipe-icon" />
                         </IconButton>
-                        <IconButton onClick={() => setExpanded(false)}>
+                        <IconButton onClick={() => {
+                            setExpanded(false);
+                            setEdit(false);
+                        }}>
                             <KeyboardArrowUpIcon className="recipe-icon" />
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={() => setEdit(true)}>
                             <EditIcon className="recipe-icon" />
                         </IconButton>
                     </div>

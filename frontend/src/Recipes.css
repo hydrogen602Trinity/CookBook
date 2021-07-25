@@ -76,16 +76,6 @@ body {
     padding-top: 20px !important;
 }
 
-.main input {
-    border: 0;
-    background-color: white;
-    font-size: x-large;
-    width: 90%;
-    text-transform: uppercase;
-    margin: 0;
-    padding: 0.5em;
-}
-
 .editOrDel {
     border: 0;
     margin-bottom: 0 !important;
