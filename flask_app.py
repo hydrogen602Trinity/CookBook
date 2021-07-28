@@ -30,7 +30,7 @@ def setup_database(app: Flask):
 
         recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
             Ingredient('eggs', 2),
-            Ingredient('salt', 1/8, 'teaspoon')
+            Ingredient('salt', 1/8, 'tsp')
         ])
 
         db.session.add(recipe)

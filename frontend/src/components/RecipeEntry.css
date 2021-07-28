@@ -17,14 +17,14 @@
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
 }
 
-.recipe-entry input, .recipe-entry textarea {
+.recipe-entry input, .recipe-entry textarea, .recipe-entry select {
     background-color: whitesmoke;
     border: 0;
     font-size: large;
 }
 
 .recipe-details {
-    margin-top: 0.5em;
+    margin-top: 1em;
     text-transform: none;
     font-size: large;
 }
@@ -40,10 +40,16 @@
     padding: var(--side-padding);
 }
 
+/* ingredient */
+
 .recipe-ingredient {
     text-transform: capitalize;
     font-size: large;
     padding: 0;
+    display: block;
+    text-align: left;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
 }
 
 .recipe-ingredient > * {
@@ -58,8 +64,16 @@
     text-transform: capitalize;
 }
 
+.recipe-ingredient input:first-child {
+    width: calc(50% - 2 * var(--side-padding));
+}
+
 .recipe-ingredient :nth-child(3)::before {
     content: "";
+}
+
+.recipe-ingredient input:nth-child(2), .recipe-ingredient select {
+    width: calc(25% - 2 * var(--side-padding));
 }
 
 /* Name */

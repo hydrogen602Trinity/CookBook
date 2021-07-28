@@ -1,4 +1,5 @@
 import { createRef, useLayoutEffect, useState } from "react";
+import Fraction from "fraction.js";
 import Collapse from '@material-ui/core/Collapse';
 import './RecipeEntry.css'
 
@@ -7,6 +8,7 @@ import { IconButton } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import SaveIcon from '@material-ui/icons/Save';
 import { fetchAPI } from "../util/fetchAPI";
 
 
@@ -14,8 +16,31 @@ function RecipeEntry(props) {
     const [isExpanded, setExpanded] = useState(false);
 
     const [recipe, setRecipe] = useBetterState({
-        ...props.recipe
+        ...props.recipe,
+        ingredients: props.recipe.ingredients.map(i => {
+            const newIngredient = {...i};
+            newIngredient.amount = new Fraction(i.num, i.denom);
+            newIngredient.temp_amount = convertFraToStr(newIngredient.amount);
+            delete newIngredient.num;
+            delete newIngredient.denom;
+            return newIngredient;
+        })
     });
+
+    const units = [
+        '',                 // no unit
+        'kg', 'g', 'Pfund', // weight metric
+        'l', 'ml',          // volume metric
+        'tsp', 'tlb',       // volume
+    ]
+    // optgroup for grouping units
+
+    function convertFraToStr(f) {
+        if (typeof f === 'string') {
+            return f;
+        }
+        return `${f.s * f.n}${f.d > 1 ? '/'+f.d : ''}`
+    }
 
     const [edit, setEdit] = useState(false);
 
@@ -38,9 +63,8 @@ function RecipeEntry(props) {
         if (edit && textAreaRef.current) {
             textAreaRef.current.style.height = "";
             textAreaRef.current.style.height = textAreaRef.current.scrollHeight +  "px";
-            console.log('yeet');
         }
-    }, [edit]);
+    }, [edit, textAreaRef]);
 
     function generateIngredientInput(index) {
         // not a react component but a helper func
@@ -55,19 +79,85 @@ function RecipeEntry(props) {
                     return e;
                 });
                 return newIngredients;
-            })
+            });
         };
 
+        function onChangeAmount(ev) {
+            setRecipe(prevRecipe => {
+                const newIngredients = prevRecipe.ingredients.map((e,i) => {
+                    if (index === i) {
+                        e.temp_amount = ev.target.value;
+                    }
+                    return e;
+                });
+                return newIngredients;
+            });
+        };
+
+        function onBlurAmount() {
+            const value = recipe.ingredients[index].temp_amount;
+            try {
+                const f = new Fraction(value);
+                setRecipe(prevRecipe => {
+                    const newIngredients = prevRecipe.ingredients.map((e,i) => {
+                        if (index === i) {
+                            e.amount = f;
+                            e.temp_amount = convertFraToStr(f);
+                        }
+                        return e;
+                    });
+                    return newIngredients;
+                });
+            } catch (e) { 
+                if (e instanceof Fraction.InvalidParameter) {
+                    console.log('Invalid fraction entered: ' + value);
+                }
+                else {
+                    throw e;
+                }
+            } 
+        }
+
+        function onSelectChange(ev) {
+            setRecipe(prevRecipe => {
+                const newIngredients = prevRecipe.ingredients.map((e,i) => {
+                    if (index === i) {
+                        e.unit = ev.target.value;
+                    }
+                    return e;
+                });
+                return newIngredients;
+            });
+        }
+
         return (
-            <p className="recipe-ingredient" key={i.id}>
+            <div className="recipe-ingredient" key={i.id}>
                 {edit ? 
                     <input type="text" value={i.name} onChange={onChange}/> 
                 : 
                     <span>{i.name}</span>
                 }
-                <span>{`${i.num}${i.denom > 1 ? '/'+i.denom : ''}`}</span>
-                <span>{i.unit}</span>
-            </p>
+                {edit ?
+                    <input 
+                        type="text" 
+                        value={i.temp_amount}
+                        onChange={onChangeAmount}
+                        onBlur={onBlurAmount}></input>
+                :
+                    <span>{convertFraToStr(i.amount)}</span>
+                }
+                {edit ? 
+                    <select value={i.unit} onChange={onSelectChange}>
+                    {
+                        units.map((u, i) => 
+                            <option value={u} key={i}>{u}</option>)
+                    }
+                    </select>
+                :
+                    <span style={{textTransform: 'none'}}>{i.unit}</span>
+                }
+                
+            </div>
         );
         
     }
@@ -119,8 +209,12 @@ function RecipeEntry(props) {
                         }}>
                             <KeyboardArrowUpIcon className="recipe-icon" />
                         </IconButton>
-                        <IconButton onClick={() => setEdit(true)}>
-                            <EditIcon className="recipe-icon" />
+                        <IconButton onClick={() => setEdit(!edit)}>
+                            {edit ?
+                                <SaveIcon className="recipe-icon" />
+                            :
+                                <EditIcon className="recipe-icon" />
+                            }
                         </IconButton>
                     </div>
                 </div>
