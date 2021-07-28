@@ -51,6 +51,9 @@ class RecipeResource(Resource):
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
     recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
 
+    updated_recipe_parser = recipe_parser.copy()
+    updated_recipe_parser.add_argument('id', type=int, help="Recipe ID")
+
     ingredient_requirements = {
         'name': str,
         'num': int,
@@ -73,6 +76,28 @@ class RecipeResource(Resource):
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
+    
+    @optional_param_check(False, 'recipe_id')
+    def put(self, _=None):
+        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients',))
+
+        recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
+        if recipe:
+            ingredients = []
+            for ingredient in data['ingredients']:
+                ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
+                ingredients.append(Ingredient(ingredient['name'], 
+                                            Fraction(ingredient['num'], 
+                                                    ingredient['denom']),
+                                            ingredient.get('unit')))
+
+            recipe.name = data['name']
+            recipe.notes = data['notes']
+            recipe.ingredients = ingredients
+            db.session.commit()
+            return '', 200
+        else:
+            return f'No object found with recipe_id={data["id"]}', 404
 
     def get(self, recipe_id: Optional[int] = None):
         # sleep(20)  # simulate slow internet 
@@ -85,6 +110,10 @@ class RecipeResource(Resource):
 
     @optional_param_check(True, 'recipe_id')
     def delete(self, recipe_id: Optional[int] = None):
-        db.session.query(Recipe).get(recipe_id).deleted = True
-        db.session.commit()
-        return '', 204
+        recipe: Optional[Recipe] = db.session.query(Recipe).get(recipe_id)
+        if recipe:
+            recipe.deleted = True
+            db.session.commit()
+            return '', 204
+        else:
+            return f'No object found with recipe_id={recipe_id}', 404

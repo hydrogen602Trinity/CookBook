@@ -256,3 +256,98 @@ class RecipeCase(TestCase):
         self.assert200(response)
         self.assertEqual([], response.json)
 
+    def test_delete_no_exist(self):
+        response = self.client.delete(self.GET_API_NODE(42))
+        self.assert404(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+    def test_put_no_exist(self):
+        response = self.client.put(self.API_NODE, json={
+            'id': 42,
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 2,
+                'unit': 'g'
+        }]})
+        self.assert404(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+    def test_put_1(self):
+        response = self.client.put(self.API_NODE, json={
+            'id': 1, 
+            'name': 'Scrambled Eggs Edited', 
+            'notes': 'Break and beat eggs', 
+            'ingredients': [{
+                'name': 'flour',
+                'id': 1,
+                'num': 1,
+                'denom': 1,
+                'unit': 'g'
+            }]})
+        self.assert200(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs Edited', 'notes': 'Break and beat eggs', 'ingredients': [{
+                'name': 'flour',
+                'id': 1,
+                'num': 1,
+                'denom': 1,
+                'unit': 'g'
+            }]}], response.json)
+
+        self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 1).count(), 1)
+
+    def test_put_2(self):
+        data = {
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 2,
+                'unit': 'g'
+            }]
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.put(self.API_NODE, json={
+            'id': 2,
+            'name': 'Cooked Eggs Edited Name',
+            'notes': 'Cook for 8 min',
+            'ingredients': [{
+                'name': 'salt',
+                'num': 1,
+                'denom': 1,
+                'unit': 'g'
+            }]
+        })
+        self.assert200(response)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert200(response)
+        self.assertEqual({
+            'id': 2,
+            'name': 'Cooked Eggs Edited Name',
+            'notes': 'Cook for 8 min',
+            'ingredients': [{
+                'name': 'salt',
+                'num': 1,
+                'id': 2,
+                'denom': 1,
+                'unit': 'g'
+            }]
+        }, response.json)
+
+        self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)

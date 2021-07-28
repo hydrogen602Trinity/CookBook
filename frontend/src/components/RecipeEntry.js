@@ -27,6 +27,20 @@ function RecipeEntry(props) {
         })
     });
 
+    function generateDataToSend() {
+        return {
+            ...recipe,
+            ingredients: recipe.ingredients.map(i => {
+                const newIngredient = {...i};
+                newIngredient.num = i.amount.n * i.amount.s;
+                newIngredient.denom = i.amount.d;
+                delete newIngredient.amount;
+                delete newIngredient.temp_amount;
+                return newIngredient;
+            })
+        };
+    }
+
     const units = [
         '',                 // no unit
         'kg', 'g', 'Pfund', // weight metric
@@ -78,7 +92,7 @@ function RecipeEntry(props) {
                     }
                     return e;
                 });
-                return newIngredients;
+                return {ingredients: newIngredients};
             });
         };
 
@@ -90,7 +104,7 @@ function RecipeEntry(props) {
                     }
                     return e;
                 });
-                return newIngredients;
+                return {ingredients: newIngredients};
             });
         };
 
@@ -106,7 +120,7 @@ function RecipeEntry(props) {
                         }
                         return e;
                     });
-                    return newIngredients;
+                    return {ingredients: newIngredients};
                 });
             } catch (e) { 
                 if (e instanceof Fraction.InvalidParameter) {
@@ -126,7 +140,7 @@ function RecipeEntry(props) {
                     }
                     return e;
                 });
-                return newIngredients;
+                return {ingredients: newIngredients};
             });
         }
 
@@ -147,7 +161,7 @@ function RecipeEntry(props) {
                     <span>{convertFraToStr(i.amount)}</span>
                 }
                 {edit ? 
-                    <select value={i.unit} onChange={onSelectChange}>
+                    <select value={(i.unit === null) ? '' : i.unit} onChange={onSelectChange}>
                     {
                         units.map((u, i) => 
                             <option value={u} key={i}>{u}</option>)
@@ -209,7 +223,12 @@ function RecipeEntry(props) {
                         }}>
                             <KeyboardArrowUpIcon className="recipe-icon" />
                         </IconButton>
-                        <IconButton onClick={() => setEdit(!edit)}>
+                        <IconButton onClick={() => {
+                            if (edit) {
+                                console.log(generateDataToSend());
+                            }
+                            setEdit(!edit);
+                        }}>
                             {edit ?
                                 <SaveIcon className="recipe-icon" />
                             :
