@@ -9,7 +9,9 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import SaveIcon from '@material-ui/icons/Save';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import { fetchAPI } from "../util/fetchAPI";
+import { simpleHash } from "../util/util";
 
 
 function RecipeEntry(props) {
@@ -65,11 +67,17 @@ function RecipeEntry(props) {
     }
 
     function deleteThis() {
-        const f = (e) => console.error(e);
-        fetchAPI('recipe/' + props.recipe.id, null, 'delete', (e) => {
-            console.log('Success!', e);
+        if (recipe.id === undefined) {
+            // not in db
             props.updateRecipesTrigger();
-        }, f);
+        }
+        else {
+            const f = (e) => console.error(e);
+            fetchAPI('recipe/' + props.recipe.id, null, 'delete', (e) => {
+                console.log('Success!', e);
+                props.updateRecipesTrigger();
+            }, f);
+        }
     }
 
     const textAreaRef = createRef();
@@ -145,9 +153,13 @@ function RecipeEntry(props) {
         }
 
         return (
-            <div className="recipe-ingredient" key={i.id}>
+            <div className="recipe-ingredient" key={index}>
                 {edit ? 
-                    <input type="text" value={i.name} onChange={onChange}/> 
+                    <input 
+                        type="text" 
+                        placeholder="Ingredient name"
+                        value={i.name} 
+                        onChange={onChange}/> 
                 : 
                     <span>{i.name}</span>
                 }
@@ -176,6 +188,20 @@ function RecipeEntry(props) {
         
     }
 
+    function addIngredient() {
+        const newIngredient = {
+            name: '',
+            amount: new Fraction(1),
+            temp_amount: '1',
+            unit: '',
+        }
+        setRecipe(prevRecipe => {
+            return {
+                ingredients: [...prevRecipe.ingredients, newIngredient]
+            };
+        });
+    }
+
     return (
         <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
             <div className="recipe-field">
@@ -193,6 +219,10 @@ function RecipeEntry(props) {
                     {recipe.ingredients.map((_,i) => 
                         generateIngredientInput(i)
                     )}
+                    { edit ? 
+                    <IconButton onClick={addIngredient}>
+                        <AddCircleOutlineIcon className="recipe-icon-small" />
+                    </IconButton> : null }
                     { edit ? 
                     <textarea 
                         className="recipe-notes"
@@ -225,6 +255,12 @@ function RecipeEntry(props) {
                         </IconButton>
                         <IconButton onClick={() => {
                             if (edit) {
+                                // filter out empty name stuff
+                                setRecipe(prevRecipe => {
+                                    return {
+                                        ingredients: prevRecipe.ingredients.filter(i => i.name.length > 0)
+                                    };
+                                });
                                 console.log(generateDataToSend());
                             }
                             setEdit(!edit);

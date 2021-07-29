@@ -31,7 +31,7 @@ export default function Recipes() {
     const snackbarRef = createRef(null);
 
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
-    const [ isLoading, recipes, error ] = useFetchAPI('recipe', [updateRecipesTriggerValue]);
+    const [ isLoading, recipesData, error ] = useFetchAPI('recipe', [updateRecipesTriggerValue]);
 
     useEffect(() => setState({snackbar: (error ? 'Failed to load recipes' : null)}), [error]);
 
@@ -42,9 +42,26 @@ export default function Recipes() {
         setState({snackbar: null});
     };
 
+    const [recipes, setRecipes] = useState([]);
+
     // const setSnackbar = (msg) => {
     //     setState({snackbar: null});
     // };
+
+    useEffect(() => {
+        if (recipesData) {
+            setRecipes(recipesData);
+        }
+    }, [recipesData]);
+
+    function addRecipe() {
+        const newRecipe = {
+            name: '',
+            notes: '',
+            ingredients: [],
+        };
+        setRecipes((prevRecipes) => [...prevRecipes, newRecipe])
+    }
 
     console.log(recipes, isLoading);
 
@@ -54,7 +71,7 @@ export default function Recipes() {
                 <h1>
                     Recipe Book
                 </h1>
-                <button onClick={() => setState({showRecipeEditor: true})}>
+                <button onClick={addRecipe}>
                     <i className="fas fa-plus"></i>
                 </button>
             </div>
@@ -65,8 +82,15 @@ export default function Recipes() {
             </div> */}
             <div className="main" id="content">
                 {isLoading ? 
-                    <CircularProgress className="recipe-circular-progress"/> : 
-                    recipes.map(recipe => <RecipeEntry key={recipe.id} recipe={recipe} updateRecipesTrigger={updateRecipesTrigger}/>)}
+                    <CircularProgress className="recipe-circular-progress"/>
+                : 
+                    recipes.map((recipe, i) => 
+                        <RecipeEntry 
+                            key={i} 
+                            recipe={recipe} 
+                            updateRecipesTrigger={updateRecipesTrigger}
+                            />)
+                }
             </div>
             {/* <div className="sidebar" hidden={true}>
                 <button onClick={() => console.log('getAllRecipes')}>

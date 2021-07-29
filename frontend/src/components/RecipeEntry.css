@@ -65,15 +65,24 @@
 }
 
 .recipe-ingredient input:first-child {
-    width: calc(50% - 2 * var(--side-padding));
+    width: calc(55% - 2 * var(--side-padding));
 }
 
 .recipe-ingredient :nth-child(3)::before {
     content: "";
 }
 
-.recipe-ingredient input:nth-child(2), .recipe-ingredient select {
+.recipe-ingredient input:nth-child(2) {
+    width: calc(20% - 2 * var(--side-padding));
+}
+
+.recipe-ingredient select {
     width: calc(25% - 2 * var(--side-padding));
+}
+
+.recipe-icon-small {
+    width: 1.5em !important;
+    height: 1.5em !important;
 }
 
 /* Name */
@@ -104,4 +113,9 @@
 .recipe-icon {
     width: 2em !important;
     height: 2em !important;
+}
+
+/* General stuff */
+select {
+    -webkit-appearance: none;
 }
