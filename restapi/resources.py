@@ -52,7 +52,7 @@ class RecipeResource(Resource):
     recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
 
     updated_recipe_parser = recipe_parser.copy()
-    updated_recipe_parser.add_argument('id', type=int, help="Recipe ID")
+    updated_recipe_parser.add_argument('id', type=int, default=None, help="Recipe ID")
 
     ingredient_requirements = {
         'name': str,
@@ -70,7 +70,7 @@ class RecipeResource(Resource):
             ingredients.append(Ingredient(ingredient['name'], 
                                           Fraction(ingredient['num'], 
                                                    ingredient['denom']),
-                                          ingredient.get('unit')))
+                                          ingredient.get('unit') or None))
 
         newRecipe = Recipe(data['name'], data['notes'], ingredients)
         db.session.add(newRecipe)
@@ -79,18 +79,26 @@ class RecipeResource(Resource):
     
     @optional_param_check(False, 'recipe_id')
     def put(self, _=None):
-        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients',))
+        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id'))
 
-        recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
-        if recipe:
-            ingredients = []
-            for ingredient in data['ingredients']:
-                ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
-                ingredients.append(Ingredient(ingredient['name'], 
+        ingredients = []
+        for ingredient in data['ingredients']:
+            ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
+            ingredients.append(Ingredient(ingredient['name'], 
                                             Fraction(ingredient['num'], 
                                                     ingredient['denom']),
-                                            ingredient.get('unit')))
+                                            ingredient.get('unit') or None))
+        # or None converts empty str to None
 
+        if data['id'] is None:
+            newRecipe = Recipe(data['name'], data['notes'], ingredients)
+            db.session.add(newRecipe)
+            db.session.commit()
+            return '', 201
+        
+        recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
+        
+        if recipe:
             recipe.name = data['name']
             recipe.notes = data['notes']
             recipe.ingredients = ingredients
@@ -98,6 +106,7 @@ class RecipeResource(Resource):
             return '', 200
         else:
             return f'No object found with recipe_id={data["id"]}', 404
+            
 
     def get(self, recipe_id: Optional[int] = None):
         # sleep(20)  # simulate slow internet 

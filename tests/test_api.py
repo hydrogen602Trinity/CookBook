@@ -6,6 +6,7 @@ from flask_restful import url_for as url_for_rest
 
 from flask_app import create_app
 from database import db
+import os
 
 
 class NoteCase(TestCase):
@@ -116,6 +117,9 @@ class RecipeCase(TestCase):
         note = Recipe('Scrambled Eggs', 'Break and beat eggs', [])
         db.session.add(note)
         db.session.commit()
+
+        if os.getenv('TESTING') == '1':
+            self.maxDiff = None
 
     def tearDown(self):
         db.session.remove()
@@ -280,6 +284,33 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+    def test_put_create(self):
+        response = self.client.put(self.API_NODE, json={
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 3,
+                'unit': 'g'
+        }]})
+        self.assert201(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []},
+            {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'id': 1,
+                'name': 'flour',
+                'num': 2,
+                'denom': 3,
+                'unit': 'g'
+        }]}
+        ], response.json)
+
 
     def test_put_1(self):
         response = self.client.put(self.API_NODE, json={

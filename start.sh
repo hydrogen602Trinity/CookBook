@@ -4,6 +4,7 @@ if [[ $1 == "test" ]]
 then
     export INIT_DB=0
     export DB_FILENAME=test.db
+    export TESTING=1
 else
     if [[ $1 == "init" ]]
     then
@@ -19,7 +20,7 @@ export FLASK_ENV=development
 
 if [[ $1 == "test" ]]
 then
-    python -m unittest
+    python -m unittest --locals
 else
     python -m flask run --host=0.0.0.0
 fi
