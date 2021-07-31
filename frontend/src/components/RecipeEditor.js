@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import './RecipeEditor.css'
 import '../root.css'
 import { colors } from '../root.js'
@@ -40,10 +40,10 @@ function RecipeEditor(props) {
             <div className="recipe-editor">
                 <h1>New Recipe</h1>
                 <div className="recipe-editor-form">
-                    {/* <input type="text" value={recipe.name} onChange={(ev) => setRecipe({name: ev.target.value})}/> */}
+                    {*/ /* <input type="text" value={recipe.name} onChange={(ev) => setRecipe({name: ev.target.value})}/> */ /*}
                     <CssTextField label="Name" variant="outlined" style={{backgroundColor: "white"}}/>
                 </div>
-                {/* <div className="recipe-editor-details">
+                {*/ /* <div className="recipe-editor-details">
                     {props.recipe.ingredients.map(i => 
                         <p key={i.id} style={{textTransform: "capitalize"}}>
                             {strAssembly(i)}
@@ -51,10 +51,10 @@ function RecipeEditor(props) {
                     <p>
                         {props.recipe.notes}
                     </p>
-                </div> */}
+                </div> */ /*}
             </div>
         </div>
     );
 }
 
-export default RecipeEditor;
+export default RecipeEditor;*/

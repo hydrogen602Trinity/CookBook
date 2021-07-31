@@ -1,4 +1,5 @@
 // import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from "react";
 import useFetch from "react-fetch-hook";
 
 export function fullPath(path) {
@@ -12,6 +13,39 @@ export function useFetchAPI(path, dependsArray = null) {
                 depends: dependsArray
             } : null));
     return [isLoading, data, error];
+}
+
+// export function useFetchControlAPI(path) {
+//     const [active, setActive] = useState(false);
+
+//     const { isLoading, data, error } = useFetch(
+//         fullPath(path),
+//         active);
+
+//     useEffect(() => {
+//         if (!isLoading && active) {
+//             setActive(false);
+//         }
+//     }, [isLoading]);
+
+//     return [isLoading, data, error, setActive];
+// }
+
+export async function fetchControlAPI(path, method, data) {
+    if (method !== 'GET' && method !== 'POST' && method !== 'PUT' && method !== 'DELETE') {
+        throw new Error('Unknown HTTP Method');
+    }
+    const response = await fetch(fullPath(path), {
+        method: method, // *GET, POST, PUT, DELETE, etc.
+        // mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return response.json();
 }
 
 // export function useAPIState(path, onFailure = null) {

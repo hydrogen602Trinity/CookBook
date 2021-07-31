@@ -9,7 +9,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { useEffect, useState, createRef, forwardRef } from 'react';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
-import RecipeEditor from './components/RecipeEditor';
+// import RecipeEditor from './components/RecipeEditor';
 
 
 const updateRecipesTrigger = createTrigger();
@@ -26,7 +26,7 @@ const GrowTransition = forwardRef((props, ref) => {
 export default function Recipes() {
     const [state, setState] = useState({
         snackbar: null,
-        showRecipeEditor: false
+        // showRecipeEditor: false
     });
     const snackbarRef = createRef(null);
 
@@ -107,7 +107,7 @@ export default function Recipes() {
                 {state.snackbar}
                 </Alert>
             </Snackbar>
-            {state.showRecipeEditor ? <RecipeEditor/> : null}
+            {/* {state.showRecipeEditor ? <RecipeEditor/> : null} */}
         </div>
     );
 }

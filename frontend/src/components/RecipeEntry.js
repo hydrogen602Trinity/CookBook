@@ -10,7 +10,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import { fetchAPI } from "../util/fetchAPI";
+import { fetchAPI, fetchControlAPI } from "../util/fetchAPI";
 import { simpleHash } from "../util/util";
 
 
@@ -30,9 +30,10 @@ function RecipeEntry(props) {
     });
 
     function generateDataToSend() {
-        return {
+        return {//ingredients: prevRecipe.ingredients
             ...recipe,
-            ingredients: recipe.ingredients.map(i => {
+            ingredients: recipe.ingredients.filter(i => i.name.length > 0)
+            .map(i => {
                 const newIngredient = {...i};
                 newIngredient.num = i.amount.n * i.amount.s;
                 newIngredient.denom = i.amount.d;
@@ -202,6 +203,18 @@ function RecipeEntry(props) {
         });
     }
 
+    function sendData() {
+        // const path = (recipe.id) ? `recipe/${recipe.id}` : 'recipe';
+        const data = generateDataToSend();
+        console.log(data);
+        fetchControlAPI('recipe', 'PUT', data).then(data => {
+            console.log('response', data);
+            props.updateRecipesTrigger();
+        }).catch(e =>
+            console.log('error', e)
+        );
+    }
+
     return (
         <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
             <div className="recipe-field">
@@ -261,7 +274,7 @@ function RecipeEntry(props) {
                                         ingredients: prevRecipe.ingredients.filter(i => i.name.length > 0)
                                     };
                                 });
-                                console.log(generateDataToSend());
+                                sendData();
                             }
                             setEdit(!edit);
                         }}>
