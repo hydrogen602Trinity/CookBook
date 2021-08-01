@@ -8,7 +8,7 @@ then
 else
     if [[ $1 == "init" ]]
     then
-        export INIT_DB=1    
+        export INIT_DB=1
     else
         export INIT_DB=0
     fi

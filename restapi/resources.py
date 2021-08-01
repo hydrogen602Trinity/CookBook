@@ -3,7 +3,7 @@ from typing import Optional
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
-from time import sleep
+from flask import current_app
 
 from models import Ingredient, Note, Recipe, db
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
@@ -115,6 +115,7 @@ class RecipeResource(Resource):
             handle_nonexistance(recipe)
             return jsonify(recipe.toJson())
         else:
+            current_app.logger.debug('Getting all recipes')
             return jsonify([recipe.toJson() for recipe in Recipe.query.filter(Recipe.deleted == 0).all()])
 
     @optional_param_check(True, 'recipe_id')

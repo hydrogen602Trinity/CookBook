@@ -72,5 +72,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
         init_db = getenv('INIT_DB')
         if init_db and init_db.strip() == '1':
             setup_database(app)
+    
+    # app.logger.info(app.url_map)
 
     return app

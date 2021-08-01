@@ -11,7 +11,6 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import { fetchAPI, fetchControlAPI } from "../util/fetchAPI";
-import { simpleHash } from "../util/util";
 
 
 function RecipeEntry(props) {
@@ -48,7 +47,9 @@ function RecipeEntry(props) {
         '',                 // no unit
         'kg', 'g', 'Pfund', // weight metric
         'l', 'ml',          // volume metric
-        'tsp', 'tlb',       // volume
+        'cup',
+        'tsp', 'tbsp',       // volume
+        'pk'
     ]
     // optgroup for grouping units
 
