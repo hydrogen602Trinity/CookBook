@@ -10,3 +10,10 @@ export function simpleHash(s) {
     }
     return hash;
 }
+
+export function convertFraToStr(f) {
+    if (typeof f === 'string') {
+        return f;
+    }
+    return `${f.s * f.n}${f.d > 1 ? '/'+f.d : ''}`
+}

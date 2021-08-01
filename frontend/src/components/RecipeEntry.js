@@ -11,6 +11,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import { fetchAPI, fetchControlAPI } from "../util/fetchAPI";
+import { convertFraToStr } from "../util/util";
 
 
 function RecipeEntry(props) {
@@ -52,13 +53,6 @@ function RecipeEntry(props) {
         'pk'
     ]
     // optgroup for grouping units
-
-    function convertFraToStr(f) {
-        if (typeof f === 'string') {
-            return f;
-        }
-        return `${f.s * f.n}${f.d > 1 ? '/'+f.d : ''}`
-    }
 
     const [edit, setEdit] = useState(false);
 
