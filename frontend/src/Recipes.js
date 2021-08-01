@@ -50,6 +50,7 @@ export default function Recipes() {
 
     useEffect(() => {
         if (recipesData) {
+            console.log('loading recipes: ',recipesData);
             setRecipes(recipesData);
         }
     }, [recipesData]);
@@ -86,7 +87,7 @@ export default function Recipes() {
                 : 
                     recipes.map((recipe, i) => 
                         <RecipeEntry 
-                            key={i} 
+                            key={(recipe.id) ? `id=${recipe.id}` : `idx=${i}`} 
                             recipe={recipe} 
                             updateRecipesTrigger={updateRecipesTrigger}
                             />)
