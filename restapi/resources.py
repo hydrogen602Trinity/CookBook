@@ -106,7 +106,6 @@ class RecipeResource(Resource):
             return '', 200
         else:
             return f'No object found with recipe_id={data["id"]}', 404
-            
 
     def get(self, recipe_id: Optional[int] = None):
         # sleep(20)  # simulate slow internet 

@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Fraction from 'fraction.js';
 import { useRecipe } from './dataState';
+import { fullPath } from './fetchAPI';
 
 
 test('basic useRecipe test', () => {
@@ -78,7 +79,7 @@ test('basic useRecipe test 4', () => {
 //     fetch.mockClear();
 // });
 
-test('fetch test 1', async () => {
+test('refresh fetch', async () => {
     global.fetch = jest.fn(() => 
         Promise.resolve({
             json: () => Promise.resolve({
@@ -107,5 +108,43 @@ test('fetch test 1', async () => {
     expect(result.current.name).toBe('scrambled eggs');
     expect(result.current.notes).toBe('beat eggs and fry in pan');
     expect(result.current.ingredients).toHaveLength(1);
-    // expect(result.current.id).toBe(1);
+
+    expect(global.fetch).toHaveBeenCalledWith(fullPath('recipe/1'));
+    expect(global.fetch).toHaveBeenCalledTimes(1);
 });
+
+// test('send recipe', async () => {
+//     global.fetch = jest.fn(() => 
+//         Promise.resolve({
+//             json: () => Promise.resolve({
+//                 id: 1,
+//                 name: 'scrambled eggs',
+//                 notes: 'beat eggs and fry in pan',
+//                 ingredients: [
+//                     {
+//                         id: 1,
+//                         name: 'eggs',
+//                         num: 2,
+//                         denom: 1,
+//                         unit: '',
+//                     }
+//                 ],
+//             }),
+//         })
+//     );
+
+//     const { result } = renderHook(() => useRecipe({id: 1}));
+
+//     await act(async () => {
+//         await result.current.refreshRecipe();
+//     });
+
+//     expect(result.current.name).toBe('scrambled eggs');
+//     expect(result.current.notes).toBe('beat eggs and fry in pan');
+//     expect(result.current.ingredients).toHaveLength(1);
+
+//     expect(global.fetch).toHaveBeenCalledWith(fullPath('recipe/1'));
+//     expect(global.fetch).toHaveBeenCalledTimes(1);
+
+
+// });

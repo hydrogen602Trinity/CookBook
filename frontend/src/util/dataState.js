@@ -83,6 +83,21 @@ export function useRecipe(recipe) {
 
     const proxy = new Proxy(state.ingredients, ingredients_handler);
 
+    function generateDataToSend() {
+        return {
+            ...recipe,
+            ingredients: recipe.ingredients.filter(i => i.name.length > 0)
+            .map(i => {
+                const newIngredient = {...i};
+                newIngredient.num = i.amount.n * i.amount.s;
+                newIngredient.denom = i.amount.d;
+                delete newIngredient.amount;
+                delete newIngredient.temp_amount;
+                return newIngredient;
+            })
+        };
+    }
+
     const obj = {
         get id() {
             return state.id;
@@ -116,27 +131,45 @@ export function useRecipe(recipe) {
             });
         },
         async refreshRecipe() {
+            let data = null;
             try {
                 const response = await fetch(fullPath('recipe/' + recipe.id));
-                const data = await response.json();
-
-                const ingredients = data.ingredients.map(i => {
-                    const newIngredient = {...i};
-                    newIngredient.amount = new Fraction(i.num, i.denom);
-                    newIngredient.temp_amount = convertFraToStr(newIngredient.amount);
-                    delete newIngredient.num;
-                    delete newIngredient.denom;
-                    return newIngredient;
-                });
-                setState({
-                    ...data,
-                    ingredients: ingredients
-                });
+                data = await response.json();
             }
             catch (err) {
                 console.error(err);
                 throw err;
             }
+
+            const ingredients = data.ingredients.map(i => {
+                const newIngredient = {...i};
+                newIngredient.amount = new Fraction(i.num, i.denom);
+                newIngredient.temp_amount = convertFraToStr(newIngredient.amount);
+                delete newIngredient.num;
+                delete newIngredient.denom;
+                return newIngredient;
+            });
+            setState({
+                ...data,
+                ingredients: ingredients
+            });
+        },
+        async sendRecipe(callback) {
+            const data = generateDataToSend();
+            console.log(data);
+            let result = null;
+            try {
+                result = await fetchControlAPI('recipe', 'PUT', data);
+            }
+            catch (err) {
+                console.error(err);
+                throw err;
+            }
+            
+            console.log('response', result);
+            if (callback) {
+                callback(result);
+            } 
         }
     }
 
