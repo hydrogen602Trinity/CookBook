@@ -18,33 +18,7 @@ import { useRecipe } from "../util/dataState";
 function RecipeEntry(props) {
     const [isExpanded, setExpanded] = useState(false);
 
-    const [recipe, setRecipe] = useBetterState({
-        ...props.recipe,
-        ingredients: props.recipe.ingredients.map(i => {
-            const newIngredient = {...i};
-            newIngredient.amount = new Fraction(i.num, i.denom);
-            newIngredient.temp_amount = convertFraToStr(newIngredient.amount);
-            delete newIngredient.num;
-            delete newIngredient.denom;
-            return newIngredient;
-        })
-    });
-    // const recipe = useRecipe(props.recipe);
-
-    function generateDataToSend() {
-        return {//ingredients: prevRecipe.ingredients
-            ...recipe,
-            ingredients: recipe.ingredients.filter(i => i.name.length > 0)
-            .map(i => {
-                const newIngredient = {...i};
-                newIngredient.num = i.amount.n * i.amount.s;
-                newIngredient.denom = i.amount.d;
-                delete newIngredient.amount;
-                delete newIngredient.temp_amount;
-                return newIngredient;
-            })
-        };
-    }
+    const recipe = useRecipe(props.recipe);
 
     const units = [
         '',                 // no unit
@@ -90,44 +64,13 @@ function RecipeEntry(props) {
         // not a react component but a helper func
         const i = recipe.ingredients[index];
 
-        function onChange(ev) {
-            setRecipe(prevRecipe => {
-                const newIngredients = prevRecipe.ingredients.map((e,i) => {
-                    if (index === i) {
-                        e.name = ev.target.value;
-                    }
-                    return e;
-                });
-                return {ingredients: newIngredients};
-            });
-        };
-
-        function onChangeAmount(ev) {
-            setRecipe(prevRecipe => {
-                const newIngredients = prevRecipe.ingredients.map((e,i) => {
-                    if (index === i) {
-                        e.temp_amount = ev.target.value;
-                    }
-                    return e;
-                });
-                return {ingredients: newIngredients};
-            });
-        };
-
         function onBlurAmount() {
-            const value = recipe.ingredients[index].temp_amount;
+            const value = i.temp_amount;
             try {
                 const f = new Fraction(value);
-                setRecipe(prevRecipe => {
-                    const newIngredients = prevRecipe.ingredients.map((e,i) => {
-                        if (index === i) {
-                            e.amount = f;
-                            e.temp_amount = convertFraToStr(f);
-                        }
-                        return e;
-                    });
-                    return {ingredients: newIngredients};
-                });
+
+                i.amount = f;
+                i.temp_amount = convertFraToStr(f);
             } catch (e) { 
                 if (e instanceof Fraction.InvalidParameter) {
                     console.log('Invalid fraction entered: ' + value);
@@ -138,18 +81,6 @@ function RecipeEntry(props) {
             } 
         }
 
-        function onSelectChange(ev) {
-            setRecipe(prevRecipe => {
-                const newIngredients = prevRecipe.ingredients.map((e,i) => {
-                    if (index === i) {
-                        e.unit = ev.target.value;
-                    }
-                    return e;
-                });
-                return {ingredients: newIngredients};
-            });
-        }
-
         return (
             <div className="recipe-ingredient" key={index}>
                 {edit ? 
@@ -157,7 +88,7 @@ function RecipeEntry(props) {
                         type="text" 
                         placeholder="Ingredient name"
                         value={i.name} 
-                        onChange={onChange}/> 
+                        onChange={ev => i.name = ev.target.value}/> 
                 : 
                     <span>{i.name}</span>
                 }
@@ -165,13 +96,13 @@ function RecipeEntry(props) {
                     <input 
                         type="text" 
                         value={i.temp_amount}
-                        onChange={onChangeAmount}
+                        onChange={ev => i.temp_amount = ev.target.value}
                         onBlur={onBlurAmount}></input>
                 :
                     <span>{convertFraToStr(i.amount)}</span>
                 }
                 {edit ? 
-                    <select value={(i.unit === null) ? '' : i.unit} onChange={onSelectChange}>
+                    <select value={(i.unit === null) ? '' : i.unit} onChange={ev => i.unit = ev.target.value}>
                     {
                         units.map((u, i) => 
                             <option value={u} key={i}>{u}</option>)
@@ -186,37 +117,11 @@ function RecipeEntry(props) {
         
     }
 
-    function addIngredient() {
-        const newIngredient = {
-            name: '',
-            amount: new Fraction(1),
-            temp_amount: '1',
-            unit: '',
-        }
-        setRecipe(prevRecipe => {
-            return {
-                ingredients: [...prevRecipe.ingredients, newIngredient]
-            };
-        });
-    }
-
-    function sendData() {
-        // const path = (recipe.id) ? `recipe/${recipe.id}` : 'recipe';
-        const data = generateDataToSend();
-        console.log(data);
-        fetchControlAPI('recipe', 'PUT', data).then(data => {
-            console.log('response', data);
-            props.updateRecipesTrigger();
-        }).catch(e =>
-            console.log('error', e)
-        );
-    }
-
     return (
         <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
             <div className="recipe-field">
                 {edit ? 
-                    <input type="text" value={recipe.name} onChange={(ev) => setRecipe({name: ev.target.value})}></input>
+                    <input type="text" value={recipe.name} onChange={(ev) => recipe.name = ev.target.value}></input>
                 : 
                     <span>{recipe.name}</span>
                 }
@@ -230,7 +135,7 @@ function RecipeEntry(props) {
                         generateIngredientInput(i)
                     )}
                     { edit ? 
-                    <IconButton onClick={addIngredient}>
+                    <IconButton onClick={recipe.newIngredient}>
                         <AddCircleOutlineIcon className="recipe-icon-small" />
                     </IconButton> : null }
                     { edit ? 
@@ -241,7 +146,7 @@ function RecipeEntry(props) {
                         value={recipe.notes} 
                         onChange={
                             (ev) => {
-                                setRecipe({notes: ev.target.value});
+                                recipe.notes = ev.target.value;
                                 ev.target.style.height = "";
                                 ev.target.style.height = ev.target.scrollHeight +  "px";
                             }
@@ -265,13 +170,11 @@ function RecipeEntry(props) {
                         </IconButton>
                         <IconButton onClick={() => {
                             if (edit) {
-                                // filter out empty name stuff
-                                setRecipe(prevRecipe => {
-                                    return {
-                                        ingredients: prevRecipe.ingredients.filter(i => i.name.length > 0)
-                                    };
-                                });
-                                sendData();
+                                recipe.sendRecipe().then(data => {
+                                    console.log('response', data);
+                                }).catch(e =>
+                                    console.log('error', e)
+                                );
                             }
                             setEdit(!edit);
                         }}>

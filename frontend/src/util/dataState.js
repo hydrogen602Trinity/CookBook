@@ -1,5 +1,4 @@
 import useBetterState from "./classLikeState";
-import Fraction from "fraction.js";
 import { convertFraToStr, isInteger } from "./util";
 import { fetchControlAPI, fullPath } from "./fetchAPI";
 import { useState } from "react";
@@ -82,8 +81,8 @@ export function useRecipe(recipe) {
 
     function generateDataToSend() {
         return {
-            ...recipe,
-            ingredients: recipe.ingredients.filter(i => i.name.length > 0)
+            ...state,
+            ingredients: state.ingredients.filter(i => i.name.length > 0)
             .map(i => serialize_ingredient(i))
         };
     }
@@ -115,9 +114,12 @@ export function useRecipe(recipe) {
             });
         },
         async refreshRecipe() {
+            if (!isInteger(state.id)) {
+                throw new Error('Recipe id invalid');
+            }
             let data = null;
             try {
-                const response = await fetch(fullPath('recipe/' + recipe.id));
+                const response = await fetch(fullPath('recipe/' + state.id));
                 data = await response.json();
             }
             catch (err) {
@@ -132,9 +134,14 @@ export function useRecipe(recipe) {
                 ingredients: ingredients
             });
         },
-        async sendRecipe(callback) {
+        async sendRecipe() {
             const data = generateDataToSend();
-            console.log(data);
+            setState(prevState => {
+                return {
+                    ingredients: prevState.ingredients.filter(i => i.name.length > 0)
+                };
+            });
+            console.log('sending data:', data, state.ingredients);
             let result = null;
             try {
                 result = await fetchControlAPI('recipe', 'PUT', data);
@@ -146,9 +153,7 @@ export function useRecipe(recipe) {
             }
             
             console.log('response', result);
-            if (callback) {
-                callback(result);
-            } 
+            return result;
         },
         get error() {
             return error;
