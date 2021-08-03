@@ -2,6 +2,7 @@ import useBetterState from "./classLikeState";
 import Fraction from "fraction.js";
 import { convertFraToStr } from "./util";
 import { fullPath } from "./fetchAPI";
+import { useState } from "react";
 
 
 export function useRecipe(recipe) {
@@ -20,6 +21,7 @@ export function useRecipe(recipe) {
     }
 
     const [state, setState] = useBetterState(recipe);
+    const [error, setError] = useState(null);
 
     function setIngredient(idx, ingredient) {
         idx = parseInt(idx);
@@ -138,6 +140,7 @@ export function useRecipe(recipe) {
             }
             catch (err) {
                 console.error(err);
+                setError(err + '');
                 throw err;
             }
 
@@ -163,6 +166,7 @@ export function useRecipe(recipe) {
             }
             catch (err) {
                 console.error(err);
+                setError(err + '');
                 throw err;
             }
             
@@ -170,6 +174,9 @@ export function useRecipe(recipe) {
             if (callback) {
                 callback(result);
             } 
+        },
+        get error() {
+            return error;
         }
     }
 
