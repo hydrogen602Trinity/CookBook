@@ -1,24 +1,19 @@
 import useBetterState from "./classLikeState";
 import Fraction from "fraction.js";
-import { convertFraToStr } from "./util";
-import { fullPath } from "./fetchAPI";
+import { convertFraToStr, isInteger } from "./util";
+import { fetchControlAPI, fullPath } from "./fetchAPI";
 import { useState } from "react";
+import { Ingredient, serialize_ingredient } from "./dataTypes";
 
 
 export function useRecipe(recipe) {
+
     recipe = {
         name: '',
         notes: '',
-        ingredients: [],
-        ...recipe
+        ...recipe,
+        ingredients: (recipe && recipe.ingredients) ? recipe.ingredients.map(i => new Ingredient(i)) : [],
     };
-
-    function Ingredient() {
-        this.name = '';
-        this.amount = new Fraction(1);
-        this.temp_amount = '1';
-        this.unit = '';
-    }
 
     const [state, setState] = useBetterState(recipe);
     const [error, setError] = useState(null);
@@ -38,7 +33,7 @@ export function useRecipe(recipe) {
 
     const ingredients_handler = {
         get(_, prop) {
-            if (parseInt(prop) + '' === 'NaN') {
+            if (!isInteger(prop)) {
                 return state.ingredients[prop];
             }
             else {
@@ -76,7 +71,7 @@ export function useRecipe(recipe) {
             }
         },
         set(_, idx, ingredient) {
-            if (parseInt(prop) + '' === 'NaN') {
+            if (!isInteger(idx)) {
                 throw new Error('Expected int');
             }
             setIngredient(idx, ingredient);
@@ -89,14 +84,7 @@ export function useRecipe(recipe) {
         return {
             ...recipe,
             ingredients: recipe.ingredients.filter(i => i.name.length > 0)
-            .map(i => {
-                const newIngredient = {...i};
-                newIngredient.num = i.amount.n * i.amount.s;
-                newIngredient.denom = i.amount.d;
-                delete newIngredient.amount;
-                delete newIngredient.temp_amount;
-                return newIngredient;
-            })
+            .map(i => serialize_ingredient(i))
         };
     }
 
@@ -119,12 +107,6 @@ export function useRecipe(recipe) {
         get ingredients() {
             return proxy;
         },
-        // mapIngredients(func) {
-        //     if (typeof func !== 'function') {
-        //         throw new Error('Expected function');
-        //     }
-        //     return state.ingredients.map(func);
-        // },
         newIngredient() {
             setState(prevState => {
                 return {
@@ -144,14 +126,7 @@ export function useRecipe(recipe) {
                 throw err;
             }
 
-            const ingredients = data.ingredients.map(i => {
-                const newIngredient = {...i};
-                newIngredient.amount = new Fraction(i.num, i.denom);
-                newIngredient.temp_amount = convertFraToStr(newIngredient.amount);
-                delete newIngredient.num;
-                delete newIngredient.denom;
-                return newIngredient;
-            });
+            const ingredients = data.ingredients.map(i => new Ingredient(i));
             setState({
                 ...data,
                 ingredients: ingredients

@@ -12,6 +12,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import { fetchAPI, fetchControlAPI } from "../util/fetchAPI";
 import { convertFraToStr } from "../util/util";
+import { useRecipe } from "../util/dataState";
 
 
 function RecipeEntry(props) {
@@ -28,6 +29,7 @@ function RecipeEntry(props) {
             return newIngredient;
         })
     });
+    // const recipe = useRecipe(props.recipe);
 
     function generateDataToSend() {
         return {//ingredients: prevRecipe.ingredients

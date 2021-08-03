@@ -17,3 +17,8 @@ export function convertFraToStr(f) {
     }
     return `${f.s * f.n}${f.d > 1 ? '/'+f.d : ''}`
 }
+
+export function isInteger(n) {
+    const numBackToStr = parseInt(n) + '';
+    return numBackToStr !== 'NaN' && numBackToStr == n;
+}

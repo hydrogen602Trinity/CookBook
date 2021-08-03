@@ -75,6 +75,27 @@ test('basic useRecipe test 4', () => {
     expect(result.current.ingredients[0].temp_amount).toBe('5');
 });
 
+test('basic useRecipe test 5', () => {
+    const { result } = renderHook(() => useRecipe({name: 'A', notes: 'B', ingredients: [{
+        id: 1,
+        name: 'C',
+        num: 2,
+        denom: 1,
+        unit: 'D'
+    }]}));
+
+    expect(result.current.name).toBe('A');
+    expect(result.current.notes).toBe('B');
+
+    expect(result.current.ingredients[0].unit).toBe('D');
+    expect(result.current.ingredients[0].name).toBe('C');
+    expect(result.current.ingredients.map(e => e)).toHaveLength(1);
+    expect(result.current.ingredients.map(e => e.name)).toStrictEqual(['C']);
+
+    expect(result.current.ingredients[0].amount).toStrictEqual(new Fraction(2));
+    expect(result.current.ingredients[0].temp_amount).toBe('2');
+});
+
 // beforeEach(() => {
 //     fetch.mockClear();
 // });
