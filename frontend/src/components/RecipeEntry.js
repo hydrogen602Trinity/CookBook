@@ -3,14 +3,12 @@ import Fraction from "fraction.js";
 import Collapse from '@material-ui/core/Collapse';
 import './RecipeEntry.css'
 
-import useBetterState from "../util/classLikeState";
 import { IconButton } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import { fetchAPI, fetchControlAPI } from "../util/fetchAPI";
 import { convertFraToStr } from "../util/util";
 import { useRecipe } from "../util/dataState";
 
@@ -35,20 +33,6 @@ function RecipeEntry(props) {
     function expand() {
         if (!isExpanded) {
             setExpanded(true);
-        }
-    }
-
-    function deleteThis() {
-        if (recipe.id === undefined) {
-            // not in db
-            props.updateRecipesTrigger();
-        }
-        else {
-            const f = (e) => console.error(e);
-            fetchAPI('recipe/' + props.recipe.id, null, 'delete', (e) => {
-                console.log('Success!', e);
-                props.updateRecipesTrigger();
-            }, f);
         }
     }
 
@@ -159,7 +143,11 @@ function RecipeEntry(props) {
                     }
                     
                     <div className="recipe-menu">
-                        <IconButton onClick={deleteThis}>
+                        <IconButton onClick={() => {
+                            recipe.deleteThis().then(e => {
+                                props.updateRecipesTrigger();
+                            });
+                        }}>
                             <DeleteIcon className="recipe-icon" />
                         </IconButton>
                         <IconButton onClick={() => {

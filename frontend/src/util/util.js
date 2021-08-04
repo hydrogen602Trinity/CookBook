@@ -20,5 +20,5 @@ export function convertFraToStr(f) {
 
 export function isInteger(n) {
     const numBackToStr = parseInt(n) + '';
-    return numBackToStr !== 'NaN' && numBackToStr == n;
+    return numBackToStr !== 'NaN' && numBackToStr === n + '';
 }

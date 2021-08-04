@@ -94,7 +94,7 @@ class RecipeResource(Resource):
             newRecipe = Recipe(data['name'], data['notes'], ingredients)
             db.session.add(newRecipe)
             db.session.commit()
-            return '', 201
+            return f'{newRecipe.id}', 201
         
         recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
         
@@ -103,7 +103,7 @@ class RecipeResource(Resource):
             recipe.notes = data['notes']
             recipe.ingredients = ingredients
             db.session.commit()
-            return '', 200
+            return f'{recipe.id}', 200
         else:
             return f'No object found with recipe_id={data["id"]}', 404
 

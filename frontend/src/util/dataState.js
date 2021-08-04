@@ -113,17 +113,18 @@ export function useRecipe(recipe) {
                 };
             });
         },
-        async refreshRecipe() {
-            if (!isInteger(state.id)) {
-                throw new Error('Recipe id invalid');
+        async refreshRecipe(tmp_id) {
+            const id = isInteger(tmp_id) ? tmp_id : state.id;
+            if (!isInteger(id)) {
+                throw new Error('Recipe id invalid: ' + id);
             }
             let data = null;
             try {
-                const response = await fetch(fullPath('recipe/' + state.id));
+                const response = await fetch(fullPath('recipe/' + id));
                 data = await response.json();
             }
             catch (err) {
-                console.error(err);
+                console.error('refreshRecipe', err);
                 setError(err + '');
                 throw err;
             }
@@ -133,6 +134,7 @@ export function useRecipe(recipe) {
                 ...data,
                 ingredients: ingredients
             });
+            return data;
         },
         async sendRecipe() {
             const data = generateDataToSend();
@@ -145,14 +147,42 @@ export function useRecipe(recipe) {
             let result = null;
             try {
                 result = await fetchControlAPI('recipe', 'PUT', data);
+                if (!isInteger(result)) {
+                    throw new Error('Expected PUT /recipe to return int, but got ' + result);
+                }
+                setState({
+                    id: parseInt(result)
+                });
+                await this.refreshRecipe(result);
             }
             catch (err) {
-                console.error(err);
+                console.error('sendRecipe', err);
                 setError(err + '');
                 throw err;
             }
             
             console.log('response', result);
+            return result;
+        },
+        async deleteThis() {
+            let result = null;
+            if (isInteger(state.id)) {
+                console.log('deleting...');
+                try {
+                    result = await fetchControlAPI('recipe/' + state.id, 'DELETE', null, false);
+                    console.log('deleted');
+                    setState({
+                        name: '',
+                        notes: '',
+                        ingredients: [],
+                    });
+                }
+                catch (err) {
+                    console.error('deleteThis', err);
+                    setError(err + '');
+                    throw err;
+                }
+            }
             return result;
         },
         get error() {

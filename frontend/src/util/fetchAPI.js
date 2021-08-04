@@ -31,7 +31,7 @@ export function useFetchAPI(path, dependsArray = null) {
 //     return [isLoading, data, error, setActive];
 // }
 
-export async function fetchControlAPI(path, method, data) {
+export async function fetchControlAPI(path, method, data, json = true) {
     if (method !== 'GET' && method !== 'POST' && method !== 'PUT' && method !== 'DELETE') {
         throw new Error('Unknown HTTP Method');
     }
@@ -45,7 +45,7 @@ export async function fetchControlAPI(path, method, data) {
         },
         body: JSON.stringify(data)
     });
-    return response.json();
+    return json ? response.json() : response.text();
 }
 
 // export function useAPIState(path, onFailure = null) {
