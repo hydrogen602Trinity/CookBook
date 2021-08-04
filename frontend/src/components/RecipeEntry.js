@@ -14,7 +14,6 @@ import { useRecipe } from "../util/dataState";
 
 
 function RecipeEntry(props) {
-    const [isExpanded, setExpanded] = useState(false);
 
     const recipe = useRecipe(props.recipe);
 
@@ -29,12 +28,6 @@ function RecipeEntry(props) {
     // optgroup for grouping units
 
     const [edit, setEdit] = useState(false);
-
-    function expand() {
-        if (!isExpanded) {
-            setExpanded(true);
-        }
-    }
 
     const textAreaRef = createRef();
     useLayoutEffect(() => {
@@ -102,7 +95,11 @@ function RecipeEntry(props) {
     }
 
     return (
-        <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
+        <div onClick={() => {
+            if (!props.isExpanded) {
+                props.setExpanded(true);
+            }
+        }} is-expanded={props.isExpanded ? '' : undefined} className="recipe-entry">
             <div className="recipe-field">
                 {edit ? 
                     <input type="text" value={recipe.name} onChange={(ev) => recipe.name = ev.target.value}></input>
@@ -111,7 +108,7 @@ function RecipeEntry(props) {
                 }
             </div>
             <Collapse 
-                in={isExpanded} 
+                in={props.isExpanded} 
                 timeout={200} 
                 unmountOnExit>
                 <div className="recipe-details">
@@ -151,7 +148,7 @@ function RecipeEntry(props) {
                             <DeleteIcon className="recipe-icon" />
                         </IconButton>
                         <IconButton onClick={() => {
-                            setExpanded(false);
+                            props.setExpanded(false);
                             setEdit(false);
                         }}>
                             <KeyboardArrowUpIcon className="recipe-icon" />

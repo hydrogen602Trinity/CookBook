@@ -26,7 +26,6 @@ const GrowTransition = forwardRef((props, ref) => {
 export default function Recipes() {
     const [state, setState] = useState({
         snackbar: null,
-        // showRecipeEditor: false
     });
     const snackbarRef = createRef(null);
 
@@ -44,14 +43,10 @@ export default function Recipes() {
 
     const [recipes, setRecipes] = useState([]);
 
-    // const setSnackbar = (msg) => {
-    //     setState({snackbar: null});
-    // };
-
     useEffect(() => {
         if (recipesData) {
-            console.log('loading recipes: ',recipesData);
-            setRecipes(recipesData);
+            console.log('loading recipes: ', recipesData);
+            setRecipes(recipesData.map(e => { return {recipe: e, expanded: false} }));
         }
     }, [recipesData]);
 
@@ -61,10 +56,22 @@ export default function Recipes() {
             notes: '',
             ingredients: [],
         };
-        setRecipes((prevRecipes) => [...prevRecipes, newRecipe])
+        setRecipes((prevRecipes) => [...prevRecipes, newRecipe]);
     }
 
-    console.log(recipes, isLoading);
+    // console.log(recipes, isLoading);
+
+    function setExpanded(idx, value) {
+        console.log(idx, value);
+        setRecipes(prevRecipes => {
+            return prevRecipes.map(({recipe, expanded}, i) => {
+                if (i == idx) {
+                    return {recipe: recipe, expanded: value};
+                }
+                return {recipe: recipe, expanded: false};
+            });
+        })
+    }
 
     return (
         <div className="frame">
@@ -76,28 +83,20 @@ export default function Recipes() {
                     <i className="fas fa-plus"></i>
                 </button>
             </div>
-            {/* <div className="bar" hidden={true}>
-                <button>New</button>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div> */}
             <div className="main" id="content">
                 {isLoading ? 
                     <CircularProgress className="recipe-circular-progress"/>
                 : 
-                    recipes.map((recipe, i) => 
+                    recipes.map(({recipe, expanded}, i) => 
                         <RecipeEntry 
                             key={(recipe.id) ? `id=${recipe.id}` : `idx=${i}`} 
                             recipe={recipe} 
                             updateRecipesTrigger={updateRecipesTrigger}
+                            isExpanded={expanded}
+                            setExpanded={(value) => setExpanded(i, value)}
                             />)
                 }
             </div>
-            {/* <div className="sidebar" hidden={true}>
-                <button onClick={() => console.log('getAllRecipes')}>
-                    Recipes
-                </button>
-            </div> */}
             <Snackbar 
                 ref={snackbarRef} 
                 open={Boolean(state.snackbar)} 
@@ -108,7 +107,6 @@ export default function Recipes() {
                 {state.snackbar}
                 </Alert>
             </Snackbar>
-            {/* {state.showRecipeEditor ? <RecipeEditor/> : null} */}
         </div>
     );
 }
