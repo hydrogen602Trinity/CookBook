@@ -61,7 +61,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
     # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config['TESTING'] = testing
-    app.config["SERVER_NAME"] = '192.168.178.67:5000'  # "localhost:5000"
+    app.config["SERVER_NAME"] =  "localhost:5000"#'192.168.178.67:5000'  #
     app.config["APPLICATION_ROOT"] = "/"
     if testing:
         app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
