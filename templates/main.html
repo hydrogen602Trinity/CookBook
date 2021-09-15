@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="https://kit.fontawesome.com/9c4b3dab13.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="frame">
+        <div class="header">
+            <h1>
+                Recipe Book
+            </h1>
+        </div>
+        <div id="content">
+            <ul>
+                <li v-for="note in notes" :key="note.id">
+                    {{ note.content }}
+                </li>
+            </ul>
+            <div>
+                <input name="note" v-model="noteInput">
+                <button name="submit" v-on:click="submitNote()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <script>
+        const app = new Vue({
+            el: '#content',
+            data: {
+                notes: [],
+                noteInput: "",
+                noteResource: "%% url_for('resources.noteresource') %%",
+            },
+            created() {
+                this.updateNotes()
+            },
+            methods: {
+                updateNotes() {
+                    fetch(this.noteResource)
+                        .then(response => response.json())
+                        .then(json => {
+                            this.notes = json;
+                            })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                },
+                submitNote() {
+                    fetch(this.noteResource, {
+                        method: "POST",
+                        body: JSON.stringify({note: this.noteInput}),
+                        headers: {
+                            'Content-type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        this.updateNotes();
+                        return response;
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                    this.noteInput = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

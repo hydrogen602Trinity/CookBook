@@ -1,29 +1,19 @@
 
-# Plan
+# Project Structure
 
-do we have one?  
-how do we deal with units?  
+## models
 
-## Data:
-- Recipe
-    - Ingredients (`?`)
-        - `Dict[str, int]` units?
-        - `Dict[str, (int, str)]` with units as str? maybe enum?
-    - Instructions (`List[str]`) if steps
-    - Notes (`str`)
-    - Id (`str`) name based or random?
-        - has to be url safe
-    - Name (`str`)
+database tables & stuff
 
-## REST API
-- add recipe (`POST`) 
-    - `POST ... /recipe`
-- get recipe (`GET`)
-    - `GET ... /recipe/{id}`
-- list recipes (`GET`)
-    - `GET ... /allrecipes`
-- delete recipe (`DELETE`)
+## templates
 
-## Sqlite DB
-Store data somehow?
+html
 
+## views
+
+- `api.py` -> rest api
+- `core.py` -> serving the frontend
+
+## restapi/resources
+
+allows for rest api calls

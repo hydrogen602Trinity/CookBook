@@ -1,0 +1,189 @@
+:root {
+    --black: #252323;
+    --green: #629E83;
+    --orange: #E16826; /*#F05B3D; /*#FC5130;*/
+    --gray: #DEDEDE;
+    --beige: #FFF5BA;
+    --yellow: #F7C825;
+
+    --iconSize: 3em;
+}
+body {
+    margin: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: white; /*#ffffea;*/
+}
+
+.frame {
+    display: grid;
+    grid-template-columns: 5% auto 5%;
+    grid-template-rows: 15% auto 5%;
+    height: 100%;
+    width: 100%;
+    grid-template-areas: 
+        "header header header"
+        ". main ."
+        ". main .";
+}
+
+.header, .bar, .main {
+    padding: 10px;
+}
+
+.header {
+    grid-area: header;
+    background-color: var(--yellow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h1 {
+    margin: 0.5em;
+    margin-left: 5%;
+}
+
+.header button {
+    border: 0;
+    background-color: transparent;
+    font-size: var(--iconSize);
+    margin-right: 5%;
+}
+
+.bar {
+    grid-area: bar;
+    background-color: var(--black);
+    display: flex;
+    justify-content: space-around;
+}
+
+.bar button {
+    background-color: var(--orange);
+    border: 0px;
+    border-radius: 0.7em;
+    font-size: x-large;
+    width: 15%;
+    padding: 1em;
+}
+
+.main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-y: visible;
+    /*font-size: 8px;*/
+    text-transform: uppercase;
+    padding-top: 20px !important;
+}
+
+.main * {
+    background-color: var(--beige);
+    padding: 5px;
+    margin-bottom: 20px;
+    font-size: x-large;
+}
+
+.main > div {
+    border: 0px;
+    text-transform: inherit;
+    font-size: x-large;
+    text-align: center;
+    padding: 1em;
+}
+
+.main input {
+    border: 0;
+    background-color: white;
+    font-size: x-large;
+    width: 90%;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0.5em;
+}
+
+.editOrDel {
+    border: 0;
+    margin-bottom: 0 !important;
+    padding: 1em;
+}
+
+.editOrDel i {
+    border: 0;
+    margin-bottom: 0 !important;
+    font-size: var(--iconSize);
+}
+
+.main h3, p {
+    font-size: inherit;
+    text-align: left;
+}
+
+.recipe {
+    display: flex;
+    flex-direction: column;
+}
+
+.recipe ol {
+    padding-left: 1.5em;
+    margin-top: 0em;
+    text-align: left;
+}
+
+.recipe ul {
+    padding-left: 1.5em;
+    margin-top: 0em;
+    text-align: left;
+}
+
+.recipe li {
+    margin-left: 0.5em;
+}
+
+.recipe > div {
+    /*border: 1px solid red;*/
+}
+
+.recipeName {
+    text-align: center;
+    padding: 0px !important;
+    font-size: x-large;
+}
+
+.addLineEdit {
+    border: 0;
+    padding: auto;
+    width: 10%;
+}
+
+.addLineEdit i {
+    margin: 0;
+    font-size: x-large;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    background-color: var(--black);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.sidebar button {
+    background-color: var(--orange);
+    border: 0px;
+    font-size: x-large;
+    padding: 5px;
+}
+
+/* https://stackoverflow.com/questions/924916/is-there-a-way-to-make-a-div-unselectable */
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
