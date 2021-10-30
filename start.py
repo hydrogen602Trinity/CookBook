@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from __future__ import print_function
 import sys
 import os
 import re
 import json
 import subprocess
-from pathlib import Path
-from typing import List, Tuple
+from os.path import exists
+
+# The startup script is compatible with python2 and python3, it will look for python3 itself
+
 
 # needs to be customized in start.json
-p = Path('start.json')
-if p.exists():
-    with p.open() as f:
+p = 'start.json'
+if exists(p):
+    with open(p) as f:
         obj = json.load(f)
 else:
     print('Warn: Falling back to default as start.json could not be found')
@@ -22,9 +24,13 @@ startDB = obj['startDB']
 stopDB = obj['stopDB']
 
 
+def print_usage():
+    print('Usage: {} install|test|init|run|run-front'.format(sys.argv[0]))
+    print('Usage: {} pg start|stop'.format(sys.argv[0]))
+
+
 if len(sys.argv) < 2:
-    print(f'Usage: {sys.argv[0]} install|test|init|run')
-    print(f'Usage: {sys.argv[0]} pg start|stop')
+    print_usage()
     exit(1)
 
 
@@ -33,20 +39,23 @@ def print(*args, **kwargs):
         __builtins__.print(*args, **kwargs)
 
 def print_err(*args, **kwargs):
-    print(*args, **kwargs, file=sys.stderr)
+    kwargs['file'] = sys.stderr
+    print(*args, **kwargs)
 
-def run(args: List[str], print_=True) -> Tuple[str, str]:
+def run(args, print_=True):
     if print_: print('$ ' + ' '.join(args))
-    s = subprocess.run(args, capture_output=True)
+    s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s.wait()
+    out, err = s.communicate()
     if s.returncode != 0:
-        print_err(f'Warn: {" ".join(args)} returned with {s.returncode}. stderr: {s.stderr.decode()}')
+        print_err('Warn: {} returned with {}. stderr: {}'.format(" ".join(args), s.returncode, err.decode()))
         s.check_returncode()
     
-    if print_: print(s.stdout.decode())
-    if print_: print_err(s.stderr.decode())
-    return s.stdout.decode(), s.stderr.decode()
+    if print_: print(out.decode())
+    if print_: print_err(err.decode())
+    return out.decode(), err.decode()
 
-def is_py_3(cmd: str) -> bool:
+def is_py_3(cmd):
     try:
         out, _ = run([cmd, '--version'])
     except subprocess.CalledProcessError as e:
@@ -66,7 +75,7 @@ else:
     print('Could not find python3')
     exit(1)
 
-print(f'Using command: {py_cmd}')
+print('Using command: {}'.format(py_cmd))
 
 
 os.environ['FLASK_APP'] = 'flask_app.py'
@@ -74,14 +83,26 @@ os.environ['FLASK_ENV'] = 'development'
 os.environ['INIT_DB'] = '0'
 
 
-def main():
-    os.environ['DB_FILENAME'] = 'prod.db'
-    subprocess.run([py_cmd, '-m', 'flask', 'run', '--host=0.0.0.0'], stderr=sys.stderr, stdout=sys.stdout)
+def main(front=False):
+    if front:
+        os.chdir('frontend')
+        try:
+            print('Now in {}'.format(os.path.abspath('.')))
 
+            s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout)
+            s.wait()
+        finally:
+            os.chdir('..')
+            print('Now in {}'.format(os.path.abspath('.')))
+
+    else:
+        os.environ['DB_FILENAME'] = 'prod.db'
+        s = subprocess.Popen([py_cmd, '-m', 'flask', 'run', '--host=0.0.0.0'], stderr=sys.stderr, stdout=sys.stdout, bufsize=0)
+        s.wait()
 
 if sys.argv[1] == 'install':
     try:
-        if not Path('init').exists():
+        if not exists('init'):
             out, err = run([py_cmd, '-m', 'venv', 'init'])
     except subprocess.CalledProcessError:
         r = input('Continue without a virtual environment? (y|n)').lower()
@@ -90,12 +111,21 @@ if sys.argv[1] == 'install':
         elif r == 'y':
             pass
         else:
-            raise ValueError(f'Unknown value: "{r}", expected y or n')
+            raise ValueError('Unknown value: "{}", expected y or n'.format(r))
 
     out, err = run([py_cmd, '-m', 'pip', 'install', '-r', 'requirements.txt'])
 
-    if not Path('start.json').exists():
+    if not exists('start.json'):
         run(['cp', 'start.example.json', 'start.json'])
+    
+    os.chdir('frontend')
+    try:
+        print('Now in {}'.format(os.path.abspath('.')))
+
+        run(['npm', 'install'])
+    finally:
+        os.chdir('..')
+        print('Now in {}'.format(os.path.abspath('.')))
 
 
 elif sys.argv[1] == 'test':
@@ -105,6 +135,16 @@ elif sys.argv[1] == 'test':
 
     out, err = run([py_cmd, '-m', 'unittest', '--locals'])
 
+    os.chdir('frontend')
+    try:
+        print('Now in {}'.format(os.path.abspath('.')))
+
+        os.environ['CI'] = 'true'
+        run(['npm', 'test'])
+    finally:
+        os.chdir('..')
+        print('Now in {}'.format(os.path.abspath('.')))
+
 elif sys.argv[1] == 'init':
     os.environ['INIT_DB'] = '1'
     main()
@@ -112,17 +152,19 @@ elif sys.argv[1] == 'init':
 elif sys.argv[1] == 'run':
     main()
 
+elif sys.argv[1] == 'run-front':
+    main(front=True)
+
 elif sys.argv[1] == 'pg':
     if len(sys.argv) < 3:
-        print(f'Usage: {sys.argv[0]} pg start|stop')
+        print_usage()
     if sys.argv[2] == 'start':
         run(startDB)
     elif sys.argv[2] == 'stop':
         run(stopDB)
     else:
-        print(f'Usage: {sys.argv[0]} pg start|stop')
+        print_usage()
 
 else:
-    print(f'Usage: {sys.argv[0]} install|test|init|run')
-    print(f'Usage: {sys.argv[0]} pg start|stop')
+    print_usage()
     exit(1)
