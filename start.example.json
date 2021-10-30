@@ -1,0 +1,4 @@
+{
+    "startDB": ["brew", "services", "start", "postgresql"],
+    "stopDB": ["brew", "services", "stop", "postgresql"]
+}

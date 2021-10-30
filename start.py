@@ -3,13 +3,23 @@ from __future__ import print_function
 import sys
 import os
 import re
+import json
 import subprocess
 from pathlib import Path
 from typing import List, Tuple
 
-# needs to be customized
-startDB=['brew', 'services', 'start', 'postgresql']
-stopDB=['brew', 'services', 'stop', 'postgresql']
+# needs to be customized in start.json
+p = Path('start.json')
+if p.exists():
+    with p.open() as f:
+        obj = json.load(f)
+else:
+    print('Warn: Falling back to default as start.json could not be found')
+    with open('start.example.json') as f:
+        obj = json.load(f)
+
+startDB = obj['startDB']
+stopDB = obj['stopDB']
 
 
 if len(sys.argv) < 2:
@@ -83,6 +93,9 @@ if sys.argv[1] == 'install':
             raise ValueError(f'Unknown value: "{r}", expected y or n')
 
     out, err = run([py_cmd, '-m', 'pip', 'install', '-r', 'requirements.txt'])
+
+    if not Path('start.json').exists():
+        run(['cp', 'start.example.json', 'start.json'])
 
 
 elif sys.argv[1] == 'test':
