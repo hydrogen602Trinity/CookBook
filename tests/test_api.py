@@ -9,9 +9,13 @@ from database import db
 import os
 
 
+def get_db_URI():
+    return f'postgresql:///postgres'
+
+
 class NoteCase(TestCase):
 
-    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    SQLALCHEMY_DATABASE_URI = get_db_URI()
     TESTING = True
 
     client: FlaskClient
@@ -96,7 +100,7 @@ class NoteCase(TestCase):
 
 class RecipeCase(TestCase):
 
-    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    SQLALCHEMY_DATABASE_URI = get_db_URI()
     TESTING = True
 
     client: FlaskClient

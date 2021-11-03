@@ -67,6 +67,7 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
         app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
 
     db.init_app(app)
+    # app.logger.info(f'DB: {app.config["SQLALCHEMY_DATABASE_URI"]}')
 
     if not testing:
         init_db = getenv('INIT_DB')

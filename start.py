@@ -130,7 +130,7 @@ if sys.argv[1] == 'install':
 
 elif sys.argv[1] == 'test':
     os.environ['INIT_DB'] = '0'
-    os.environ['DB_FILENAME'] = 'test.db'
+    os.environ['DB_FILENAME'] = 'postgres'
     os.environ['TESTING'] = '1'
 
     out, err = run([py_cmd, '-m', 'unittest', '--locals'])
