@@ -45,11 +45,15 @@ def print_err(*args, **kwargs):
 def run(args, print_=True):
     if print_: print('$ ' + ' '.join(args))
     s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    s.wait()
+    try:
+        s.wait()
+    except KeyboardInterrupt:
+        s.terminate()
+        s.wait()
     out, err = s.communicate()
     if s.returncode != 0:
         print_err('Warn: {} returned with {}. stderr: {}'.format(" ".join(args), s.returncode, err.decode()))
-        s.check_returncode()
+        raise subprocess.CalledProcessError(s.returncode, args, err)
     
     if print_: print(out.decode())
     if print_: print_err(err.decode())
@@ -90,7 +94,11 @@ def main(front=False):
             print('Now in {}'.format(os.path.abspath('.')))
 
             s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout)
-            s.wait()
+            try:
+                s.wait()
+            except KeyboardInterrupt:
+                s.terminate()
+                s.wait()
         finally:
             os.chdir('..')
             print('Now in {}'.format(os.path.abspath('.')))

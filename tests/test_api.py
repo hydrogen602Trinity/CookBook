@@ -9,20 +9,16 @@ from database import db
 import os
 
 
-def get_db_URI():
-    return f'postgresql:///postgres'
-
-
 class NoteCase(TestCase):
 
-    SQLALCHEMY_DATABASE_URI = get_db_URI()
+    SQLALCHEMY_DATABASE_URI = 'postgres'
     TESTING = True
 
     client: FlaskClient
 
     def create_app(self):
         # pass in test configuration
-        app = create_app(testing=True, db_uri=self.SQLALCHEMY_DATABASE_URI)
+        app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
             self.GET_API_NOTE = \
@@ -100,14 +96,14 @@ class NoteCase(TestCase):
 
 class RecipeCase(TestCase):
 
-    SQLALCHEMY_DATABASE_URI = get_db_URI()
+    SQLALCHEMY_DATABASE_URI = 'postgres'
     TESTING = True
 
     client: FlaskClient
 
     def create_app(self):
         # pass in test configuration
-        app = create_app(testing=True, db_uri=self.SQLALCHEMY_DATABASE_URI)
+        app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
             self.GET_API_NODE = \
