@@ -1,7 +1,7 @@
 from models import Ingredient, Recipe
 import restapi
 from typing import Optional
-from flask import Flask, render_template, request
+from flask import Flask
 from flask_cors import CORS
 
 
@@ -56,12 +56,12 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
 
     CORS(app)
 
-    SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
-    app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+    #SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///recipedb"
     # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config['TESTING'] = testing
-    app.config["SERVER_NAME"] =  "localhost:5000"#'192.168.178.67:5000'  #
+    app.config["SERVER_NAME"] =  "localhost:5000" #'192.168.178.67:5000'  #
     app.config["APPLICATION_ROOT"] = "/"
     if testing:
         app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False

@@ -115,7 +115,7 @@ class RecipeResource(Resource):
             return jsonify(recipe.toJson())
         else:
             current_app.logger.debug('Getting all recipes')
-            return jsonify([recipe.toJson() for recipe in Recipe.query.filter(Recipe.deleted == 0).all()])
+            return jsonify([recipe.toJson() for recipe in Recipe.query.filter(Recipe.deleted == False).all()])
 
     @optional_param_check(True, 'recipe_id')
     def delete(self, recipe_id: Optional[int] = None):
