@@ -45,11 +45,15 @@ def print_err(*args, **kwargs):
 def run(args, print_=True):
     if print_: print('$ ' + ' '.join(args))
     s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    s.wait()
+    try:
+        s.wait()
+    except KeyboardInterrupt:
+        s.terminate()
+        s.wait()
     out, err = s.communicate()
     if s.returncode != 0:
         print_err('Warn: {} returned with {}. stderr: {}'.format(" ".join(args), s.returncode, err.decode()))
-        s.check_returncode()
+        raise subprocess.CalledProcessError(s.returncode, args, err)
     
     if print_: print(out.decode())
     if print_: print_err(err.decode())
@@ -90,13 +94,17 @@ def main(front=False):
             print('Now in {}'.format(os.path.abspath('.')))
 
             s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout)
-            s.wait()
+            try:
+                s.wait()
+            except KeyboardInterrupt:
+                s.terminate()
+                s.wait()
         finally:
             os.chdir('..')
             print('Now in {}'.format(os.path.abspath('.')))
 
     else:
-        os.environ['DB_FILENAME'] = 'prod.db'
+        os.environ['DB_FILENAME'] = 'recipedb'
         s = subprocess.Popen([py_cmd, '-m', 'flask', 'run', '--host=0.0.0.0'], stderr=sys.stderr, stdout=sys.stdout, bufsize=0)
         s.wait()
 
@@ -130,7 +138,7 @@ if sys.argv[1] == 'install':
 
 elif sys.argv[1] == 'test':
     os.environ['INIT_DB'] = '0'
-    os.environ['DB_FILENAME'] = 'test.db'
+    os.environ['DB_FILENAME'] = 'postgres'
     os.environ['TESTING'] = '1'
 
     out, err = run([py_cmd, '-m', 'unittest', '--locals'])
