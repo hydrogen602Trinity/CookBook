@@ -56,8 +56,8 @@ def create_app(testing: bool = False, db_uri: Optional[str] = None) -> Flask:
 
     CORS(app)
 
-    #SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"sqlite:///{getenv('DB_FILENAME')}"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///recipedb"
+    SQLALCHEMY_DATABASE_URI = db_uri if db_uri else f"postgresql:///{getenv('DB_FILENAME')}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
     # app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config['TESTING'] = testing

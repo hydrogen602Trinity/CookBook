@@ -96,7 +96,7 @@ def main(front=False):
             print('Now in {}'.format(os.path.abspath('.')))
 
     else:
-        os.environ['DB_FILENAME'] = 'prod.db'
+        os.environ['DB_FILENAME'] = 'recipedb'
         s = subprocess.Popen([py_cmd, '-m', 'flask', 'run', '--host=0.0.0.0'], stderr=sys.stderr, stdout=sys.stdout, bufsize=0)
         s.wait()
 
