@@ -62,8 +62,14 @@ def run(args, print_=True):
 def is_py_3(cmd):
     try:
         out, _ = run([cmd, '--version'])
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
+    except OSError as e:
+        return False
+    except Exception as e:
+        if type(e).__name__ == 'FileNotFoundError':
+            return False
+        raise e
     # print(re.findall(r'[Pp]ython 3', err), err, out)
     return len(re.findall(r'[Pp]ython 3', out)) > 0
 
@@ -71,6 +77,8 @@ def is_py_3(cmd):
 py_cmd = ''
 if is_py_3('./init/bin/python'):
     py_cmd = './init/bin/python'
+if is_py_3('./init/Scripts/python.exe'):
+    py_cmd = './init/Scripts/python.exe'
 elif is_py_3('python'):
     py_cmd = 'python'
 elif is_py_3('python3'):
