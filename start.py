@@ -42,15 +42,23 @@ def print_err(*args, **kwargs):
     kwargs['file'] = sys.stderr
     print(*args, **kwargs)
 
-def run(args, print_=True):
+def run(args, print_=True, stream=False):
     if print_: print('$ ' + ' '.join(args))
-    s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if stream:
+        s = subprocess.Popen(args, stderr=sys.stderr, stdout=sys.stdout)
+    else:
+        s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     try:
+        # while s.wait(1):
         s.wait()
     except KeyboardInterrupt:
+        print('Terminating')
         s.terminate()
         s.wait()
-    out, err = s.communicate()
+    
+    out, err = (b'streamed to stdout', b'streamed to stderr') if stream else s.communicate()
     if s.returncode != 0:
         print_err('Warn: {} returned with {}. stderr: {}'.format(" ".join(args), s.returncode, err.decode()))
         raise subprocess.CalledProcessError(s.returncode, args, err)
@@ -69,7 +77,7 @@ def is_py_3(cmd):
     except Exception as e:
         if type(e).__name__ == 'FileNotFoundError':
             return False
-        raise e
+        raise
     # print(re.findall(r'[Pp]ython 3', err), err, out)
     return len(re.findall(r'[Pp]ython 3', out)) > 0
 
@@ -129,7 +137,7 @@ if sys.argv[1] == 'install':
         else:
             raise ValueError('Unknown value: "{}", expected y or n'.format(r))
 
-    out, err = run([py_cmd, '-m', 'pip', 'install', '-r', 'requirements.txt'])
+    out, err = run([py_cmd, '-m', 'pip', 'install', '-r', 'requirements.txt'], stream=True)
 
     if not exists('start.json'):
         run(['cp', 'start.example.json', 'start.json'])
@@ -138,7 +146,7 @@ if sys.argv[1] == 'install':
     try:
         print('Now in {}'.format(os.path.abspath('.')))
 
-        run(['npm', 'install'])
+        run(['npm', 'install'], stream=True)
     finally:
         os.chdir('..')
         print('Now in {}'.format(os.path.abspath('.')))
