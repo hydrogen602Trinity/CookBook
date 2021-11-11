@@ -6,7 +6,6 @@ from flask_cors import CORS
 
 
 from database import db
-from models import Note
 import views
 from util import getenv
 
@@ -24,9 +23,9 @@ def setup_database(app: Flask):
         db.drop_all()
         db.create_all()
     
-        note = Note('Test a b c')
-        db.session.add(note)
-        db.session.commit()
+        # note = Note('Test a b c')
+        # db.session.add(note)
+        # db.session.commit()
 
         recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
             Ingredient('eggs', 2),

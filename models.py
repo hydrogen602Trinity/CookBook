@@ -1,28 +1,31 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 # from sqlalchemy.orm import backref
 from sqlalchemy.sql import expression
 from fractions import Fraction
 
 from database import db
 
+if TYPE_CHECKING:
+    from datetime import datetime
 
-class Note(db.Model):
 
-    __tablename__ = 'note'
+# class Note(db.Model):
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    content: str = db.Column(db.String(4096))
+#     __tablename__ = 'note'
 
-    def __init__(self, content: str) -> None:
-        self.content = content
-        super().__init__()
+#     id: int = db.Column(db.Integer, primary_key=True)
+#     content: str = db.Column(db.String(4096))
 
-    def toJson(self) -> Dict[str, Any]:
-        d = {}
-        for col in self.__table__.columns:
-            d[col.description] = getattr(self, col.description)
-        return d
+#     def __init__(self, content: str) -> None:
+#         self.content = content
+#         super().__init__()
+
+#     def toJson(self) -> Dict[str, Any]:
+#         d = {}
+#         for col in self.__table__.columns:
+#             d[col.description] = getattr(self, col.description)
+#         return d
 
 
 class Recipe(db.Model):
@@ -31,7 +34,7 @@ class Recipe(db.Model):
 
     id: int = db.Column(db.Integer, primary_key=True)
     ingredients: List[Ingredient] = db.relationship('Ingredient', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=True)
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     name: str = db.Column(db.String(128), nullable=False)
     courseType: str = db.Column(db.String(10), nullable=False)
     style: str = db.Column(db.String(10), nullable=False)
@@ -47,10 +50,10 @@ class Recipe(db.Model):
         self.name = name
         self.notes = notes
         self.ingredients = ingredients
-    
+
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
-    
+
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -103,12 +106,12 @@ class Ingredient(db.Model):
 
 class User(db.Model):
 
-    __tablename__ = 'User'
+    __tablename__ = 'user'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    tags: List[Tag] = db.relationship('Tag', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    # tags: List[Tag] = db.relationship('userTags', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    recipes: List[Recipe] = db.relationship('recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    # meals: List[Meal] = db.relationship('meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128))
     password: str = db.Column(db.String(20))
@@ -136,18 +139,18 @@ class User(db.Model):
             'meals': [i.toJson() for i in self.meals]
         }
 
-userTags = db.Table('userTags',
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
-)
+# userTags = db.Table('userTags',
+#     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+#     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+# )
 
 class Tag(db.Model):
 
-    __tablename__ = 'Tags'
+    __tablename__ = 'tag'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    assocUsers: List[User] = db.relationship('User', backref='tag', cascade='all, delete, delete-orphan', passive_deletes=True)
-    assocRecipes: List[Recipe] = db.relationship('Recipe', backref='tag', cascade='all, delete, delete-orphan', passive_deletes=True)
+    # assocUsers: List[User] = db.relationship('userTags', secondary=userTags)
+    #assocRecipes: List[Recipe] = db.relationship('recipe', backref='tag', cascade='all, delete, delete-orphan', passive_deletes=True)
     tagType: str = db.Column(db.String(20))
 
     def __init__(self, tagType: str, assocUsers: Optional[List[User]] = None, 
@@ -172,7 +175,7 @@ class Meal(db.Model):
     __tablename__ = 'Meal'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
     label: str = db.Column(db.String(20))
     day: str = db.Column(db.DateTime)
