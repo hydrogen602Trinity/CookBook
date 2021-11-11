@@ -28,17 +28,18 @@ class Note(db.Model):
 class Recipe(db.Model):
 
     __tablename__ = 'recipe'
+    # nullable=True is only until we having proper test data
 
     id: int = db.Column(db.Integer, primary_key=True)
     ingredients: List[Ingredient] = db.relationship('Ingredient', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=True)
     name: str = db.Column(db.String(128), nullable=False)
-    courseType: str = db.Column(db.String(10), nullable=False)
-    style: str = db.Column(db.String(10), nullable=False)
+    courseType: str = db.Column(db.String(10), nullable=True)
+    style: str = db.Column(db.String(10), nullable=True)
     #instructions: xml = db.Column()    How to do file? XML?
-    prepTime: int = db.Column(db.Integer, nullable=False)
-    difficulty: int = db.Column(db.Integer, nullable=False)
-    rating: int = db.Column(db.Integer, nullable=False)
+    prepTime: int = db.Column(db.Integer, nullable=True)
+    difficulty: int = db.Column(db.Integer, nullable=True)
+    rating: int = db.Column(db.Integer, nullable=True)
     # utensils: List[String] = db.Column()    Need List
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
@@ -47,6 +48,11 @@ class Recipe(db.Model):
         self.name = name
         self.notes = notes
         self.ingredients = ingredients
+        self.courseType = 'temp'
+        self.style = 'temp'
+        self.prepTime = 0
+        self.difficulty = 0
+        self.rating = 0
     
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
