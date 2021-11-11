@@ -30,13 +30,11 @@ class Recipe(db.Model):
     __tablename__ = 'recipe'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    ingredients: List[Ingredient] = db.relationship('Ingredient', 
-                                     backref='recipe', 
-                                     cascade='all, delete, delete-orphan',
-                                     passive_deletes=True)
+    ingredients: List[Ingredient] = db.relationship('Ingredient', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=True)
     name: str = db.Column(db.String(128), nullable=False)
-    courseType: str = db.column(db.String(10), nullable=False)
-    style: str = db.column(db.String(10), nullable=False)
+    courseType: str = db.Column(db.String(10), nullable=False)
+    style: str = db.Column(db.String(10), nullable=False)
     #instructions: xml = db.Column()    How to do file? XML?
     prepTime: int = db.Column(db.Integer, nullable=False)
     difficulty: int = db.Column(db.Integer, nullable=False)
