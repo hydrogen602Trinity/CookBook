@@ -87,6 +87,8 @@ class Ingredient(db.Model):
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
     recipe: Recipe  # created in class Recipe using backref
     name: str = db.Column(db.String(128))
+
+    # use amount, not _num, _denom when dealing with the amount
     _num: int = db.Column(db.Integer)
     _denom: int = db.Column(db.Integer)
     unit: str = db.Column(db.String(20))
@@ -132,9 +134,11 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id: int = db.Column(db.Integer, primary_key=True)
+
     tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
     recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128))
     password: str = db.Column(db.String(20))
@@ -148,17 +152,13 @@ class User(db.Model):
         #self.meals = meals if meals else None
 
     def __repr__(self) -> str:
-        return f'User(id={self.id}, name={self.name}, email={self.email}, password={self.password})'
+        return f'User(id={self.id}, name={self.name}, email={self.email})'
     
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,
             'name': self.name,
-            'email': self.email,
-            'password': self.password,
-            'tags': [i.toJson() for i in self.tags],
-            'recipes': [i.toJson() for i in self.recipes],
-            'meals': [i.toJson() for i in self.meals]
+            'email': self.email
         }
 
 class Tag(db.Model):
@@ -178,7 +178,7 @@ class Tag(db.Model):
 
     def __repr__(self) -> str:
         return f'Tag(id={self.id}, tagType={self.tagType})'
-    
+
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -207,7 +207,7 @@ class Meal(db.Model):
 
     def __repr__(self) -> str:
         return f'Meal(id={self.id}, label={self.label}, day={self.day})'
-    
+
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,

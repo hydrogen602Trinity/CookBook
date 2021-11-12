@@ -386,3 +386,103 @@ class RecipeCase(TestCase):
         }, response.json)
 
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)
+
+
+
+class UserCase(TestCase):
+
+    SQLALCHEMY_DATABASE_URI = 'postgres'
+    TESTING = True
+
+    client: FlaskClient
+
+    def create_app(self):
+        # pass in test configuration
+        app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
+
+        with app.app_context():
+            self.GET_API_NODE = \
+                lambda user_id: url_for_rest('resources.userresource', _external=False, user_id=user_id)
+            self.API_NODE = self.GET_API_NODE(None)
+        return app
+
+    def setUp(self):
+        db.create_all()
+
+        self.user = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
+        db.session.add(self.user)
+        db.session.commit()
+
+        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [], self.user)
+        db.session.add(note)
+        db.session.commit()
+
+        if os.getenv('TESTING') == '1':
+            self.maxDiff = None
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def assert201(self, response):
+        self.assertStatus(response, 201)
+
+    def assert204(self, response):
+        self.assertStatus(response, 204)
+    
+
+    def test_get(self):
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+
+        self.assertEqual([
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'}
+        ], response.json)
+
+    def test_create(self):
+        data = {
+            'name': 'Moritz Mustermann',
+            'email': 'nein@weissnicht.de',
+            'password': 'aaaaaaaaaaaa'
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'},
+            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+        ], response.json)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert200(response)
+        self.assertEqual(
+            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+        , response.json)
+
+    def test_delete(self):
+        data = {
+            'name': 'Moritz Mustermann',
+            'email': 'nein@weissnicht.de',
+            'password': 'aaaaaaaaaaaa'
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert200(response)
+        self.assertEqual(
+            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+        , response.json)
+
+        response = self.client.delete(self.GET_API_NODE(2))
+        self.assert204(response)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert404(response)
+
+
