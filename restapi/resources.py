@@ -264,3 +264,61 @@ class MealResource(Resource):
             return '', 204
         else:
             return f'No object found with the meal_id={meal_id}', 404
+
+@add_resource(api, '/tag', '/tag/<int:tag_id>')
+class TagResource(Resource):
+    # Most stuff is done, but not sure how to implement many-many relationship
+    tag_parser = reqparse.RequestParser()
+    tag_parser.add_argument('tagType', type=str, help="Tag Name")
+
+    tag_parser_w_id = tag_parser,copy()
+    tag_parser_w_id.add_argument('id', type=int, default=None, help="Tag ID")
+
+    @optional_param_check(False, 'tag_id')
+    def post(self, _=None):
+        data = require_truthy_values(self.user_parser.parse_args())
+
+        newTag = Tag(data['tagType'])
+        db.session.add(newTag)
+        db.session.commit()
+        return '', 201
+
+    @optional_param_check(False, 'tag_id')
+    def put(self, _=None):
+        data = require_truthy_values(self.tag_parser_w_id.parse_args(), exceptions=('id'))
+
+        # Insert
+        if data['id'] is None:
+            newTag = Tag(data['tagType'])
+            db.session.add(newTag)
+            db.session.commit()
+            return f'{newTag.id}', 201
+        
+        tag: Optional[Tag] = db.session.query(Tag).get(data['id'])
+
+        # Update
+        if tag:
+            tag.tagType = data['tagType']
+            db.session.commit()
+            return f'{tag.id}', 200
+        else:
+            return f'No object found with tag_id={data["id"]}', 404
+        
+    def get(self, tag_id: Optional[int] = None):
+        # Search
+        if tag_id:
+            tag = db.session.query(Tag).get(tag_id)
+            handle_nonexistance(tag)
+            return jsonify(tag.toJson())
+        else:
+            return jsonify([tag.toJson() for tag in Tag.query.all()])
+
+    @optional_param_check(True, 'tag_id')
+    def delete(self, tag_id: Optional[int] = None):
+        tag: Optional[Tag] = db.session.query(Tag).get(tag_id)
+        if tag:
+            db.session.delete(tag)
+            db.session.commit()
+            return '', 204
+        else:
+            return f'No object found with tag_id={tag_id}', 404
