@@ -1,7 +1,7 @@
 // import logo from './logo.svg';
 // import './App.css';
 import { useState } from 'react';
-import { fetchAPI, useAPIState } from './util/fetchAPI'
+import { fetchAPI, useAPIState } from './util/fetchAPI';
 
 function Note() {
 
