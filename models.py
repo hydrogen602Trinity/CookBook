@@ -45,7 +45,6 @@ class Recipe(db.Model):
     name: str = db.Column(db.String(128), nullable=False)
     courseType: str = db.Column(db.String(10), nullable=True)
     style: str = db.Column(db.String(10), nullable=True)
-    #instructions: xml = db.Column()    How to do file? XML?
     prepTime: int = db.Column(db.Integer, nullable=True)
     difficulty: int = db.Column(db.Integer, nullable=True)
     rating: int = db.Column(db.Integer, nullable=True)
@@ -56,15 +55,16 @@ class Recipe(db.Model):
     tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
     meals: List[Meal] = db.relationship('Meal', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
 
-    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User) -> None:
+    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User, courseType: Optional[str] = None, 
+                    style: Optional[str] = None, prepTime: Optional[int] = None, difficulty: Optional[int] = None) -> None:
         self.name = name
         self.user_id = user.id
         self.notes = notes
         self.ingredients = ingredients
-        self.courseType = None
-        self.style = None
-        self.prepTime = None
-        self.difficulty = None
+        self.courseType = courseType
+        self.style = style
+        self.prepTime = prepTime
+        self.difficulty = difficulty if difficulty else None
         self.rating = None
     
     def __repr__(self) -> str:
@@ -136,8 +136,8 @@ class User(db.Model):
     recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     name: str = db.Column(db.String(128))
-    email: str = db.Column(db.String(128))
-    password: str = db.Column(db.String(20))
+    email: str = db.Column(db.String(128), unique=True)
+    password: str = db.Column(db.String(20), unique=True)
 
     def __init__(self, name: str, email: str, password: str) -> None: 
         #meals: Optional[List[Meal]] = None) -> None:

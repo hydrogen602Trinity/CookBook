@@ -112,6 +112,7 @@ class RecipeCase(TestCase):
         return app
 
     def setUp(self):
+        db.drop_all()
         db.create_all()
 
         user = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
