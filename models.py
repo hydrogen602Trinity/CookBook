@@ -1,51 +1,75 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 # from sqlalchemy.orm import backref
 from sqlalchemy.sql import expression
 from fractions import Fraction
 
 from database import db
 
+if TYPE_CHECKING:
+    from datetime import datetime
 
-class Note(db.Model):
 
-    __tablename__ = 'note'
+# class Note(db.Model):
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    content: str = db.Column(db.String(4096))
+#     __tablename__ = 'note'
 
-    def __init__(self, content: str) -> None:
-        self.content = content
-        super().__init__()
+#     id: int = db.Column(db.Integer, primary_key=True)
+#     content: str = db.Column(db.String(4096))
 
-    def toJson(self) -> Dict[str, Any]:
-        d = {}
-        for col in self.__table__.columns:
-            d[col.description] = getattr(self, col.description)
-        return d
+#     def __init__(self, content: str) -> None:
+#         self.content = content
+#         super().__init__()
 
+#     def toJson(self) -> Dict[str, Any]:
+#         d = {}
+#         for col in self.__table__.columns:
+#             d[col.description] = getattr(self, col.description)
+#         return d
+
+
+recipeTags = db.Table('recipeTags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True)
+)
 
 class Recipe(db.Model):
 
     __tablename__ = 'recipe'
+    # nullable=True is only until we having proper test data
 
     id: int = db.Column(db.Integer, primary_key=True)
-    ingredients: List[Ingredient] = db.relationship('Ingredient', 
-                                     backref='recipe', 
-                                     cascade='all, delete, delete-orphan',
-                                     passive_deletes=True)
+    ingredients: List[Ingredient] = db.relationship('Ingredient', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user: User
     name: str = db.Column(db.String(128), nullable=False)
+    courseType: str = db.Column(db.String(10), nullable=True)
+    style: str = db.Column(db.String(10), nullable=True)
+    #instructions: xml = db.Column()    How to do file? XML?
+    prepTime: int = db.Column(db.Integer, nullable=True)
+    difficulty: int = db.Column(db.Integer, nullable=True)
+    rating: int = db.Column(db.Integer, nullable=True)
+    # utensils: List[String] = db.Column()    Need List
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
 
-    def __init__(self, name: str, notes: str, ingredients: List[Ingredient]) -> None:
+    tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
+    meals: List[Meal] = db.relationship('Meal', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
+
+    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User) -> None:
         self.name = name
+        self.user_id = user.id
         self.notes = notes
         self.ingredients = ingredients
+        self.courseType = None
+        self.style = None
+        self.prepTime = None
+        self.difficulty = None
+        self.rating = None
     
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
-    
+
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -60,10 +84,7 @@ class Ingredient(db.Model):
     __tablename__ = 'ingredient'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    recipe_id = db.Column(db.Integer, 
-                          db.ForeignKey('recipe.id', 
-                                        ondelete='CASCADE'), 
-                          nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
     recipe: Recipe  # created in class Recipe using backref
     name: str = db.Column(db.String(128))
     _num: int = db.Column(db.Integer)
@@ -97,4 +118,99 @@ class Ingredient(db.Model):
             'num': self._num,
             'denom': self._denom,
             'unit': self.unit
+        }
+
+
+userTags = db.Table('userTags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True)
+)
+
+
+class User(db.Model):
+
+    __tablename__ = 'user'
+
+    id: int = db.Column(db.Integer, primary_key=True)
+    tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
+    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    name: str = db.Column(db.String(128))
+    email: str = db.Column(db.String(128))
+    password: str = db.Column(db.String(20))
+
+    def __init__(self, name: str, email: str, password: str) -> None: 
+        #meals: Optional[List[Meal]] = None) -> None:
+        self.name = name
+        self.email = email
+        self.password = password
+        # self.tags = tags if tags else None
+        #self.meals = meals if meals else None
+
+    def __repr__(self) -> str:
+        return f'User(id={self.id}, name={self.name}, email={self.email}, password={self.password})'
+    
+    def toJson(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'password': self.password,
+            'tags': [i.toJson() for i in self.tags],
+            'recipes': [i.toJson() for i in self.recipes],
+            'meals': [i.toJson() for i in self.meals]
+        }
+
+class Tag(db.Model):
+
+    __tablename__ = 'tag'
+
+    id: int = db.Column(db.Integer, primary_key=True)
+    assocUsers: List[User] = db.relationship('User', secondary=userTags, back_populates="tags")
+    assocRecipes: List[Recipe] = db.relationship('Recipe', secondary=recipeTags, back_populates="tags")
+    tagType: str = db.Column(db.String(20))
+
+    def __init__(self, tagType: str, assocUsers: Optional[List[User]] = None, 
+            assocRecipes: Optional[List[Recipe]] = None) -> None:
+        self.tagType = tagType
+        self.assocUsers = assocUsers if assocUsers else None
+        self.assocRecipes = assocRecipes if assocRecipes else None
+
+    def __repr__(self) -> str:
+        return f'Tag(id={self.id}, tagType={self.tagType})'
+    
+    def toJson(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'tagType': self.tagType,
+            'assocUsers': [i.toJson() for i in self.assocUsers],
+            'assocRecipes': [i.toJson() for i in self.assocRecipes]
+        }
+
+class Meal(db.Model):
+
+    __tablename__ = 'meal'
+
+    id: int = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user: User
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
+    recipe: Recipe
+    label: str = db.Column(db.String(20))
+    day: str = db.Column(db.DateTime)
+
+    def __init__(self, label: str, day: datetime, user_id: Optional[int] = None, recipe_id: Optional[int] = None) -> None:
+        self.label = label
+        self.day = datetime
+        self.user_id = user_id if user_id else None
+        self.recipe_id = recipe_id if recipe_id else None
+
+    def __repr__(self) -> str:
+        return f'Meal(id={self.id}, label={self.label}, day={self.day})'
+    
+    def toJson(self) -> Dict[str, Any]:
+        return {
+            'id': self.id,
+            'label': self.label,
+            'day': self.day
         }

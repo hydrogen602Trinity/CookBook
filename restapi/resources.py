@@ -5,7 +5,7 @@ from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
 from flask import current_app
 
-from models import Ingredient, Note, Recipe, db
+from models import Ingredient, Recipe, db, User
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 
@@ -19,28 +19,28 @@ api_blueprint = Blueprint(
 api = Api(api_blueprint)
 
 
-@add_resource(api, '/note', '/note/<int:note_id>')
-class NoteResource(Resource):
+# @add_resource(api, '/note', '/note/<int:note_id>')
+# class NoteResource(Resource):
 
-    note_parser = reqparse.RequestParser()
-    note_parser.add_argument('note', type=str, help='The content of the note')
+#     note_parser = reqparse.RequestParser()
+#     note_parser.add_argument('note', type=str, help='The content of the note')
 
-    @optional_param_check(False, 'note_id')
-    def post(self, _=None):
-        data = require_truthy_values(self.note_parser.parse_args())
+#     @optional_param_check(False, 'note_id')
+#     def post(self, _=None):
+#         data = require_truthy_values(self.note_parser.parse_args())
 
-        newNote = Note(data['note'])
-        db.session.add(newNote)
-        db.session.commit()
-        return '', 201
+#         newNote = Note(data['note'])
+#         db.session.add(newNote)
+#         db.session.commit()
+#         return '', 201
 
-    def get(self, note_id: Optional[int] = None):
-        if note_id:
-            note = db.session.query(Note).get(note_id)
-            handle_nonexistance(note)
-            return jsonify(note.toJson())
-        else:
-            return jsonify([note.toJson() for note in Note.query.all()])
+#     def get(self, note_id: Optional[int] = None):
+#         if note_id:
+#             note = db.session.query(Note).get(note_id)
+#             handle_nonexistance(note)
+#             return jsonify(note.toJson())
+#         else:
+#             return jsonify([note.toJson() for note in Note.query.all()])
 
 
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
@@ -72,7 +72,8 @@ class RecipeResource(Resource):
                                                    ingredient['denom']),
                                           ingredient.get('unit') or None))
 
-        newRecipe = Recipe(data['name'], data['notes'], ingredients)
+        user = db.session.query(User).filter(User.name == 'Test').all()[0]
+        newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
@@ -91,7 +92,8 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            newRecipe = Recipe(data['name'], data['notes'], ingredients)
+            user = db.session.query(User).filter(User.name == 'Test').all()[0]
+            newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201
