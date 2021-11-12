@@ -1,4 +1,4 @@
-from models import Ingredient, Recipe
+from models import Ingredient, Recipe, User
 import restapi
 from typing import Optional
 from flask import Flask
@@ -27,17 +27,21 @@ def setup_database(app: Flask):
         # db.session.add(note)
         # db.session.commit()
 
+        user1 = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
+        db.session.add(user1)
+        db.session.commit()
+
         recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
             Ingredient('eggs', 2),
             Ingredient('salt', 1/8, 'tsp')
-        ])
+        ], user1)
 
         db.session.add(recipe)
         db.session.commit()
 
         recipe2 = Recipe('Boiled Eggs', 'Bring water to a boil. Put eggs into water and let cook in boiling water for some minutes. Idk how many.', [
             Ingredient('eggs', 2)
-        ])
+        ], user1)
 
         db.session.add(recipe2)
         db.session.commit()

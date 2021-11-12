@@ -35,7 +35,8 @@ class Recipe(db.Model):
 
     id: int = db.Column(db.Integer, primary_key=True)
     ingredients: List[Ingredient] = db.relationship('Ingredient', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user: User
     name: str = db.Column(db.String(128), nullable=False)
     courseType: str = db.Column(db.String(10), nullable=True)
     style: str = db.Column(db.String(10), nullable=True)
@@ -47,15 +48,16 @@ class Recipe(db.Model):
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
 
-    def __init__(self, name: str, notes: str, ingredients: List[Ingredient]) -> None:
+    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User) -> None:
         self.name = name
+        self.user_id = user.id
         self.notes = notes
         self.ingredients = ingredients
-        self.courseType = 'temp'
-        self.style = 'temp'
-        self.prepTime = 0
-        self.difficulty = 0
-        self.rating = 0
+        self.courseType = None
+        self.style = None
+        self.prepTime = None
+        self.difficulty = None
+        self.rating = None
     
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
@@ -116,20 +118,19 @@ class User(db.Model):
 
     id: int = db.Column(db.Integer, primary_key=True)
     # tags: List[Tag] = db.relationship('userTags', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    recipes: List[Recipe] = db.relationship('recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     # meals: List[Meal] = db.relationship('meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128))
     password: str = db.Column(db.String(20))
 
     def __init__(self, name: str, email: str, password: str, tags: Optional[List[Tag]] = None, 
-            recipes: Optional[List[Recipe]] = None, meals: Optional[List[Meal]] = None) -> None:
+            meals: Optional[List[Meal]] = None) -> None:
         self.name = name
         self.email = email
         self.password = password
-        self.tags = tags if tags else None
-        self.recipes = recipes if recipes else None
-        self.meals = meals if meals else None
+        #self.tags = tags if tags else None
+        #self.meals = meals if meals else None
 
     def __repr__(self) -> str:
         return f'User(id={self.id}, name={self.name}, email={self.email}, password={self.password})'
