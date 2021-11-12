@@ -5,7 +5,7 @@ from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
 from flask import current_app
 
-from models import Ingredient, Recipe, db
+from models import Ingredient, Recipe, db, User
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 
@@ -72,7 +72,8 @@ class RecipeResource(Resource):
                                                    ingredient['denom']),
                                           ingredient.get('unit') or None))
 
-        newRecipe = Recipe(data['name'], data['notes'], ingredients)
+        user = db.session.query(User).filter(User.name == 'Test').all()[0]
+        newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
@@ -91,7 +92,8 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            newRecipe = Recipe(data['name'], data['notes'], ingredients)
+            user = db.session.query(User).filter(User.name == 'Test').all()[0]
+            newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201

@@ -1,4 +1,4 @@
-from models import Note, Recipe, Ingredient
+from models import Recipe, Ingredient, User
 
 from flask.testing import FlaskClient
 from flask_testing import TestCase
@@ -114,7 +114,11 @@ class RecipeCase(TestCase):
     def setUp(self):
         db.create_all()
 
-        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [])
+        user = User('Test', 'tester@test.de', 'test1234')
+        db.session.add(user)
+        db.session.commit()
+
+        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [], user)
         db.session.add(note)
         db.session.commit()
 
