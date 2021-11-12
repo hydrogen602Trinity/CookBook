@@ -1,7 +1,7 @@
 from fractions import Fraction
 from typing import Optional
 from flask.json import jsonify
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api, reqparse, inputs
 from flask import Blueprint
 from flask import current_app
 
@@ -129,7 +129,6 @@ class RecipeResource(Resource):
         else:
             return f'No object found with recipe_id={recipe_id}', 404
 
-
 @add_resource(api, '/user', '/user/<int:user_id>')
 class UserResource(Resource):
 
@@ -185,11 +184,11 @@ class UserResource(Resource):
     def get(self, user_id: Optional[int] = None):
         # sleep(20)  # simulate slow internet 
         if user_id:
-            recipe = db.session.query(User).get(user_id)
-            handle_nonexistance(recipe)
-            return jsonify(recipe.toJson())
+            user = db.session.query(User).get(user_id)
+            handle_nonexistance(user)
+            return jsonify(user.toJson())
         else:
-            # current_app.logger.debug('Getting all recipes')
+            # current_app.logger.debug('Getting all users')
             return jsonify([user.toJson() for user in User.query.all()])
 
     @optional_param_check(True, 'user_id')
@@ -201,3 +200,67 @@ class UserResource(Resource):
             return '', 204
         else:
             return f'No object found with user_id={user_id}', 404
+
+@add_resource(api, '/meal', '/meal/<int:meal_id>')
+class MealResource(Resource):
+
+    meal_parser = reqparse.RequestParser()
+    meal_parser.add_argument('label', type=str, help='Breakfast, Lunch, Dinner, etc.')
+    meal_parser.add_argument('day', type=inputs.datetime.date, help='Date')
+    meal_parser.add_argument('user_id', type=int, help='Creator')
+    meal_parser.add_argument('recipe_id', type=int, help='Recipe for the Meal')
+
+    meal_parser_w_id = meal_parser.copy()
+    meal_parser_w_id.add_argument('id', type=int, default=None, help="Meal ID")
+
+    @optional_param_check(False, 'meal_id')
+    def post(self, _=None):
+        data = require_truthy_values(self.meal_parser.parse_args())
+
+        newMeal = Meal(data['label'], data['day'], data['user_id'], data['recipe_id'])
+        db.session.add(newMeal)
+        db.session.commit()
+        return '', 201
+
+    @optional_param_check(False, 'meal_id')
+    def put(self, _=None):
+        data = require_truthy_values(self.meal_parser_w_id.parse_args(), exceptions=('id'))
+
+        # Insert
+        if data['id'] is None:
+            newMeal = Meal(data['label'], data['day'], data['user_id'], data['recipe_id'])
+            db.session.add(newMeal)
+            db.session.commit()
+            return f'{newMeal.id}', 201
+
+        meal: Optional[Meal] = db.session.query(Meal).get(data['id'])
+
+        # Update
+        if meal:
+            meal.label = data['label']
+            meal.day = data['day']
+            meal.user_id = data['user_id']
+            meal.recipe_id = data['recipe_id']
+            db.session.commit()
+            return f'{meal.id}', 200
+        else:
+            return f'No object found with meal_id={data["id"]}', 404
+    
+    def get(self, meal_id: Optional[int] = None):
+        # Search
+        if meal_id:
+            meal = db.session.query(Meal).get(meal_id)
+            handle_nonexistance(meal)
+            return jsonify(meal.toJson())
+        else:
+            return jsonify([meal.toJson() for meal in Meal.query.all()])
+    
+    @optional_param_check(True, 'meal_id')
+    def delete(self, meal_id: Optional[int] = None):
+        meal: Optional[Meal] = db.session.quert(Meal).get(meal_id)
+        if meal:
+            db.session.delete(meal)
+            db.session.commit()
+            return '', 204
+        else:
+            return f'No object found with the meal_id={meal_id}', 404
