@@ -31,19 +31,61 @@ def setup_database(app: Flask):
         db.session.add(user1)
         db.session.commit()
 
-        recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
-            Ingredient('eggs', 2),
-            Ingredient('salt', 1/8, 'tsp')
-        ], user1)
+        #recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
+        #    Ingredient('eggs', 2),
+        #    Ingredient('salt', 1/8, 'tsp')
+        #], user1)
 
-        db.session.add(recipe)
+        #db.session.add(recipe)
+        #db.session.commit()
+
+        #recipe2 = Recipe('Boiled Eggs', 'Bring water to a boil. Put eggs into water and let cook in boiling water for some minutes. Idk how many.', [
+        #    Ingredient('eggs', 2)
+        #], user1)
+
+        #db.session.add(recipe2)
+        #db.session.commit()
+
+        cornbread = Recipe('Cornbread', user1, 'Side Dish', 'Basic', 40, [
+            Ingredient('Butter', 1/4, 'cup'), Ingredient('Milk', 1, 'cup'), Ingredient('Eggs', 1), Ingredient('Cornmeal', 5/4, 'cup'),
+            Ingredient('Flour', 1, 'cup'), Ingredient('Sugar', 1/2, 'cup'), Ingredient('Baking Powder', 1, 'tbsp'), Ingredient('Salt', 1, 'tsp')
+        ], 1)
+
+        db.session.add(cornbread)
         db.session.commit()
 
-        recipe2 = Recipe('Boiled Eggs', 'Bring water to a boil. Put eggs into water and let cook in boiling water for some minutes. Idk how many.', [
-            Ingredient('eggs', 2)
-        ], user1)
+        blueberryPie = Recipe('Blueberry Pie', user1, 'Dessert', 'Basic', 120, [
+            Ingredient('Flour', 9/4, 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', 2/3, 'cup'), Ingredient('Sugar', 1/2, 'cup'),
+            Ingredient('Cinnamon', 1/2, 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
+        ], 3)
 
-        db.session.add(recipe2)
+        db.session.add(blueberryPie)
+        db.session.commit()
+
+        frenchToast = Recipe('French Toast', user1, 'Breakfast', 'French', 10, [
+            Ingredient('Cinnamon', 1, 'tsp'), Ingredient('Nutmeg', 1/4, 'tsp'), Ingredient('Sugar', 2, 'tbsp'), Ingredient('Butter', 4, 'tbsp'),
+            Ingredient('Eggs', 4), Ingredient('Vanilla Extract', 1/2, 'tsp'), Ingredient('Bread', 8, 'slices'), Ingredient('Maple Syrup', 1/2, 'cup')
+        ], 2)
+
+        db.session.add(frenchToast)
+        db.session.commit()
+
+        pretzelSticks = Recipe('Pretzel Sticks', user1, 'Snack', 'Basic', 60, [
+            Ingredient('Brown Sugar', 1/2, 'cup'), Ingredient('Dry Yeast', 2, 'envelopes'), Ingredient('Vegetable Oil', 11/4, 'cup'),
+            Ingredient('Flour', 23/4, 'cup'), Ingredient('Baking Soda', 3/4, 'cup'), Ingredient('Eggs', 1), Ingredient('Salt', 2, 'tsp')
+        ], 5)
+
+        db.session.add(pretzelSticks)
+        db.session.commit()
+
+        swedishMeatballs = Recipe('Swedish Meatballs', user1, 'Main Dish', 'Swedish', 90, [
+            Ingredient('Butter', 4, 'tsp'), Ingredient('Onion', 1/2), Ingredient('Milk', 1/4, 'cup'), Ingredient('Bread', 3, 'slices'),
+            Ingredient('Eggs', 1), Ingredient('Ground Beef', 3/4, 'lb'), Ingredient('Ground Pork', 1/2, 'lb'), Ingredient('Salt', 1, 'tsp'),
+            Ingredient('Black Pepper', 1, 'tsp'), Ingredient('Nutmed', 1/2, 'tsp'), Ingredient('Ground Cardamom', 1/2, 'tsp'),
+            Ingredient('Flour', 3, 'tbsp'), Ingredient('Beef Stock', 2, 'cup'), Ingredient('Sourcream', 1/4, 'cup')
+        ], 8)
+
+        db.session.add(swedishMeatballs)
         db.session.commit()
 
         print(recipe.ingredients)
