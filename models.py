@@ -197,9 +197,9 @@ class Meal(db.Model):
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
     recipe: Recipe
     label: str = db.Column(db.String(20))
-    day: str = db.Column(db.DateTime)
+    day: str = db.Column(db.Date)
 
-    def __init__(self, label: str, day: datetime, user_id: Optional[int] = None, recipe_id: Optional[int] = None) -> None:
+    def __init__(self, label: str, day: date, user_id: Optional[int] = None, recipe_id: Optional[int] = None) -> None:
         self.label = label
         self.day = day
         self.user_id = user_id if user_id else None
