@@ -28,6 +28,11 @@ if TYPE_CHECKING:
 #         return d
 
 
+recipeTags = db.Table('recipeTags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipe.id'), primary_key=True)
+)
+
 class Recipe(db.Model):
 
     __tablename__ = 'recipe'
@@ -47,6 +52,9 @@ class Recipe(db.Model):
     # utensils: List[String] = db.Column()    Need List
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
+
+    tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
+    meals: List[Meal] = db.relationship('Meal', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
 
     def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User) -> None:
         self.name = name
@@ -112,24 +120,31 @@ class Ingredient(db.Model):
             'unit': self.unit
         }
 
+
+userTags = db.Table('userTags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True)
+)
+
+
 class User(db.Model):
 
     __tablename__ = 'user'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    # tags: List[Tag] = db.relationship('userTags', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
     recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    # meals: List[Meal] = db.relationship('meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128))
     password: str = db.Column(db.String(20))
 
-    def __init__(self, name: str, email: str, password: str, tags: Optional[List[Tag]] = None, 
-            meals: Optional[List[Meal]] = None) -> None:
+    def __init__(self, name: str, email: str, password: str) -> None: 
+        #meals: Optional[List[Meal]] = None) -> None:
         self.name = name
         self.email = email
         self.password = password
-        #self.tags = tags if tags else None
+        # self.tags = tags if tags else None
         #self.meals = meals if meals else None
 
     def __repr__(self) -> str:
@@ -146,18 +161,13 @@ class User(db.Model):
             'meals': [i.toJson() for i in self.meals]
         }
 
-# userTags = db.Table('userTags',
-#     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
-#     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
-# )
-
 class Tag(db.Model):
 
     __tablename__ = 'tag'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    # assocUsers: List[User] = db.relationship('userTags', secondary=userTags)
-    #assocRecipes: List[Recipe] = db.relationship('recipe', backref='tag', cascade='all, delete, delete-orphan', passive_deletes=True)
+    assocUsers: List[User] = db.relationship('User', secondary=userTags, back_populates="tags")
+    assocRecipes: List[Recipe] = db.relationship('Recipe', secondary=recipeTags, back_populates="tags")
     tagType: str = db.Column(db.String(20))
 
     def __init__(self, tagType: str, assocUsers: Optional[List[User]] = None, 
@@ -179,11 +189,13 @@ class Tag(db.Model):
 
 class Meal(db.Model):
 
-    __tablename__ = 'Meal'
+    __tablename__ = 'meal'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    user: User
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id', ondelete='CASCADE'), nullable=False)
+    recipe: Recipe
     label: str = db.Column(db.String(20))
     day: str = db.Column(db.DateTime)
 
