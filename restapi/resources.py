@@ -72,7 +72,7 @@ class RecipeResource(Resource):
                                                    ingredient['denom']),
                                           ingredient.get('unit') or None))
 
-        user = db.session.query(User).filter(User.name == 'Test').all()[0]
+        user = db.session.query(User).filter(User.name == 'Max Mustermann').all()[0]
         newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
         db.session.add(newRecipe)
         db.session.commit()
@@ -92,7 +92,7 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            user = db.session.query(User).filter(User.name == 'Test').all()[0]
+            user = db.session.query(User).filter(User.name == 'Max Mustermann').all()[0]
             newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
             db.session.add(newRecipe)
             db.session.commit()

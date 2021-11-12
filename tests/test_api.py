@@ -114,7 +114,7 @@ class RecipeCase(TestCase):
     def setUp(self):
         db.create_all()
 
-        user = User('Test', 'tester@test.de', 'test1234')
+        user = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
         db.session.add(user)
         db.session.commit()
 

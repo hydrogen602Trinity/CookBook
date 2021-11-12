@@ -173,8 +173,8 @@ class Tag(db.Model):
     def __init__(self, tagType: str, assocUsers: Optional[List[User]] = None, 
             assocRecipes: Optional[List[Recipe]] = None) -> None:
         self.tagType = tagType
-        self.assocUsers = assocUsers if assocUsers else None
-        self.assocRecipes = assocRecipes if assocRecipes else None
+        self.assocUsers = assocUsers if assocUsers else []
+        self.assocRecipes = assocRecipes if assocRecipes else []
 
     def __repr__(self) -> str:
         return f'Tag(id={self.id}, tagType={self.tagType})'
@@ -201,7 +201,7 @@ class Meal(db.Model):
 
     def __init__(self, label: str, day: datetime, user_id: Optional[int] = None, recipe_id: Optional[int] = None) -> None:
         self.label = label
-        self.day = datetime
+        self.day = day
         self.user_id = user_id if user_id else None
         self.recipe_id = recipe_id if recipe_id else None
 
