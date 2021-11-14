@@ -150,7 +150,11 @@ if sys.argv[1] == 'install':
     try:
         print('Now in {}'.format(os.path.abspath('.')))
 
+        if not exists('.env'):
+            run(['cp', 'example.env', '.env'])
+
         run(['npm', 'install'], stream=True, shell=True)
+
     finally:
         os.chdir('..')
         print('Now in {}'.format(os.path.abspath('.')))
