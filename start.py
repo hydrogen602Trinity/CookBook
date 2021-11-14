@@ -42,13 +42,13 @@ def print_err(*args, **kwargs):
     kwargs['file'] = sys.stderr
     print(*args, **kwargs)
 
-def run(args, print_=True, stream=False):
+def run(args, print_=True, stream=False, shell=False):
     if print_: print('$ ' + ' '.join(args))
 
     if stream:
-        s = subprocess.Popen(args, stderr=sys.stderr, stdout=sys.stdout)
+        s = subprocess.Popen(args, stderr=sys.stderr, stdout=sys.stdout, shell=shell)
     else:
-        s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        s = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
 
     try:
         # while s.wait(1):
@@ -87,11 +87,15 @@ if is_py_3('./init/bin/python'):
     py_cmd = './init/bin/python'
 if is_py_3('./init/Scripts/python.exe'):
     py_cmd = './init/Scripts/python.exe'
-elif is_py_3('python'):
-    py_cmd = 'python'
-elif is_py_3('python3'):
-    py_cmd = 'python3'
 else:
+    to_try_version = ['3.10', '3.9', '3.8', '3.7', '3.6', '3', '']
+    to_try = ['python' + v for v in to_try_version]
+    for cmd in to_try:
+        if is_py_3(cmd):
+            py_cmd = cmd
+            break
+
+if not py_cmd:
     print('Could not find python3')
     exit(1)
 
@@ -109,7 +113,7 @@ def main(front=False):
         try:
             print('Now in {}'.format(os.path.abspath('.')))
 
-            s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout)
+            s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout, shell=True)
             try:
                 s.wait()
             except KeyboardInterrupt:
@@ -127,7 +131,7 @@ def main(front=False):
 if sys.argv[1] == 'install':
     try:
         if not exists('init'):
-            out, err = run([py_cmd, '-m', 'venv', 'init'])
+            out, err = run([py_cmd, '-m', 'venv', 'init'], stream=True)
     except subprocess.CalledProcessError:
         r = input('Continue without a virtual environment? (y|n)').lower()
         if r == 'n':
@@ -149,7 +153,8 @@ if sys.argv[1] == 'install':
         if not exists('.env'):
             run(['cp', 'example.env', '.env'])
 
-        run(['npm', 'install'], stream=True)
+        run(['npm', 'install'], stream=True, shell=True)
+
     finally:
         os.chdir('..')
         print('Now in {}'.format(os.path.abspath('.')))
