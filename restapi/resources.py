@@ -257,7 +257,7 @@ class MealResource(Resource):
     
     @optional_param_check(True, 'meal_id')
     def delete(self, meal_id: Optional[int] = None):
-        meal: Optional[Meal] = db.session.quert(Meal).get(meal_id)
+        meal: Optional[Meal] = db.session.query(Meal).get(meal_id)
         if meal:
             db.session.delete(meal)
             db.session.commit()
