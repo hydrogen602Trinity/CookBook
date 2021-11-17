@@ -1,9 +1,10 @@
 from fractions import Fraction
 from typing import Optional
 from flask.json import jsonify
-from flask_restful import Resource, Api, reqparse, inputs
+from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
 from flask import current_app
+from datetime import date
 
 from models import Ingredient, Recipe, db, User, Meal
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
@@ -206,7 +207,7 @@ class MealResource(Resource):
 
     meal_parser = reqparse.RequestParser()
     meal_parser.add_argument('label', type=str, help='Breakfast, Lunch, Dinner, etc.')
-    meal_parser.add_argument('day', type=inputs.datetime.date, help='Date')
+    meal_parser.add_argument('day', type=date.fromisoformat, help='Date')
     meal_parser.add_argument('user_id', type=int, help='Creator')
     meal_parser.add_argument('recipe_id', type=int, help='Recipe for the Meal')
 

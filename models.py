@@ -212,5 +212,7 @@ class Meal(db.Model):
         return {
             'id': self.id,
             'label': self.label,
-            'day': self.day
+            'day': self.day.isoformat(),
+            'user_id': self.user_id,
+            'recipe_id': self.recipe_id
         }
