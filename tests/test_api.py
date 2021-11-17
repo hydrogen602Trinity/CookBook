@@ -1,116 +1,37 @@
-from models import Recipe, Ingredient, User
+from datetime import date
+from typing import Type
+from models import Meal, Recipe, Ingredient, User
+from util import curry
+from flask_app import create_app as flask_create_app
+from database import db
 
 from flask.testing import FlaskClient
 from flask_testing import TestCase
 from flask_restful import url_for as url_for_rest
-
-from flask_app import create_app
-from database import db
 import os
 
 
-# class NoteCase(TestCase):
+@curry(3)
+def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
+    cls.SQLALCHEMY_DATABASE_URI = 'postgres'
+    cls.TESTING = True
 
-#     SQLALCHEMY_DATABASE_URI = 'postgres'
-#     TESTING = True
+    def method_setter(func):
+        setattr(cls, func.__name__, func)
+        return func
 
-#     client: FlaskClient
-
-#     def create_app(self):
-#         # pass in test configuration
-#         app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
-
-#         with app.app_context():
-#             self.GET_API_NOTE = \
-#                 lambda note_id: url_for_rest('resources.noteresource', _external=False, note_id=note_id)
-#             self.API_NOTE = self.GET_API_NOTE(None)
-#         return app
-
-#     def setUp(self):
-#         db.create_all()
-
-#         note = Note('Test Note 1')
-#         db.session.add(note)
-#         db.session.commit()
-
-#     def tearDown(self):
-#         db.session.remove()
-#         db.drop_all()
-
-#     def test_get_all_notes(self):
-#         response = self.client.get(self.API_NOTE)
-
-#         self.assertEqual(list, type(response.json))
-#         self.assertEqual([{'id': 1, 'content': 'Test Note 1'}], response.json)
-#         self.assert200(response)
-
-#     def test_add_notes(self):
-#         data = {'note': 'foobar'}
-#         response = self.client.post(self.API_NOTE, json=data)
-
-#         self.assertStatus(response, 201)
-#         self.assertFalse(response.json)
-
-#         response = self.client.get(self.API_NOTE)
-
-#         self.assertEqual(list, type(response.json))
-#         self.assertEqual([
-#             {'id': 1, 'content': 'Test Note 1'}, 
-#             {'id': 2, 'content': 'foobar'}
-#             ], response.json)
-#         self.assert200(response)
-
-#     def test_add_notes_wrong(self):
-#         data = {}
-#         response = self.client.post(self.API_NOTE, json=data)
-
-#         self.assert400(response)
-#         self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
-
-#     def test_add_notes_wrong2(self):
-#         data = {'note': ''}
-#         response = self.client.post(self.API_NOTE, json=data)
-
-#         self.assert400(response)
-#         self.assertEqual({'message': {'error': 'field "note" missing or empty in data'}}, response.json)
-    
-#     def test_add_notes_wrong3(self):
-#         data = {'note': 'abc'}
-#         response = self.client.post(self.GET_API_NOTE(3), json=data)
-
-#         self.assert400(response)
-#         self.assertEqual({'message': {'error': 'The url paramter "note_id" should not exist in url'}}, response.json)
-
-#     def test_get_note(self):
-#         response = self.client.get(self.GET_API_NOTE(1))
-
-#         self.assert200(response)
-#         self.assertEqual({'id': 1, 'content': 'Test Note 1'}, response.json)
-
-#     def test_get_note_wrong2(self):
-#         response = self.client.get(self.GET_API_NOTE(2))
-
-#         self.assert404(response)
-#         self.assertEqual({'message': {'error': 'entry not found in database'}}, response.json)
-
-
-class RecipeCase(TestCase):
-
-    SQLALCHEMY_DATABASE_URI = 'postgres'
-    TESTING = True
-
-    client: FlaskClient
-
+    @method_setter
     def create_app(self):
         # pass in test configuration
-        app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
+        app = flask_create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
             self.GET_API_NODE = \
-                lambda recipe_id: url_for_rest('resources.reciperesource', _external=False, recipe_id=recipe_id)
+                lambda arg: url_for_rest(resource_path, _external=False, **{id_name: arg})
             self.API_NODE = self.GET_API_NODE(None)
         return app
 
+    @method_setter
     def setUp(self):
         db.drop_all()
         db.create_all()
@@ -119,22 +40,35 @@ class RecipeCase(TestCase):
         db.session.add(user)
         db.session.commit()
 
-        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [], user)
-        db.session.add(note)
+        recipe = Recipe('Scrambled Eggs', 'Break and beat eggs', [], user)
+        db.session.add(recipe)
+        db.session.commit()
+
+        meal = Meal('meal 1', date(2021, 11, 16), user.id, recipe.id)
+        db.session.add(meal)
         db.session.commit()
 
         if os.getenv('TESTING') == '1':
             self.maxDiff = None
 
+    @method_setter
     def tearDown(self):
         db.session.remove()
         db.drop_all()
 
+    @method_setter
     def assert201(self, response):
         self.assertStatus(response, 201)
 
+    @method_setter
     def assert204(self, response):
         self.assertStatus(response, 204)
+    return cls
+
+
+@setup_helper('resources.reciperesource', 'recipe_id')
+class RecipeCase(TestCase):
+    client: FlaskClient
 
     def test_get(self):
         response = self.client.get(self.API_NODE)
@@ -389,48 +323,9 @@ class RecipeCase(TestCase):
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)
 
 
-
+@setup_helper('resources.userresource', 'user_id')
 class UserCase(TestCase):
-
-    SQLALCHEMY_DATABASE_URI = 'postgres'
-    TESTING = True
-
     client: FlaskClient
-
-    def create_app(self):
-        # pass in test configuration
-        app = create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
-
-        with app.app_context():
-            self.GET_API_NODE = \
-                lambda user_id: url_for_rest('resources.userresource', _external=False, user_id=user_id)
-            self.API_NODE = self.GET_API_NODE(None)
-        return app
-
-    def setUp(self):
-        db.create_all()
-
-        self.user = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
-        db.session.add(self.user)
-        db.session.commit()
-
-        note = Recipe('Scrambled Eggs', 'Break and beat eggs', [], self.user)
-        db.session.add(note)
-        db.session.commit()
-
-        if os.getenv('TESTING') == '1':
-            self.maxDiff = None
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-
-    def assert201(self, response):
-        self.assertStatus(response, 201)
-
-    def assert204(self, response):
-        self.assertStatus(response, 204)
-    
 
     def test_get(self):
         response = self.client.get(self.API_NODE)
@@ -479,6 +374,93 @@ class UserCase(TestCase):
         self.assertEqual(
             {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
         , response.json)
+
+        response = self.client.delete(self.GET_API_NODE(2))
+        self.assert204(response)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert404(response)
+
+
+@setup_helper('resources.mealresource', 'meal_id')
+class MealCase(TestCase):
+    client: FlaskClient
+
+    def test_get(self):
+        response = self.client.get(self.API_NODE)
+
+        self.assert200(response)
+
+        self.assertEqual([{
+            'id': 1, 
+            'label': 'meal 1', 
+            'day': '2021-11-16', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }], response.json)
+
+    def test_create(self):
+        data = {
+            'label': 'meal 1', 
+            'day': '2020-01-01', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([
+            {
+                'id': 1, 
+                'label': 'meal 1', 
+                'day': '2021-11-16', 
+                'user_id': 1, 
+                'recipe_id': 1
+            },
+            {
+                'id': 2,
+                'label': 'meal 1', 
+                'day': '2020-01-01', 
+                'user_id': 1, 
+                'recipe_id': 1
+            }
+        ], response.json)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert200(response)
+        self.assertEqual(
+            {
+                'id': 2,
+                'label': 'meal 1', 
+                'day': '2020-01-01', 
+                'user_id': 1, 
+                'recipe_id': 1
+            }
+        , response.json)
+
+    def test_delete(self):
+        data = {
+            'label': 'meal 10', 
+            'day': '2020-09-30', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }
+        response = self.client.post(self.API_NODE, json=data)
+
+        self.assert201(response)
+
+        response = self.client.get(self.GET_API_NODE(2))
+        self.assert200(response)
+        self.assertEqual({
+                'id': 2,
+                'label': 'meal 10', 
+                'day': '2020-09-30', 
+                'user_id': 1, 
+                'recipe_id': 1
+            }, response.json)
 
         response = self.client.delete(self.GET_API_NODE(2))
         self.assert204(response)
