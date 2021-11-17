@@ -1,0 +1,38 @@
+
+.users .menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.users .menu > *:first-child {
+    margin-left: 2rem;
+}
+
+.users .menu > *:last-child {
+    margin-right: 2rem;
+}
+
+.users .searchIcon {
+    margin: 10px;
+    /* height: 100%; */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.users .search {
+    display: flex;
+    flex-direction: row;
+    border-radius: 0px;
+    min-width: 10rem;
+}
+
+.users .icon {
+    font-size: 2rem;
+}
+
+.debug {
+    border: 1px solid red;
+}
