@@ -7,7 +7,7 @@ from fractions import Fraction
 from database import db
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import date
 
 
 # class Note(db.Model):

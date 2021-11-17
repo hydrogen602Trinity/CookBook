@@ -5,12 +5,12 @@ from flask_restful import Resource, Api, reqparse, inputs
 from flask import Blueprint
 from flask import current_app
 
-from models import Ingredient, Recipe, db, User
+from models import Ingredient, Recipe, db, User, Meal
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 
 api_blueprint = Blueprint(
-                 __name__.split('.', maxsplit=1)[1], 
+                 __name__.split('.', maxsplit=1)[1],
                  __name__,
                  template_folder='../templates'
                 )
@@ -77,7 +77,7 @@ class RecipeResource(Resource):
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
-    
+
     @optional_param_check(False, 'recipe_id')
     def put(self, _=None):
         data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id'))
@@ -97,9 +97,9 @@ class RecipeResource(Resource):
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201
-        
+
         recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
-        
+
         if recipe:
             recipe.name = data['name']
             recipe.notes = data['notes']
@@ -152,7 +152,7 @@ class UserResource(Resource):
         db.session.add(newUser)
         db.session.commit()
         return '', 201
-    
+
     @optional_param_check(False, 'user_id')
     def put(self, _=None):
         data = require_truthy_values(self.user_parser_w_id.parse_args(), exceptions=('id'))
@@ -166,9 +166,9 @@ class UserResource(Resource):
             db.session.add(newUser)
             db.session.commit()
             return f'{newUser.id}', 201
-        
+
         user: Optional[User] = db.session.query(User).get(data['id'])
-        
+
         if user:
             overlap = data['email'] != user.email and db.session.query(User).filter(User.email == data['email']).count() > 0
             if overlap > 0:
@@ -245,7 +245,7 @@ class MealResource(Resource):
             return f'{meal.id}', 200
         else:
             return f'No object found with meal_id={data["id"]}', 404
-    
+
     def get(self, meal_id: Optional[int] = None):
         # Search
         if meal_id:
@@ -254,10 +254,10 @@ class MealResource(Resource):
             return jsonify(meal.toJson())
         else:
             return jsonify([meal.toJson() for meal in Meal.query.all()])
-    
+
     @optional_param_check(True, 'meal_id')
     def delete(self, meal_id: Optional[int] = None):
-        meal: Optional[Meal] = db.session.quert(Meal).get(meal_id)
+        meal: Optional[Meal] = db.session.query(Meal).get(meal_id)
         if meal:
             db.session.delete(meal)
             db.session.commit()
