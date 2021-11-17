@@ -7,7 +7,7 @@ from fractions import Fraction
 from database import db
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import date
 
 
 # class Note(db.Model):
@@ -212,5 +212,7 @@ class Meal(db.Model):
         return {
             'id': self.id,
             'label': self.label,
-            'day': self.day
+            'day': self.day.isoformat(),
+            'user_id': self.user_id,
+            'recipe_id': self.recipe_id
         }
