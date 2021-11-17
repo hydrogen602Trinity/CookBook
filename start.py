@@ -10,6 +10,10 @@ from os.path import exists
 # The startup script is compatible with python2 and python3, it will look for python3 itself
 
 
+def is_posix():
+    return os.name == 'posix'
+
+
 # needs to be customized in start.json
 p = 'start.json'
 if exists(p):
@@ -85,7 +89,7 @@ def is_py_3(cmd):
 py_cmd = ''
 if is_py_3('./init/bin/python'):
     py_cmd = './init/bin/python'
-if is_py_3('./init/Scripts/python.exe'):
+elif is_py_3('./init/Scripts/python.exe'):
     py_cmd = './init/Scripts/python.exe'
 else:
     to_try_version = ['3.10', '3.9', '3.8', '3.7', '3.6', '3', '']
@@ -113,7 +117,8 @@ def main(front=False):
         try:
             print('Now in {}'.format(os.path.abspath('.')))
 
-            s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout, shell=True)
+            s = subprocess.Popen(['npm', 'start'], stderr=sys.stderr, stdout=sys.stdout, shell=not is_posix())
+
             try:
                 s.wait()
             except KeyboardInterrupt:
@@ -153,7 +158,8 @@ if sys.argv[1] == 'install':
         if not exists('.env'):
             run(['cp', 'example.env', '.env'])
 
-        run(['npm', 'install'], stream=True, shell=True)
+        
+        run(['npm', 'install'], stream=True, shell=not is_posix())
 
     finally:
         os.chdir('..')
@@ -165,14 +171,14 @@ elif sys.argv[1] == 'test':
     os.environ['DB_FILENAME'] = 'postgres'
     os.environ['TESTING'] = '1'
 
-    out, err = run([py_cmd, '-m', 'unittest', '--locals'])
+    out, err = run([py_cmd, '-m', 'unittest', '--locals'], stream=True)
 
     os.chdir('frontend')
     try:
         print('Now in {}'.format(os.path.abspath('.')))
 
         os.environ['CI'] = 'true'
-        run(['npm', 'test'])
+        run(['npm', 'test'], stream=True, shell=not is_posix())
     finally:
         os.chdir('..')
         print('Now in {}'.format(os.path.abspath('.')))
