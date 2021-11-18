@@ -1,0 +1,123 @@
+
+.recipe-entry {
+    background-color: var(--beige);
+    margin-bottom: 20px;
+    border: 0px;
+    text-transform: inherit;
+    font-size: x-large;
+    text-align: center;
+    padding: 1em;
+    
+    transition: box-shadow 0.2s;
+    
+    --side-padding: 0.3em;
+
+    &[is-expanded] {
+        box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    input, textarea, select {
+        background-color: whitesmoke;
+        border: 0;
+        font-size: large;
+    }
+
+    .recipe-details {
+        margin-top: 1em;
+        text-transform: none;
+        font-size: large;
+    }
+
+    .recipe-details textarea {
+        resize: none;
+        width: calc(100% - 2 * var(--side-padding));
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .recipe-notes {
+        font-size: large;
+        padding: var(--side-padding);
+    }
+
+    /* ingredient */
+
+    .recipe-ingredient {
+        text-transform: capitalize;
+        font-size: large;
+        padding: 0;
+        display: block;
+        text-align: left;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+
+    .recipe-ingredient > * {
+        padding: var(--side-padding);
+    }
+
+    .recipe-ingredient :first-child::after {
+        content: ":";
+    }
+
+    .recipe-ingredient :first-child {
+        text-transform: capitalize;
+    }
+
+    .recipe-ingredient input:first-child {
+        width: calc(55% - 2 * var(--side-padding));
+    }
+
+    .recipe-ingredient :nth-child(3)::before {
+        content: "";
+    }
+
+    .recipe-ingredient input:nth-child(2) {
+        width: calc(20% - 2 * var(--side-padding));
+    }
+
+    .recipe-ingredient select {
+        width: calc(25% - 2 * var(--side-padding));
+    }
+
+    .recipe-icon-small {
+        width: 1.5em !important;
+        height: 1.5em !important;
+    }
+
+    /* Name */
+
+    .recipe-field {
+        margin: 0;
+        padding: 0;
+    }
+
+    .recipe-field {
+        span, input {
+            text-transform: inherit;
+            font-size: x-large;
+            text-align: center;
+            border: 0;
+            padding: 0;
+            display: inline-block;
+        }
+    }
+
+    /* Controls at the bottom of card */
+
+    .recipe-menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .recipe-icon {
+        width: 2em !important;
+        height: 2em !important;
+    }
+
+    /* General stuff */
+    select {
+        -webkit-appearance: none;
+    }
+}

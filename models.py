@@ -141,7 +141,7 @@ class User(db.Model):
 
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
-    password: str = db.Column(db.String(20), unique=True)
+    password: str = db.Column(db.String(20))
 
     def __init__(self, name: str, email: str, password: str) -> None: 
         #meals: Optional[List[Meal]] = None) -> None:

@@ -31,6 +31,15 @@ def setup_database(app: Flask):
         db.session.add(user1)
         db.session.commit()
 
+        db.session.add(User('Jonathan Rotter', 'jrotter@trinity.edu', 'postgres'))
+        db.session.commit()
+
+        db.session.add(User('Vasti Rios Rios', 'vriosrio@trinity.edu', 'postgres'))
+        db.session.commit()
+
+        db.session.add(User('Garrett Isaacs', 'gissacs@trinity.edu', 'postgres'))
+        db.session.commit()
+
         #recipe = Recipe('Scrambled Eggs', 'Remove egg shell from egg. Put liquid part of egg into bowl and beat with fork. Add salt and pour into a hot pan with a little oil. Let cook until somewhat solid, then break into lots of little bits and cook until fully solid', [
         #    Ingredient('eggs', 2),
         #    Ingredient('salt', 1/8, 'tsp')

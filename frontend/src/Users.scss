@@ -1,0 +1,62 @@
+
+.users {
+
+    // .main {
+    //     display: flex;
+    //     flex-direction: column;
+    //     justify-content: center;
+    // }
+
+    .menu {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+
+        > *:first-child {
+            margin-left: 2rem;
+        }
+
+        > *:last-child {
+            margin-right: 2rem;
+        }
+    }
+
+
+
+    // .main, .main > * {
+    //     height: 80%;
+    // }
+
+    .main > * {
+        height: calc(80% - 56px);
+    }
+
+    .table {
+        width: 100%;
+        height: 100%;
+    }
+
+    .searchIcon {
+        margin: 10px;
+        /* height: 100%; */
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .search {
+        display: flex;
+        flex-direction: row;
+        border-radius: 0px;
+        min-width: 10rem;
+    }
+
+    .icon {
+        font-size: 2rem;
+    }
+
+    .debug {
+        border: 1px solid red;
+    }
+}

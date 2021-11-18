@@ -5,6 +5,7 @@ from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
 from flask import current_app
 from datetime import date
+from time import sleep
 
 from models import Ingredient, Recipe, db, User, Meal
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
@@ -156,9 +157,12 @@ class UserResource(Resource):
 
     @optional_param_check(False, 'user_id')
     def put(self, _=None):
-        data = require_truthy_values(self.user_parser_w_id.parse_args(), exceptions=('id'))
+        #data = require_truthy_values(self.user_parser_w_id.parse_args(), exceptions=('id'))
+        data = self.user_parser_w_id.parse_args()
 
         if data['id'] is None:
+            # creating new user!
+            require_truthy_values(data, exceptions='id')
             overlaps = db.session.query(User).filter(User.email == data['email']).count()
             if overlaps > 0:
                 return f'Email already exists: email={data["email"]}', 400
@@ -171,19 +175,25 @@ class UserResource(Resource):
         user: Optional[User] = db.session.query(User).get(data['id'])
 
         if user:
-            overlap = data['email'] != user.email and db.session.query(User).filter(User.email == data['email']).count() > 0
-            if overlap > 0:
-                return f'Email already exists: email={data["email"]}', 400
-            user.name = data['name']
-            user.email = data['email']
-            user.password = data['password']
+            if data['email']:
+                overlap = data['email'] != user.email and db.session.query(User).filter(User.email == data['email']).count() > 0
+                if overlap > 0:
+                    return f'Email already exists: email={data["email"]}', 400
+                user.email = data['email']
+
+            if data['name']:
+                user.name = data['name']
+
+            if data['password']:
+                user.password = data['password']
+
             db.session.commit()
             return f'{user.id}', 200
         else:
             return f'No object found with user_id={data["id"]}', 404
 
     def get(self, user_id: Optional[int] = None):
-        # sleep(20)  # simulate slow internet 
+        #sleep(20)  # simulate slow internet 
         if user_id:
             user = db.session.query(User).get(user_id)
             handle_nonexistance(user)
