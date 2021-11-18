@@ -19,6 +19,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import './Theme.scss';
 import './Users.scss';
 import { isInteger } from './util/util';
+import { NewUser } from './components/Form';
 
 
 const updateUsersTrigger = createTrigger();
@@ -83,12 +84,29 @@ async function modifyUser(data) {
     try {
         result = await fetchControlAPI('user', 'PUT', data);
         if (!isInteger(result)) {
-            throw new Error('Expected PUT /recipe to return int, but got ' + result);
+            throw new Error('Expected PUT to return int, but got ' + result);
         }
         updateUsersTrigger();
     }
     catch (err) {
-        console.error('sendRecipe', err);
+        console.error('modifyUser', err);
+        // setError(err + '');
+        throw err;
+    }
+    
+    console.log('response', result);
+    return result;
+}
+
+
+async function createUser(data) {
+    let result = null;
+    try {
+        result = await fetchControlAPI('user', 'POST', data);
+        updateUsersTrigger();
+    }
+    catch (err) {
+        console.error('createUser', err);
         // setError(err + '');
         throw err;
     }
@@ -113,6 +131,7 @@ function Users() {
     const [users, setUsers] = useState([]);
 
     const [selectedRows, setSelectedRows] = useState([]);
+    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         if (userData) {
@@ -131,12 +150,17 @@ function Users() {
     const [search, setSearch] = useState('');
 
     return (
-    <div className="users frame">
+    <div className="users frame-footer">
         <div className="main" id="content">
         {isLoading ? 
-            <CircularProgress className="recipe-circular-progress"/>
+            <CircularProgress className="recipe-circular-progress center"/>
         : 
             <div>
+                <NewUser 
+                    show={showForm} 
+                    handleClose={() => setShowForm(false)} 
+                    callback={createUser}
+                    />
                 <div className="menu">
                     {/* <div style={{width: '1rem'}}></div> */}
                     <div className="search">
@@ -151,7 +175,7 @@ function Users() {
                         />
                     </div>
                     <div style={{width: '50%'}}></div>
-                    <IconButton onClick={() => console.log('add!')}>
+                    <IconButton onClick={() => setShowForm(true)}>
                         <AddCircleOutlineIcon className="icon" />
                     </IconButton>
                     {/* <IconButton onClick={() => console.log('edit!')}>

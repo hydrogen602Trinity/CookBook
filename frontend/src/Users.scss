@@ -11,22 +11,24 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+
+        > *:first-child {
+            margin-left: 2rem;
+        }
+
+        > *:last-child {
+            margin-right: 2rem;
+        }
     }
 
-    .menu > *:first-child {
-        margin-left: 2rem;
-    }
 
-    .menu > *:last-child {
-        margin-right: 2rem;
-    }
 
     // .main, .main > * {
     //     height: 80%;
     // }
 
     .main > * {
-        height: 80%;
+        height: calc(80% - 56px);
     }
 
     .table {
