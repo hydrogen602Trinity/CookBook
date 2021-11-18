@@ -1,6 +1,7 @@
 import RecipeEntry from './components/RecipeEntry';
-import './Recipes.css'
-import './root.css'
+import './Recipes.scss';
+import './Theme.scss';
+import './root.css';
 import { useFetchAPI } from './util/fetchAPI';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -67,7 +68,7 @@ export default function Recipes() {
     console.log(recipes, isLoading);
 
     return (
-        <div className="frame">
+        <div className="frame recipes-main">
             <div className="header">
                 <h1>
                     Recipe Book

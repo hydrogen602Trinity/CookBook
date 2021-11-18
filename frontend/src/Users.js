@@ -16,8 +16,8 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-
-import './Users.css';
+import './Theme.scss';
+import './Users.scss';
 import { isInteger } from './util/util';
 
 
@@ -131,7 +131,7 @@ function Users() {
     const [search, setSearch] = useState('');
 
     return (
-    <div className="users">
+    <div className="users frame">
         <div className="main" id="content">
         {isLoading ? 
             <CircularProgress className="recipe-circular-progress"/>
@@ -154,17 +154,17 @@ function Users() {
                     <IconButton onClick={() => console.log('add!')}>
                         <AddCircleOutlineIcon className="icon" />
                     </IconButton>
-                    <IconButton onClick={() => console.log('edit!')}>
+                    {/* <IconButton onClick={() => console.log('edit!')}>
                         <EditIcon className="icon" />
-                    </IconButton>
+                    </IconButton> */}
                     <IconButton onClick={() => {
-                            const user_ids = selectedRows.map(i => users[i-1].id);
+                            const user_ids = selectedRows //.map(i => users[i-1].id);
                             user_ids.forEach(deleteUserByID)
                         }}>
                         <DeleteIcon className="icon" />
                     </IconButton>
                 </div>
-                <div style={{ height: 400, width: '100%' }}>
+                <div className="table">
                     <DataGrid
                         rows={users.filter(obj => obj.name.toLowerCase().includes(search))}
                         columns={columns}
