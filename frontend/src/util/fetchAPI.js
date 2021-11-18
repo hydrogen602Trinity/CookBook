@@ -108,7 +108,8 @@ export function fetchAPI(path, data, method = 'GET', onSuccess = null, onFailure
         body: (data) ? JSON.stringify(data) : null,
         headers: {
             'Content-type': 'application/json'
-        }
+        },
+        credentials: 'include'
     })
     .then(response => {
         if (onSuccess) {
