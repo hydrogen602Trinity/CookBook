@@ -11,6 +11,7 @@ import {
 //import Note from './Note';
 import Recipes from './Recipes';
 import Users from './Users';
+import test from './test';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -26,6 +27,7 @@ ReactDOM.render(
             </li>
           </ul>
           </nav>
+          <button onClick={test}>Login</button>
       </div>
       <Routes>
         <Route path="/recipes" element={<Recipes/>}/>

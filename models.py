@@ -3,6 +3,9 @@ from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 # from sqlalchemy.orm import backref
 from sqlalchemy.sql import expression
 from fractions import Fraction
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
+
 
 from database import db
 
@@ -129,7 +132,7 @@ userTags = db.Table('userTags',
 )
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
 
     __tablename__ = 'user'
 
@@ -141,13 +144,13 @@ class User(db.Model):
 
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
-    password: str = db.Column(db.String(20))
+    password: str = db.Column(db.String(100))
 
     def __init__(self, name: str, email: str, password: str) -> None: 
         #meals: Optional[List[Meal]] = None) -> None:
         self.name = name
         self.email = email
-        self.password = password
+        self.password = generate_password_hash(password, method='sha256')
         # self.tags = tags if tags else None
         #self.meals = meals if meals else None
 

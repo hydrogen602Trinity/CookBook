@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 
 from database import db
+from login import login_manager, setup
 import views
 from util import getenv
 
@@ -108,7 +109,13 @@ def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
     app.register_blueprint(views.core)
     app.register_blueprint(restapi.api_blueprint, url_prefix='/api/v1')
 
-    CORS(app)
+    # for dev only
+    app.secret_key = '8ccfee32156953a4aedc1cfcefdf5aa0124d091d381f4008cc13d33de5bf2c1c'
+
+    CORS(app, supports_credentials=True)
+
+    login_manager.init_app(app)
+    setup(app)
 
     db_name = db_name if db_name else getenv('DB_FILENAME') # +psycopg2
     SQLALCHEMY_DATABASE_URI = f"postgresql://postgres:postgres@localhost:5432/{db_name}"
