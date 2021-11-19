@@ -66,7 +66,7 @@ class RecipeResource(Resource):
 
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
-        data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients',))
+        data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients', 'recipe_tagList'))
 
         ingredients = []
         newTagList = []
@@ -85,7 +85,7 @@ class RecipeResource(Resource):
 
     @optional_param_check(False, 'recipe_id')
     def put(self, _=None):
-        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id'))
+        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id', 'recipe_tagList'))
 
         ingredients = []
         for ingredient in data['ingredients']:

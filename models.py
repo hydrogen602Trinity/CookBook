@@ -130,8 +130,8 @@ class Ingredient(db.Model):
 
 
 userTags = db.Table('userTags',
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='DELETE'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='DELETE'), primary_key=True)
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
 )
 
 class User(UserMixin, db.Model):
@@ -141,8 +141,8 @@ class User(UserMixin, db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
 
     user_Tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
-    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete', passive_deletes=True)
+    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete', passive_deletes=True)
 
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
