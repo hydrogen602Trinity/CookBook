@@ -56,7 +56,7 @@ def setup_database(app: Flask):
         #db.session.add(recipe2)
         #db.session.commit()
 
-        cornbread = Recipe('Cornbread', '', [
+        cornbread = Recipe('Cornbread', 'Instructions Go Here', [
             Ingredient('Butter', '1/4', 'cup'), Ingredient('Milk', 1, 'cup'), Ingredient('Eggs', 1), Ingredient('Cornmeal', '5/4', 'cup'),
             Ingredient('Flour', 1, 'cup'), Ingredient('Sugar', '1/2', 'cup'), Ingredient('Baking Powder', 1, 'tbsp'), Ingredient('Salt', 1, 'tsp')
         ], user1, 'Side Dish', 'Basic', 40, 1)
@@ -64,7 +64,7 @@ def setup_database(app: Flask):
         db.session.add(cornbread)
         db.session.commit()
 
-        blueberryPie = Recipe('Blueberry Pie', '', [
+        blueberryPie = Recipe('Blueberry Pie', 'Instructions Go Here', [
             Ingredient('Flour', '9/4', 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', '2/3', 'cup'), Ingredient('Sugar', '1/2', 'cup'),
             Ingredient('Cinnamon', '1/2', 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
         ], user1, 'Dessert', 'Basic', 120, 3)
@@ -72,7 +72,7 @@ def setup_database(app: Flask):
         db.session.add(blueberryPie)
         db.session.commit()
 
-        frenchToast = Recipe('French Toast', '', [
+        frenchToast = Recipe('French Toast', 'Instructions Go Here', [
             Ingredient('Cinnamon', 1, 'tsp'), Ingredient('Nutmeg', '1/4', 'tsp'), Ingredient('Sugar', 2, 'tbsp'), Ingredient('Butter', 4, 'tbsp'),
             Ingredient('Eggs', 4), Ingredient('Vanilla Extract', '1/2', 'tsp'), Ingredient('Bread', 8, 'slices'), Ingredient('Maple Syrup', '1/2', 'cup')
         ], user1, 'Breakfast', 'French', 10, 2)
@@ -80,7 +80,7 @@ def setup_database(app: Flask):
         db.session.add(frenchToast)
         db.session.commit()
 
-        pretzelSticks = Recipe('Pretzel Sticks', '', [
+        pretzelSticks = Recipe('Pretzel Sticks', 'Instructions Go Here', [
             Ingredient('Brown Sugar', '1/2', 'cup'), Ingredient('Dry Yeast', 2, 'envelopes'), Ingredient('Vegetable Oil', '11/4', 'cup'),
             Ingredient('Flour', '23/4', 'cup'), Ingredient('Baking Soda', '3/4', 'cup'), Ingredient('Eggs', 1), Ingredient('Salt', 2, 'tsp')
         ], user1, 'Snack', 'Basic', 60,5)
@@ -88,7 +88,7 @@ def setup_database(app: Flask):
         db.session.add(pretzelSticks)
         db.session.commit()
 
-        swedishMeatballs = Recipe('Swedish Meatballs', '', [
+        swedishMeatballs = Recipe('Swedish Meatballs', 'Instructions Go Here', [
             Ingredient('Butter', 4, 'tsp'), Ingredient('Onion', '1/2'), Ingredient('Milk', '1/4', 'cup'), Ingredient('Bread', 3, 'slices'),
             Ingredient('Eggs', 1), Ingredient('Ground Beef', '3/4', 'lb'), Ingredient('Ground Pork', '1/2', 'lb'), Ingredient('Salt', 1, 'tsp'),
             Ingredient('Black Pepper', 1, 'tsp'), Ingredient('Nutmed', '1/2', 'tsp'), Ingredient('Ground Cardamom', 1/2, 'tsp'),
