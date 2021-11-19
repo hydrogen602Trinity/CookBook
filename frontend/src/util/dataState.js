@@ -1,11 +1,13 @@
 import useBetterState from "./classLikeState";
 import { convertFraToStr, isInteger } from "./util";
-import { fetchControlAPI, fullPath } from "./fetchAPI";
+import { AuthError, fetchControlAPI, fullPath } from "./fetchAPI";
 import { useState } from "react";
 import { Ingredient, serialize_ingredient } from "./dataTypes";
+import { useNavigate } from "react-router";
 
 
 export function useRecipe(recipe) {
+    const nav = useNavigate();
 
     recipe = {
         name: '',
@@ -156,6 +158,10 @@ export function useRecipe(recipe) {
                 await this.refreshRecipe(result);
             }
             catch (err) {
+                if (err instanceof AuthError) {
+                    nav('/?autherror');
+                    return null;
+                }
                 console.error('sendRecipe', err);
                 setError(err + '');
                 throw err;
@@ -178,6 +184,10 @@ export function useRecipe(recipe) {
                     });
                 }
                 catch (err) {
+                    if (err instanceof AuthError) {
+                        nav('/?autherror');
+                        return null;
+                    }
                     console.error('deleteThis', err);
                     setError(err + '');
                     throw err;

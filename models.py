@@ -3,11 +3,14 @@ from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 # from sqlalchemy.orm import backref
 from sqlalchemy.sql import expression
 from fractions import Fraction
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
+
 
 from database import db
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import date
 
 
 # class Note(db.Model):
@@ -131,7 +134,7 @@ userTags = db.Table('userTags',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='DELETE'), primary_key=True)
 )
 
-class User(db.Model):
+class User(UserMixin, db.Model):
 
     __tablename__ = 'user'
 
@@ -143,13 +146,13 @@ class User(db.Model):
 
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
-    password: str = db.Column(db.String(20), unique=True)
+    password: str = db.Column(db.String(100))
 
     def __init__(self, name: str, email: str, password: str) -> None: 
         #meals: Optional[List[Meal]] = None) -> None:
         self.name = name
         self.email = email
-        self.password = password
+        self.password = generate_password_hash(password, method='sha256')
         # self.tags = tags if tags else None
         #self.meals = meals if meals else None
 
@@ -214,5 +217,7 @@ class Meal(db.Model):
         return {
             'id': self.id,
             'label': self.label,
-            'day': self.day
+            'day': self.day.isoformat(),
+            'user_id': self.user_id,
+            'recipe_id': self.recipe_id
         }
