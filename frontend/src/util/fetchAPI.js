@@ -1,17 +1,55 @@
 // import { useEffect, useState, useCallback } from 'react';
 // import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useFetch from "react-fetch-hook";
+import { useNavigate } from "react-router";
 
 export function fullPath(path) {
     return 'http://' + process.env.REACT_APP_API + '/' + path;
 }
 
+export class AuthError extends Error {
+    // constructor(message, options) {
+    //     super(message, options);
+    // }
+}
+
+
+export function makeAuthErrorHandler(asyncFunc, onFailure) {
+    return async function (...args) {
+        let result = null;
+        try {
+            result = await asyncFunc(...args);
+        }
+        catch (err) {
+            if (err instanceof AuthError) {
+                return onFailure(err);
+            }
+            else {
+                throw err;
+            }
+        }
+        return result;
+    }
+}
+
+
 export function useFetchAPI(path, dependsArray = null) {
+    const nav = useNavigate();
     const { isLoading, data, error } = useFetch(
         fullPath(path), 
         (dependsArray ? {
-                depends: dependsArray
-            } : null));
+            depends: dependsArray
+        } : null));
+
+    useEffect(() => {
+        if (error) { 
+            if (error.status === 401) {
+                nav('/?autherror');
+            }
+            // eslint-disable-next-line
+        }}, [error]);
+
     return [isLoading, data, error];
 }
 
@@ -46,6 +84,10 @@ export async function fetchControlAPI(path, method, data, json = true) {
         credentials: 'include',
         body: JSON.stringify(data)
     });
+    if (response.status === 401) {
+        throw new AuthError("Got a 401");
+    }
+    console.log(response);
     return json ? response.json() : response.text();
 }
 
