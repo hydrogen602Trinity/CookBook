@@ -81,7 +81,7 @@ class Recipe(db.Model):
             'ingredients': [i.toJson() for i in self.ingredients]
         }
     
-    def declareTags(self, t: [Tag]) -> None:
+    def declareTags(self, t: List[Tag]) -> None:
         self.tags.extend(t)
 
 
