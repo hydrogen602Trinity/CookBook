@@ -36,11 +36,15 @@ export function makeAuthErrorHandler(asyncFunc, onFailure) {
 
 export function useFetchAPI(path, dependsArray = null) {
     const nav = useNavigate();
+    const args = {
+        credentials: 'include',
+    };
+    if (dependsArray) {
+        args.depends = dependsArray;
+    }
+
     const { isLoading, data, error } = useFetch(
-        fullPath(path), 
-        (dependsArray ? {
-            depends: dependsArray
-        } : null));
+        fullPath(path), args);
 
     useEffect(() => {
         if (error) { 

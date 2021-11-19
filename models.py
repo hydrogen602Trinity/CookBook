@@ -145,12 +145,14 @@ class User(UserMixin, db.Model):
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
     password: str = db.Column(db.String(100))
+    is_admin: bool = db.Column(db.Boolean)
 
-    def __init__(self, name: str, email: str, password: str) -> None: 
+    def __init__(self, name: str, email: str, password: str, is_admin: bool = False) -> None: 
         #meals: Optional[List[Meal]] = None) -> None:
         self.name = name
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
+        self.is_admin = is_admin
         # self.tags = tags if tags else None
         #self.meals = meals if meals else None
 

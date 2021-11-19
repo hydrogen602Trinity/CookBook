@@ -32,7 +32,7 @@ def setup_database(app: Flask):
         db.session.add(user1)
         db.session.commit()
 
-        db.session.add(User('Jonathan Rotter', 'jrotter@trinity.edu', 'postgres'))
+        db.session.add(User('Jonathan Rotter', 'jrotter@trinity.edu', 'postgres', is_admin=True))
         db.session.commit()
 
         db.session.add(User('Vasti Rios Rios', 'vriosrio@trinity.edu', 'postgres'))
