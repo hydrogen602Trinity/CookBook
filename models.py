@@ -55,7 +55,7 @@ class Recipe(db.Model):
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
 
-    tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
+    recipe_Tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
     meals: List[Meal] = db.relationship('Meal', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
 
     def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User, courseType: Optional[str] = None, 
@@ -80,6 +80,9 @@ class Recipe(db.Model):
             'notes': self.notes,
             'ingredients': [i.toJson() for i in self.ingredients]
         }
+    
+    def declareTags(self, t: List[Tag]) -> None:
+        self.tags.extend(t)
 
 
 class Ingredient(db.Model):
@@ -127,10 +130,9 @@ class Ingredient(db.Model):
 
 
 userTags = db.Table('userTags',
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True)
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
 )
-
 
 class User(UserMixin, db.Model):
 
@@ -138,9 +140,9 @@ class User(UserMixin, db.Model):
 
     id: int = db.Column(db.Integer, primary_key=True)
 
-    tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
-    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
-    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete, delete-orphan', passive_deletes=True)
+    user_Tags: List[Tag] = db.relationship('Tag', secondary=userTags, back_populates="assocUsers")
+    recipes: List[Recipe] = db.relationship('Recipe', backref='user', cascade='all, delete', passive_deletes=True)
+    meals: List[Meal] = db.relationship('Meal', backref='user', cascade='all, delete', passive_deletes=True)
 
     name: str = db.Column(db.String(128))
     email: str = db.Column(db.String(128), unique=True)
@@ -169,8 +171,8 @@ class Tag(db.Model):
     __tablename__ = 'tag'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    assocUsers: List[User] = db.relationship('User', secondary=userTags, back_populates="tags")
-    assocRecipes: List[Recipe] = db.relationship('Recipe', secondary=recipeTags, back_populates="tags")
+    assocUsers: List[User] = db.relationship('User', secondary=userTags, back_populates="user_Tags")
+    assocRecipes: List[Recipe] = db.relationship('Recipe', secondary=recipeTags, back_populates="recipe_Tags")
     tagType: str = db.Column(db.String(20))
 
     def __init__(self, tagType: str, assocUsers: Optional[List[User]] = None, 
