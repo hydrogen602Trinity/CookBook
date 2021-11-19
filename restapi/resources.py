@@ -39,6 +39,7 @@ class RecipeResource(Resource):
         'denom': int,
     }
 
+    @require_auth
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
         data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients',))
@@ -51,12 +52,13 @@ class RecipeResource(Resource):
                                                    ingredient['denom']),
                                           ingredient.get('unit') or None))
 
-        user = db.session.query(User).filter(User.name == 'Max Mustermann').all()[0]
-        newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
+
+        newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user)
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
 
+    @require_auth
     @optional_param_check(False, 'recipe_id')
     def put(self, _=None):
         data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id'))
@@ -71,13 +73,12 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            user = db.session.query(User).filter(User.name == 'Max Mustermann').all()[0]
-            newRecipe = Recipe(data['name'], data['notes'], ingredients, user)
+            newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user)
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201
 
-        recipe: Optional[Recipe] = db.session.query(Recipe).get(data['id'])
+        recipe: Optional[Recipe] = db.session.query(Recipe).filter(Recipe.user_id == current_user.id, Recipe.id == data['id']).one_or_none()
 
         if recipe:
             recipe.name = data['name']
@@ -88,19 +89,22 @@ class RecipeResource(Resource):
         else:
             return f'No object found with recipe_id={data["id"]}', 404
 
+    @require_auth
     def get(self, recipe_id: Optional[int] = None):
+        q = db.session.query(Recipe).filter(Recipe.user_id == current_user.id)
         # sleep(20)  # simulate slow internet 
         if recipe_id:
-            recipe = db.session.query(Recipe).get(recipe_id)
+            recipe = q.filter(Recipe.id == recipe_id).one_or_none()
             handle_nonexistance(recipe)
             return jsonify(recipe.toJson())
         else:
             # current_app.logger.debug('Getting all recipes')
-            return jsonify([recipe.toJson() for recipe in Recipe.query.filter(Recipe.deleted == False).all()])
+            return jsonify([recipe.toJson() for recipe in q.filter(Recipe.deleted == False).all()])
 
+    @require_auth
     @optional_param_check(True, 'recipe_id')
     def delete(self, recipe_id: Optional[int] = None):
-        recipe: Optional[Recipe] = db.session.query(Recipe).get(recipe_id)
+        recipe: Optional[Recipe] = db.session.query(Recipe).filter(Recipe.user_id == current_user.id, Recipe.id == recipe_id).one_or_none()
         if recipe:
             recipe.deleted = True
             db.session.commit()

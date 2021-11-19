@@ -9,7 +9,7 @@ from flask_login import login_user, current_user, logout_user
 
 
 from models import db, User
-from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
+from .util import require_truthy_values, add_resource
 from .resources import api
 
 
@@ -24,7 +24,7 @@ class LoginResource(Resource):
         return current_user.name if current_user.is_authenticated else 'None'
 
     def post(self):
-        print('login?')
+        #print('login?')
         data = require_truthy_values(self.user_parser.parse_args())
 
         user = db.session.query(User).filter(User.email == data['email']).first()
@@ -32,7 +32,7 @@ class LoginResource(Resource):
             return '', 404
         
         login_user(user)
-        print('login!', current_user.name)
+        #print('login!', current_user.name)
         return '', 201
     
     def delete(self):

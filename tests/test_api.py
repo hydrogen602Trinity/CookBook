@@ -97,14 +97,20 @@ class RecipeCase(TestCase):
     client: FlaskClient
 
     def test_get(self):
-        #response = self.client.get(self.API_NODE)
-        #self.assert401(response)
+        response = self.client.get(self.API_NODE)
+        self.assert401(response)
+        self.login(self.user)
 
-        #self.login(self.user)
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+        self.logout()
+        self.login(self.admin)
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([], response.json)
 
 
     def test_create(self):
@@ -118,7 +124,9 @@ class RecipeCase(TestCase):
             }]
         }
 
-        #self.assert401(self.client.post(self.API_NODE, json=data))
+        response = self.client.post(self.API_NODE, json=data)
+        self.assert401(response)
+        self.login(self.user)
 
         #self.login(self.user)
         response = self.client.post(self.API_NODE, json=data)
@@ -161,6 +169,11 @@ class RecipeCase(TestCase):
                 'unit': 'g'
             }]
         }
+
+        response = self.client.post(self.API_NODE, json=data)
+        self.assert401(response)
+        self.login(self.user)
+
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
@@ -208,6 +221,8 @@ class RecipeCase(TestCase):
             }
         ]
 
+        self.login(self.user)
+
         for data in invalid_data:
             response = self.client.post(self.API_NODE, json=data)
 
@@ -219,10 +234,19 @@ class RecipeCase(TestCase):
             self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_delete(self):
+        self.login(self.user)
+
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+        self.logout()
+        self.assert401(self.client.delete(self.GET_API_NODE(1)))
+        self.login(self.admin)
+        self.assert404(self.client.delete(self.GET_API_NODE(1)))
+        self.logout()
+        self.login(self.user)
 
         response = self.client.delete(self.GET_API_NODE(1))
 
@@ -234,6 +258,8 @@ class RecipeCase(TestCase):
         self.assertEqual([], response.json)
 
     def test_delete_no_exist(self):
+        self.login(self.user)
+
         response = self.client.delete(self.GET_API_NODE(42))
         self.assert404(response)
 
@@ -242,6 +268,8 @@ class RecipeCase(TestCase):
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_put_no_exist(self):
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'id': 42,
             'name': 'Cooked Eggs',
@@ -259,6 +287,19 @@ class RecipeCase(TestCase):
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_put_create(self):
+        response = self.client.put(self.API_NODE, json={
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 3,
+                'unit': 'g'
+        }]})
+        self.assert401(response)
+
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'name': 'Cooked Eggs',
             'notes': 'Cook for 4 and and a half for a liquid inside',
@@ -286,6 +327,8 @@ class RecipeCase(TestCase):
 
 
     def test_put_1(self):
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'id': 1, 
             'name': 'Scrambled Eggs Edited', 
@@ -312,6 +355,8 @@ class RecipeCase(TestCase):
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 1).count(), 1)
 
     def test_put_2(self):
+        self.login(self.user)
+
         data = {
             'name': 'Cooked Eggs',
             'notes': 'Cook for 4 and and a half for a liquid inside',
