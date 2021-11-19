@@ -6,6 +6,7 @@ from flask import Blueprint
 from flask import current_app
 from datetime import date
 from time import sleep
+from werkzeug.security import generate_password_hash
 
 from models import Ingredient, Recipe, db, User, Meal
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
@@ -185,7 +186,7 @@ class UserResource(Resource):
                 user.name = data['name']
 
             if data['password']:
-                user.password = data['password']
+                user.password = generate_password_hash(data['password'], method='sha256')
 
             db.session.commit()
             return f'{user.id}', 200

@@ -1,6 +1,6 @@
-import { fetchControlAPI, useFetchAPI } from './util/fetchAPI';
+import { fetchControlAPI, makeAuthErrorHandler, useFetchAPI } from './util/fetchAPI';
 import { useEffect, useState, createRef, forwardRef } from 'react';
-import { styled, alpha } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import Snackbar from '@material-ui/core/Snackbar';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
@@ -13,13 +13,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
 import { IconButton } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import './Theme.scss';
 import './Users.scss';
 import { isInteger } from './util/util';
 import { NewUser } from './components/Form';
+import { useNavigate } from 'react-router';
 
 
 const updateUsersTrigger = createTrigger();
@@ -53,71 +53,36 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   }));
 
 
-async function deleteUserByID(id) {
-    let result = null;
-    if (isInteger(id)) {
-        console.log('deleting...');
-        try {
-            result = await fetchControlAPI('user/' + id, 'DELETE', null, false);
-            console.log('deleted');
-            // setState({
-            //     name: '',
-            //     notes: '',
-            //     ingredients: [],
-            // });
-            //if (!no_update) {
-            updateUsersTrigger();
-            //}
-        }
-        catch (err) {
-            console.error('deleteThis', err);
-            // setError(err + '');
-            throw err;
-        }
-    }
-    return result;
-}
+function Users() {
+    const snackbarRef = createRef(null);
+    const nav = useNavigate();
+    const sendToLogin = () => nav('/?autherror');
 
 
-async function modifyUser(data) {
-    let result = null;
-    try {
-        result = await fetchControlAPI('user', 'PUT', data);
+    const modifyUser = makeAuthErrorHandler(async (data) => {
+        let result = await fetchControlAPI('user', 'PUT', data);
         if (!isInteger(result)) {
             throw new Error('Expected PUT to return int, but got ' + result);
         }
         updateUsersTrigger();
-    }
-    catch (err) {
-        console.error('modifyUser', err);
-        // setError(err + '');
-        throw err;
-    }
-    
-    console.log('response', result);
-    return result;
-}
+        return result;
+    }, sendToLogin);
 
-
-async function createUser(data) {
-    let result = null;
-    try {
-        result = await fetchControlAPI('user', 'POST', data);
+    const createUser = makeAuthErrorHandler(async data => {
+        let result = await fetchControlAPI('user', 'POST', data);
         updateUsersTrigger();
-    }
-    catch (err) {
-        console.error('createUser', err);
-        // setError(err + '');
-        throw err;
-    }
-    
-    console.log('response', result);
-    return result;
-}
+        return result;
+    }, sendToLogin);
 
+    const deleteUserByID = makeAuthErrorHandler(async id => {
+        let result = null;
+        if (isInteger(id)) {
+            result = await fetchControlAPI('user/' + id, 'DELETE', null, false);
+            updateUsersTrigger();
+        }
+        return result;
+    }, sendToLogin);
 
-function Users() {
-    const snackbarRef = createRef(null);
 
     const [state, setState] = useState({
         snackbar: null
@@ -207,15 +172,15 @@ function Users() {
         }
         </div>
         <Snackbar 
-                ref={snackbarRef} 
-                open={Boolean(state.snackbar)} 
-                autoHideDuration={12000} 
-                TransitionComponent={GrowTransition}
-                onClose={handleClose}>
-                <Alert onClose={handleClose} severity="error">
-                {state.snackbar}
-                </Alert>
-            </Snackbar>
+            ref={snackbarRef} 
+            open={Boolean(state.snackbar)} 
+            autoHideDuration={12000} 
+            TransitionComponent={GrowTransition}
+            onClose={handleClose}>
+            <Alert onClose={handleClose} severity="error">
+            {state.snackbar}
+            </Alert>
+        </Snackbar>
     </div>
     );
 }
