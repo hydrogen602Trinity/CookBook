@@ -50,6 +50,7 @@ class RecipeResource(Resource):
     recipe_parser.add_argument('name', type=str, help='Recipe name')
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
     recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
+    recipe_parser.add_argument('recipe_tagList', default=[], location='json', type=list)
 
     updated_recipe_parser = recipe_parser.copy()
     updated_recipe_parser.add_argument('id', type=int, default=None, help="Recipe ID")
@@ -65,6 +66,7 @@ class RecipeResource(Resource):
         data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients',))
 
         ingredients = []
+        newTagList = []
         for ingredient in data['ingredients']:
             ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
             ingredients.append(Ingredient(ingredient['name'], 
@@ -267,9 +269,11 @@ class MealResource(Resource):
 
 @add_resource(api, '/tag', '/tag/<int:tag_id>')
 class TagResource(Resource):
-    # Most stuff is done, but not sure how to implement many-many relationship
+
     tag_parser = reqparse.RequestParser()
     tag_parser.add_argument('tagType', type=str, help="Tag Name")
+    tag_parser.add_argument('assocUsers', default=[], type=list)
+    tag_parser.add_argument('assocRecipes', default=[], type=list)
 
     tag_parser_w_id = tag_parser,copy()
     tag_parser_w_id.add_argument('id', type=int, default=None, help="Tag ID")
@@ -278,7 +282,7 @@ class TagResource(Resource):
     def post(self, _=None):
         data = require_truthy_values(self.user_parser.parse_args())
 
-        newTag = Tag(data['tagType'])
+        newTag = Tag(data['tagType'], data['assocUsers'], data['assocRecipes'])
         db.session.add(newTag)
         db.session.commit()
         return '', 201
@@ -289,7 +293,7 @@ class TagResource(Resource):
 
         # Insert
         if data['id'] is None:
-            newTag = Tag(data['tagType'])
+            newTag = Tag(data['tagType'], data['assocUsers'], data['assocRecipes'])
             db.session.add(newTag)
             db.session.commit()
             return f'{newTag.id}', 201
@@ -299,6 +303,8 @@ class TagResource(Resource):
         # Update
         if tag:
             tag.tagType = data['tagType']
+            tag.assocUsers = data['assocUsers']
+            tag.assocRecipes = data['assocRecipes']
             db.session.commit()
             return f'{tag.id}', 200
         else:
