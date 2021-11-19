@@ -69,7 +69,6 @@ class RecipeResource(Resource):
         data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients', 'recipe_tagList'))
 
         ingredients = []
-        newTagList = []
         for ingredient in data['ingredients']:
             ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
             ingredients.append(Ingredient(ingredient['name'], 
@@ -292,7 +291,7 @@ class TagResource(Resource):
 
     @optional_param_check(False, 'tag_id')
     def post(self, _=None):
-        data = require_truthy_values(self.user_parser.parse_args())
+        data = require_truthy_values(self.user_parser.parse_args(), exceptions=('assocUsers', 'assocRecipes'))
 
         newTag = Tag(data['tagType'], data['assocUsers'], data['assocRecipes'])
         db.session.add(newTag)
