@@ -38,7 +38,7 @@ class LoginResource(Resource):
     def delete(self):
         # logout cause why not
         if current_user.is_authenticated:
-            logout_user(current_user)
+            logout_user()
 
         return '', 201
 
