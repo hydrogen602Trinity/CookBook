@@ -275,7 +275,7 @@ class TagResource(Resource):
     tag_parser.add_argument('assocUsers', default=[], type=list)
     tag_parser.add_argument('assocRecipes', default=[], type=list)
 
-    tag_parser_w_id = tag_parser,copy()
+    tag_parser_w_id = tag_parser.copy()
     tag_parser_w_id.add_argument('id', type=int, default=None, help="Tag ID")
 
     @optional_param_check(False, 'tag_id')
