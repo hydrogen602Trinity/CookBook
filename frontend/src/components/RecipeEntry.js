@@ -1,7 +1,7 @@
 import { createRef, useLayoutEffect, useState } from "react";
 import Fraction from "fraction.js";
 import Collapse from '@material-ui/core/Collapse';
-import './RecipeEntry.css'
+import './RecipeEntry.scss'
 
 import { IconButton } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
