@@ -3,11 +3,8 @@ import './Recipes.scss';
 import './Theme.scss';
 import './root.css';
 import { useFetchAPI } from './util/fetchAPI';
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
-import Grow from '@material-ui/core/Grow';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { useEffect, useState, createRef, forwardRef } from 'react';
+import { useEffect, useState } from 'react';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
 // import RecipeEditor from './components/RecipeEditor';
@@ -15,39 +12,12 @@ import useTrigger from "react-use-trigger/useTrigger";
 
 const updateRecipesTrigger = createTrigger();
 
-const Alert = forwardRef((props, ref) => {
-    return <MuiAlert ref={ref} elevation={6} variant="filled" {...props} />;
-});
-
-const GrowTransition = forwardRef((props, ref) => {
-    return <Grow ref={ref} {...props} />;
-});
-
 
 export default function Recipes() {
-    const [state, setState] = useState({
-        snackbar: null,
-        // showRecipeEditor: false
-    });
-    const snackbarRef = createRef(null);
-
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
     const [ isLoading, recipesData, error ] = useFetchAPI('recipe', [updateRecipesTriggerValue]);
 
-    useEffect(() => setState({snackbar: (error ? 'Failed to load recipes' : null)}), [error]);
-
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setState({snackbar: null});
-    };
-
     const [recipes, setRecipes] = useState([]);
-
-    // const setSnackbar = (msg) => {
-    //     setState({snackbar: null});
-    // };
 
     useEffect(() => {
         if (recipesData) {
@@ -84,7 +54,7 @@ export default function Recipes() {
             </div> */}
             <div className="main" id="content">
                 {isLoading ? 
-                    <CircularProgress className="recipe-circular-progress"/>
+                    <CircularProgress className="circular-progress"/>
                 : 
                     recipes.map((recipe, i) => 
                         <RecipeEntry 
@@ -94,22 +64,6 @@ export default function Recipes() {
                             />)
                 }
             </div>
-            {/* <div className="sidebar" hidden={true}>
-                <button onClick={() => console.log('getAllRecipes')}>
-                    Recipes
-                </button>
-            </div> */}
-            <Snackbar 
-                ref={snackbarRef} 
-                open={Boolean(state.snackbar)} 
-                autoHideDuration={12000} 
-                TransitionComponent={GrowTransition}
-                onClose={handleClose}>
-                <Alert onClose={handleClose} severity="error">
-                {state.snackbar}
-                </Alert>
-            </Snackbar>
-            {/* {state.showRecipeEditor ? <RecipeEditor/> : null} */}
         </div>
     );
 }

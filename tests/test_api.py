@@ -29,16 +29,41 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
             self.GET_API_NODE = \
                 lambda arg: url_for_rest(resource_path, _external=False, **{id_name: arg})
             self.API_NODE = self.GET_API_NODE(None)
+        
+            self.LOGIN_NODE = url_for_rest('resources.loginresource', _external=False)
         return app
+    
+    @method_setter
+    def login(self, user_email: str):
+        assert isinstance(user_email, str), \
+            f'Expected email as string, but got {type(user_email)}'
+        response = self.client.post(self.LOGIN_NODE, 
+            json={'email': user_email, 'password': 'unittest'})
+        
+        self.assert201(response)
+
+    @method_setter
+    def logout(self):
+        response = self.client.delete(self.LOGIN_NODE)
+        
+        self.assert201(response)
 
     @method_setter
     def setUp(self):
         db.drop_all()
         db.create_all()
 
-        user = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
+        user = User('Max Mustermann', 'max.mustermann@t-online.de', 'unittest')
         db.session.add(user)
         db.session.commit()
+
+        self.user = user.email
+
+        admin = User('Admin', 'admin@test.de', 'unittest', is_admin=True)
+        db.session.add(admin)
+        db.session.commit()
+
+        self.admin = admin.email
 
         recipe = Recipe('Scrambled Eggs', 'Break and beat eggs', [], user)
         db.session.add(recipe)
@@ -53,6 +78,7 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
 
     @method_setter
     def tearDown(self):
+        self.logout()
         db.session.remove()
         db.drop_all()
 
@@ -72,9 +98,19 @@ class RecipeCase(TestCase):
 
     def test_get(self):
         response = self.client.get(self.API_NODE)
+        self.assert401(response)
+        self.login(self.user)
+
+        response = self.client.get(self.API_NODE)
 
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+        self.logout()
+        self.login(self.admin)
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+        self.assertEqual([], response.json)
 
 
     def test_create(self):
@@ -87,6 +123,12 @@ class RecipeCase(TestCase):
                 'denom': 1
             }]
         }
+
+        response = self.client.post(self.API_NODE, json=data)
+        self.assert401(response)
+        self.login(self.user)
+
+        #self.login(self.user)
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
@@ -127,6 +169,11 @@ class RecipeCase(TestCase):
                 'unit': 'g'
             }]
         }
+
+        response = self.client.post(self.API_NODE, json=data)
+        self.assert401(response)
+        self.login(self.user)
+
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
@@ -174,6 +221,8 @@ class RecipeCase(TestCase):
             }
         ]
 
+        self.login(self.user)
+
         for data in invalid_data:
             response = self.client.post(self.API_NODE, json=data)
 
@@ -185,10 +234,19 @@ class RecipeCase(TestCase):
             self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_delete(self):
+        self.login(self.user)
+
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
+
+        self.logout()
+        self.assert401(self.client.delete(self.GET_API_NODE(1)))
+        self.login(self.admin)
+        self.assert404(self.client.delete(self.GET_API_NODE(1)))
+        self.logout()
+        self.login(self.user)
 
         response = self.client.delete(self.GET_API_NODE(1))
 
@@ -200,6 +258,8 @@ class RecipeCase(TestCase):
         self.assertEqual([], response.json)
 
     def test_delete_no_exist(self):
+        self.login(self.user)
+
         response = self.client.delete(self.GET_API_NODE(42))
         self.assert404(response)
 
@@ -208,6 +268,8 @@ class RecipeCase(TestCase):
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_put_no_exist(self):
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'id': 42,
             'name': 'Cooked Eggs',
@@ -225,6 +287,19 @@ class RecipeCase(TestCase):
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': []}], response.json)
 
     def test_put_create(self):
+        response = self.client.put(self.API_NODE, json={
+            'name': 'Cooked Eggs',
+            'notes': 'Cook for 4 and and a half for a liquid inside',
+            'ingredients': [{
+                'name': 'flour',
+                'num': 2,
+                'denom': 3,
+                'unit': 'g'
+        }]})
+        self.assert401(response)
+
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'name': 'Cooked Eggs',
             'notes': 'Cook for 4 and and a half for a liquid inside',
@@ -252,6 +327,8 @@ class RecipeCase(TestCase):
 
 
     def test_put_1(self):
+        self.login(self.user)
+
         response = self.client.put(self.API_NODE, json={
             'id': 1, 
             'name': 'Scrambled Eggs Edited', 
@@ -278,6 +355,8 @@ class RecipeCase(TestCase):
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 1).count(), 1)
 
     def test_put_2(self):
+        self.login(self.user)
+
         data = {
             'name': 'Cooked Eggs',
             'notes': 'Cook for 4 and and a half for a liquid inside',
@@ -328,12 +407,19 @@ class UserCase(TestCase):
     client: FlaskClient
 
     def test_get(self):
+        self.assert401(self.client.get(self.API_NODE))
+        self.login(self.user)
+        self.assert401(self.client.get(self.API_NODE))  # not admin
+        self.logout()
+        self.login(self.admin)
+
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
 
         self.assertEqual([
-            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'}
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'},
+            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin'}
         ], response.json)
 
     def test_create(self):
@@ -342,6 +428,13 @@ class UserCase(TestCase):
             'email': 'nein@weissnicht.de',
             'password': 'aaaaaaaaaaaa'
         }
+
+        self.assert401(self.client.post(self.API_NODE, json=data))
+        self.login(self.user)
+        self.assert401(self.client.post(self.API_NODE, json=data))  # not admin
+        self.logout()
+        self.login(self.admin)
+
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
@@ -350,13 +443,14 @@ class UserCase(TestCase):
         self.assert200(response)
         self.assertEqual([
             {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'},
-            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin'},
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
         ], response.json)
 
-        response = self.client.get(self.GET_API_NODE(2))
+        response = self.client.get(self.GET_API_NODE(3))
         self.assert200(response)
         self.assertEqual(
-            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
         , response.json)
 
     def test_delete(self):
@@ -365,20 +459,29 @@ class UserCase(TestCase):
             'email': 'nein@weissnicht.de',
             'password': 'aaaaaaaaaaaa'
         }
+
+        self.login(self.admin)
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
 
-        response = self.client.get(self.GET_API_NODE(2))
+        response = self.client.get(self.GET_API_NODE(3))
         self.assert200(response)
         self.assertEqual(
-            {'id': 2, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
         , response.json)
 
-        response = self.client.delete(self.GET_API_NODE(2))
+        self.logout()
+        self.assert401(self.client.delete(self.GET_API_NODE(3)))
+        self.login(self.user)
+        self.assert401(self.client.delete(self.GET_API_NODE(3)))  # not admin
+        self.logout()
+        self.login(self.admin)
+
+        response = self.client.delete(self.GET_API_NODE(3))
         self.assert204(response)
 
-        response = self.client.get(self.GET_API_NODE(2))
+        response = self.client.get(self.GET_API_NODE(3))
         self.assert404(response)
 
 

@@ -36,3 +36,24 @@
 .main {
     grid-area: main;
 }
+
+/* https://stackoverflow.com/questions/924916/is-there-a-way-to-make-a-div-unselectable */
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+/* Material-UI */
+
+.circular-progress {
+    align-self: center;
+    margin: auto;
+    width: 20vmin !important;
+    height: 20vmin !important;
+    color: var(--orange) !important;
+}

@@ -4,10 +4,16 @@ import { AuthError, fetchControlAPI, fullPath } from "./fetchAPI";
 import { useState } from "react";
 import { Ingredient, serialize_ingredient } from "./dataTypes";
 import { useNavigate } from "react-router";
+import { useSnackbar } from "../components/Snackbar";
 
 
 export function useRecipe(recipe) {
+    const dispatchMsg = useSnackbar();
     const nav = useNavigate();
+    const sendToLogin = () => {
+        dispatchMsg({type: 'error', text: 'Authentication Required'});
+        nav('/');
+    };
 
     recipe = {
         name: '',
@@ -159,7 +165,7 @@ export function useRecipe(recipe) {
             }
             catch (err) {
                 if (err instanceof AuthError) {
-                    nav('/?autherror');
+                    sendToLogin();
                     return null;
                 }
                 console.error('sendRecipe', err);
@@ -185,7 +191,7 @@ export function useRecipe(recipe) {
                 }
                 catch (err) {
                     if (err instanceof AuthError) {
-                        nav('/?autherror');
+                        sendToLogin();
                         return null;
                     }
                     console.error('deleteThis', err);
