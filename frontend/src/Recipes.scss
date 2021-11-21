@@ -10,19 +10,35 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-    }
+        z-index: 1;
 
-    .header h1 {
-        margin: 0.5em;
-        margin-left: 5%;
-    }
+        h1 {
+            margin: 0.5em;
+            margin-left: 5%;
+        }
 
-    .header button {
-        border: 0;
-        background-color: transparent;
-        font-size: var(--iconSize);
-        margin-right: 5%;
-        padding: 1%;
+        button {
+            border: 0;
+            background-color: transparent;
+            font-size: var(--iconSize);
+            margin-right: 5%;
+            padding: 1%;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            margin-right: 2rem;
+            width: 33%;
+            height: 100%;
+        }
+
+        .actions-buttons {
+            border-radius: 3rem;
+            height: 100%;
+        }
     }
 
     .bar {
@@ -31,16 +47,17 @@
         background-color: var(--black);
         display: flex;
         justify-content: space-around;
+
+        button {
+            background-color: var(--orange);
+            border: 0px;
+            border-radius: 0.7em;
+            font-size: x-large;
+            width: 15%;
+            padding: 1em;
+        }
     }
 
-    .bar button {
-        background-color: var(--orange);
-        border: 0px;
-        border-radius: 0.7em;
-        font-size: x-large;
-        width: 15%;
-        padding: 1em;
-    }
 
     .main {
         grid-area: main;
@@ -52,44 +69,75 @@
         /*font-size: 8px;*/
         text-transform: uppercase;
         padding-top: 20px !important;
+
+        h3, p {
+            font-size: inherit;
+            text-align: left;
+        }
+
+        .search-term {
+            width: 100%;
+            padding: 0;
+            margin-top: -20px;
+            margin-bottom: 20px;
+            text-transform: none;
+            font-size: x-large;
+            background-color: rgba(black, 0.1);
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+
+            > div {
+                margin: auto;
+                padding: 1rem;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+
+                span {
+                    display: block;
+                }
+                i {
+                    font-size: xx-large;
+                    display: block;
+                    color: black;
+                }
+            }
+        }
     }
+
 
     .editOrDel {
         border: 0;
         margin-bottom: 0 !important;
         padding: 1em;
-    }
 
-    .editOrDel i {
-        border: 0;
-        margin-bottom: 0 !important;
-        font-size: var(--iconSize);
-    }
-
-    .main h3, p {
-        font-size: inherit;
-        text-align: left;
+        i {
+            border: 0;
+            margin-bottom: 0 !important;
+            font-size: var(--iconSize);
+        }
     }
 
     .recipe {
         display: flex;
         flex-direction: column;
-    }
 
-    .recipe ol {
-        padding-left: 1.5em;
-        margin-top: 0em;
-        text-align: left;
-    }
+        ol {
+            padding-left: 1.5em;
+            margin-top: 0em;
+            text-align: left;
+        }
 
-    .recipe ul {
-        padding-left: 1.5em;
-        margin-top: 0em;
-        text-align: left;
-    }
+        ul {
+            padding-left: 1.5em;
+            margin-top: 0em;
+            text-align: left;
+        }
 
-    .recipe li {
-        margin-left: 0.5em;
+        li {
+            margin-left: 0.5em;
+        }
     }
 
     /* .recipe > div {
@@ -106,11 +154,11 @@
         border: 0;
         padding: auto;
         width: 10%;
-    }
 
-    .addLineEdit i {
-        margin: 0;
-        font-size: x-large;
+        i {
+            margin: 0;
+            font-size: x-large;
+        }
     }
 
     .sidebar {
@@ -119,12 +167,12 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-    }
 
-    .sidebar button {
-        background-color: var(--orange);
-        border: 0px;
-        font-size: x-large;
-        padding: 5px;
+        button {
+            background-color: var(--orange);
+            border: 0px;
+            font-size: x-large;
+            padding: 5px;
+        }
     }
 }
