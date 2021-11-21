@@ -1,5 +1,6 @@
 from fractions import Fraction
 from typing import Optional
+from flask import request
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
@@ -100,6 +101,9 @@ class RecipeResource(Resource):
             handle_nonexistance(recipe)
             return jsonify(recipe.toJson())
         else:
+            search = request.args.get('search', type=str)
+            if search:
+                q = q.filter(Recipe.name.ilike(f'%{search}%'))
             # current_app.logger.debug('Getting all recipes')
             return jsonify([recipe.toJson() for recipe in q.filter(Recipe.deleted == False).all()])
 

@@ -4,12 +4,17 @@ import './Theme.scss';
 import './root.css';
 import { useFetchAPI } from './util/fetchAPI';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
 import Button from '@mui/material/Button';
 
 import { SearchPopup } from './components/Form';
+import { Slide } from '@mui/material';
+import { TransitionGroup } from 'react-transition-group';
+import Collapse from '@mui/material/Collapse';
+
+
 
 // import RecipeEditor from './components/RecipeEditor';
 
@@ -18,8 +23,9 @@ const updateRecipesTrigger = createTrigger();
 
 
 export default function Recipes() {
+    const [searchTerm, setSearchTerm] = useState('default');
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
-    const [ isLoading, recipesData, error ] = useFetchAPI('recipe', [updateRecipesTriggerValue]);
+    const [ isLoading, recipesData, error ] = useFetchAPI(searchTerm ? `recipe?search=${encodeURIComponent(searchTerm)}` : 'recipe', [updateRecipesTriggerValue]);
 
     const [recipes, setRecipes] = useState([]);
 
@@ -30,6 +36,11 @@ export default function Recipes() {
         }
     }, [recipesData]);
 
+    useEffect(() => {
+        // somehow sticking this into useFetchAPI's dependencies doesn't work
+        updateRecipesTrigger();
+    }, [searchTerm])
+
     function addRecipe() {
         const newRecipe = {
             name: '',
@@ -39,15 +50,13 @@ export default function Recipes() {
         setRecipes((prevRecipes) => [...prevRecipes, newRecipe])
     }
 
-    console.log(recipes, isLoading);
-
     const [showSearch, setShowSearch] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('default');
 
+    const ref = useRef(null);
 
     return (
         <div className="frame recipes-main">
-            <div className="header">
+            <div className="header" ref={ref}>
                 <h1>
                     Recipe Book
                 </h1>
@@ -67,30 +76,36 @@ export default function Recipes() {
             </div> */}
             
             <div className="main" id="content">
-                {searchTerm ?
-
-                    <div className="search-term">
-                        <div>
-                            <span>
-                                <Button className="actions-buttons" onClick={() => setShowSearch(true)}>
-                                    <i className="fas fa-search" style={{color: 'black'}}></i>
-                                </Button>{searchTerm}
-                            </span>
-                            <Button onClick={() => setSearchTerm('')}>
-                                <i class="fas fa-times"></i>
-                            </Button>
+                <TransitionGroup>
+                    {searchTerm ? 
+                    <Slide direction="down" container={ref.current}>
+                        <div className="search-term">
+                            <div>
+                                <span>
+                                    <Button className="actions-buttons" onClick={() => setShowSearch(true)}>
+                                        <i className="fas fa-search" style={{color: 'black'}}></i>
+                                    </Button>{searchTerm}
+                                </span>
+                                <Button onClick={() => setSearchTerm('')}>
+                                    <i className="fas fa-times"></i>
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                : null}
+                    </Slide>
+                    : null }
+                </TransitionGroup>
                 {isLoading ? 
                     <CircularProgress className="circular-progress"/>
                 : 
-                    recipes.map((recipe, i) => 
-                        <RecipeEntry 
-                            key={(recipe.id) ? `id=${recipe.id}` : `idx=${i}`} 
-                            recipe={recipe} 
-                            updateRecipesTrigger={updateRecipesTrigger}
-                            />)
+                <TransitionGroup>
+                    {recipes.map((recipe, i) => 
+                        <Collapse key={(recipe.id) ? `id=${recipe.id}` : `idx=${i}`} >
+                            <RecipeEntry 
+                                recipe={recipe} 
+                                updateRecipesTrigger={updateRecipesTrigger}
+                                />
+                        </Collapse>)}
+                </TransitionGroup>
                 }
             </div>
             <SearchPopup 

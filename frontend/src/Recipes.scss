@@ -10,6 +10,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        z-index: 1;
 
         h1 {
             margin: 0.5em;
@@ -78,7 +79,7 @@
             width: 100%;
             padding: 0;
             margin-top: -20px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-transform: none;
             font-size: x-large;
             background-color: rgba(black, 0.1);

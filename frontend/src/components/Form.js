@@ -46,7 +46,6 @@ export function SearchPopup(props) {
                 id="search-term"
                 label="Search Term"
                 fullWidth
-                autoComplete={false}
                 variant="outlined"
                 value={state}
                 onChange={handleChange}
