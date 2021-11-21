@@ -74,7 +74,8 @@ class UserResource(Resource):
 
     @require_admin
     def get(self, user_id: Optional[int] = None):
-        #sleep(20)  # simulate slow internet 
+        #from time import sleep
+        #sleep(60)  # simulate slow internet 
         if user_id:
             user = db.session.query(User).get(user_id)
             handle_nonexistance(user)

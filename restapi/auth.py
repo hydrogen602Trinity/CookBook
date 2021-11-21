@@ -29,16 +29,16 @@ class LoginResource(Resource):
 
         user = db.session.query(User).filter(User.email == data['email']).first()
         if not user or not check_password_hash(user.password, data['password']):
-            return '', 404
+            return 'Username or password invalid', 404
         
         login_user(user)
         #print('login!', current_user.name)
-        return '', 201
+        return user.name, 201
     
     def delete(self):
         # logout cause why not
         if current_user.is_authenticated:
             logout_user()
 
-        return '', 201
+        return 'Successfully logged out', 201
 

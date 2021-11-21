@@ -1,12 +1,9 @@
 import { fetchControlAPI, makeAuthErrorHandler, useFetchAPI } from './util/fetchAPI';
-import { useEffect, useState, createRef, forwardRef } from 'react';
+import { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
-import Snackbar from '@material-ui/core/Snackbar';
 import createTrigger from "react-use-trigger";
 import useTrigger from "react-use-trigger/useTrigger";
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MuiAlert from '@material-ui/lab/Alert';
-import Grow from '@material-ui/core/Grow';
 import { DataGrid } from '@mui/x-data-grid';
 
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,17 +17,11 @@ import './Users.scss';
 import { isInteger } from './util/util';
 import { NewUser } from './components/Form';
 import { useNavigate } from 'react-router';
+import { useSnackbar } from './components/Snackbar';
+// import { useSnackbar } from './components/Snackbar';
 
 
 const updateUsersTrigger = createTrigger();
-
-const Alert = forwardRef((props, ref) => {
-    return <MuiAlert ref={ref} elevation={6} variant="filled" {...props} />;
-});
-
-const GrowTransition = forwardRef((props, ref) => {
-    return <Grow ref={ref} {...props} />;
-});
 
 const columns = [
     { field: 'id', headerName: 'ID', flex: 90 },
@@ -54,9 +45,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 
 function Users() {
-    const snackbarRef = createRef(null);
+    const dispatchMsg = useSnackbar();
     const nav = useNavigate();
-    const sendToLogin = () => nav('/?autherror');
+    const sendToLogin = () => {
+        dispatchMsg({type: 'error', text: 'Authentication Required'});
+        nav('/');
+    };
 
 
     const modifyUser = makeAuthErrorHandler(async (data) => {
@@ -83,15 +77,15 @@ function Users() {
         return result;
     }, sendToLogin);
 
-
-    const [state, setState] = useState({
-        snackbar: null
-    });
-
     const updateUsersTriggerValue = useTrigger(updateUsersTrigger);
     const [ isLoading, userData, error ] = useFetchAPI('user', [updateUsersTriggerValue]);
 
-    useEffect(() => setState({snackbar: (error ? 'Failed to load recipes' : null)}), [error]);
+    // useEffect(() => {
+    //     if (error) {
+    //         dispatchMsg({type: 'error', text: 'Failed to load users'});
+    //     }
+    //     // eslint-disable-next-line
+    // }, [error]);
 
     const [users, setUsers] = useState([]);
 
@@ -105,20 +99,13 @@ function Users() {
         }
     }, [userData]);
 
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setState({snackbar: null});
-    };
-
     const [search, setSearch] = useState('');
 
     return (
     <div className="users frame-footer">
         <div className="main" id="content">
         {isLoading ? 
-            <CircularProgress className="recipe-circular-progress center"/>
+            <div className="center"><CircularProgress className="circular-progress"/></div>
         : 
             <div>
                 <NewUser 
@@ -171,16 +158,6 @@ function Users() {
             </div>
         }
         </div>
-        <Snackbar 
-            ref={snackbarRef} 
-            open={Boolean(state.snackbar)} 
-            autoHideDuration={12000} 
-            TransitionComponent={GrowTransition}
-            onClose={handleClose}>
-            <Alert onClose={handleClose} severity="error">
-            {state.snackbar}
-            </Alert>
-        </Snackbar>
     </div>
     );
 }

@@ -92,7 +92,8 @@ class RecipeResource(Resource):
     @require_auth
     def get(self, recipe_id: Optional[int] = None):
         q = db.session.query(Recipe).filter(Recipe.user_id == current_user.id)
-        # sleep(20)  # simulate slow internet 
+        # from time import sleep
+        # sleep(60)  # simulate slow internet 
         if recipe_id:
             recipe = q.filter(Recipe.id == recipe_id).one_or_none()
             handle_nonexistance(recipe)

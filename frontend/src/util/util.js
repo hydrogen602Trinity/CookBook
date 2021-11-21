@@ -22,3 +22,14 @@ export function isInteger(n) {
     const numBackToStr = parseInt(n) + '';
     return numBackToStr !== 'NaN' && numBackToStr === n + '';
 }
+
+export function cleanQuotes(str) {
+    let s = str.trim();
+    if (s[0] === '"' || s[0] === "'") {
+        s = s.substring(1);
+    }
+    if (s[s.length-1] === '"' || s[s.length-1] === "'") {
+        s = s.substring(0,s.length-1);
+    }
+    return s;
+}

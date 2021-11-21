@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import useFetch from "react-fetch-hook";
 import { useNavigate } from "react-router";
+import { useSnackbar } from "../components/Snackbar";
 
 export function fullPath(path) {
     return 'http://' + process.env.REACT_APP_API + '/' + path;
@@ -35,6 +36,7 @@ export function makeAuthErrorHandler(asyncFunc, onFailure) {
 
 
 export function useFetchAPI(path, dependsArray = null) {
+    const dispatchMsg = useSnackbar();
     const nav = useNavigate();
     const args = {
         credentials: 'include',
@@ -49,7 +51,11 @@ export function useFetchAPI(path, dependsArray = null) {
     useEffect(() => {
         if (error) { 
             if (error.status === 401) {
-                nav('/?autherror');
+                dispatchMsg({type: 'error', text: 'Authentication Required'});
+                nav('/');
+            }
+            else {
+                dispatchMsg({type: 'error', text: error.message})
             }
             // eslint-disable-next-line
         }}, [error]);
@@ -93,6 +99,23 @@ export async function fetchControlAPI(path, method, data, json = true) {
     }
     console.log(response);
     return json ? response.json() : response.text();
+}
+
+export async function fetchControlAPI2(path, method, data) {
+    if (method !== 'GET' && method !== 'POST' && method !== 'PUT' && method !== 'DELETE') {
+        throw new Error('Unknown HTTP Method');
+    }
+    return await fetch(fullPath(path), {
+        method: method, // *GET, POST, PUT, DELETE, etc.
+        // mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+    });
 }
 
 // export function useAPIState(path, onFailure = null) {
