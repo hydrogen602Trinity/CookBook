@@ -28,7 +28,7 @@ def setup_database(app: Flask):
         # db.session.add(note)
         # db.session.commit()
 
-        user1 = User('Max Mustermann', 'max.mustermann@t-online.de', 'max2021')
+        user1 = User('Max Mustermann', 'max.mustermann@t-online.de', 'postgres')
         db.session.add(user1)
         db.session.commit()
 

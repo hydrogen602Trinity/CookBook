@@ -32,7 +32,8 @@ function Index() {
         </li>
       </ul>
       </nav>
-      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'})}>Login</button>
+      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'})}>Login Admin</button>
+      <button onClick={() => login.doLogin({email: 'max.mustermann@t-online.de', password: 'postgres'})}>Login Default</button>
       <button onClick={login.doLogout}>Logout</button>
   </div>);
 }
