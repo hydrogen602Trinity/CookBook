@@ -1,5 +1,11 @@
 name: Unit testing
-on: push
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   # Label of the runner job
