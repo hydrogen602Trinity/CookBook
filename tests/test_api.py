@@ -137,14 +137,15 @@ class RecipeCase(TestCase):
 
         self.assert200(response)
         self.assertEqual([
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None},
             {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
                 'name': 'eggs',
                 'id': 1,
                 'num': 2,
                 'denom': 1,
                 'unit': None
-            }], 'rating': None}], response.json)
+            }], 'rating': None},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}
+            ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
 
@@ -183,14 +184,15 @@ class RecipeCase(TestCase):
 
         self.assert200(response)
         self.assertEqual([
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None},
             {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside', 'ingredients': [{
                 'name': 'flour',
                 'id': 1,
                 'num': 1,
                 'denom': 1,
                 'unit': 'g'
-            }], 'rating': 3}], response.json)
+            }], 'rating': 3},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}
+            ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
 
@@ -337,7 +339,6 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
         self.assert200(response)
         self.assertEqual([
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None},
             {'id': 2, 'name': 'Cooked Eggs', 'notes': 'Cook for 4 and and a half for a liquid inside',
             'ingredients': [{
                 'id': 1,
@@ -345,7 +346,8 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 3,
                 'unit': 'g'
-        }], 'rating': 1}
+            }], 'rating': 1},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None},
         ], response.json)
 
 
