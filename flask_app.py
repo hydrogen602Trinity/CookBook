@@ -92,7 +92,7 @@ def setup_database(app: Flask):
         # Notes = 3
         # Course Type = 4
         # Prep Time = 5
-        # Ingredients = 8 , in double quotes or alone if single ingredient
+        # Ingredients = 9 , in double quotes or alone if single ingredient
         with open('data_source/data_recipes.csv') as csvfile:
             line_count = 0
             csv_reader = csv.reader(csvfile, delimiter=',')
@@ -119,7 +119,11 @@ def setup_database(app: Flask):
                     prepTime = 60
                     if f"{row[5]}" != '':
                         prepTime = int(row[5])
-                    ingredients = [Ingredient('Butter', '1/4', 'cup')]
+                    ingredients_string = f"{row[9]}"
+                    ingredients_list = ingredients_string.split(",")
+                    ingredients = []
+                    for string in ingredients_list:
+                        ingredients.append(Ingredient(string, 1))
                     style = "N/A"
                     # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
                     newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
