@@ -84,45 +84,50 @@ def setup_database(app: Flask):
 
         #print(recipe.ingredients)
 
-        print('all:', Ingredient.query.all())
+        # print('all:', Ingredient.query.all())
 
-    # Name = 0
-    # Rating = 1
-    # Difficulty = 2 , Super Simple, Fairly Easy, Average, Hard, Very Difficult
-    # Notes = 3
-    # Course Type = 4
-    # Prep Time = 5
-    # Ingredients = 8 , in double quotes or alone if single ingredient
-    print("Hello")
-    with open(r'CookBook\data_source\data_recipes.csv') as csvfile:
-        print(" There \n")
-        reader = csv.DictReader(csvfile, delimiter=',', quotechar=' " ')
-        line_count = 0
-        for row in reader:
-            print(line_count)
-            if line_count > 0 and line_count < 30:
-                name = f"{row[0]}"
-                rating = len(f"{row[1]}")
-                diff_string = f"{row[2]}"
-                difficulty = 0
-                if diff_string == "Super Simple":
-                    difficulty = 1
-                elif diff_string == "Fairly Easy":
-                    difficulty = 2
-                elif diff_string == "Average":
-                    difficulty = 3
-                elif diff_string == "Hard":
-                    difficulty = 4
-                else:
-                    difficulty = 5
-                notes = f"{row[3]}"
-                courseType = f"{row[4]}"
-                prepTime = f"{row[5]}"
-                ingredients = []
-                style = "N/A"
-                newRecipe = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty)
-                db.session.add(newRecipe)
-                db.session.commit()
+        # Name = 0
+        # Rating = 1
+        # Difficulty = 2 , Super Simple, Fairly Easy, Average, Hard, Very Difficult
+        # Notes = 3
+        # Course Type = 4
+        # Prep Time = 5
+        # Ingredients = 8 , in double quotes or alone if single ingredient
+        with open('data_source/data_recipes.csv') as csvfile:
+            line_count = 0
+            csv_reader = csv.reader(csvfile, delimiter=',')
+            for row in csv_reader:
+                if line_count > 0:
+                    # print(line_count)
+                    line_count += 1
+                    name = f"{row[0]}"
+                    rating = len(f"{row[1]}")
+                    diff_string = f"{row[2]}"
+                    difficulty = 0
+                    if diff_string == "Super Simple":
+                        difficulty = 1
+                    elif diff_string == "Fairly Easy":
+                        difficulty = 2
+                    elif diff_string == "Average":
+                        difficulty = 3
+                    elif diff_string == "Hard":
+                        difficulty = 4
+                    else:
+                        difficulty = 5
+                    notes = f"{row[3]}"
+                    courseType = f"{row[4]}"
+                    prepTime = 60
+                    if f"{row[5]}" != '':
+                        prepTime = int(row[5])
+                    ingredients = [Ingredient('Butter', '1/4', 'cup')]
+                    style = "N/A"
+                    # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
+                    newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
+                    db.session.add(newThing)
+                    db.session.commit()
+                else: line_count += 1
+
+        print('all:', Recipe.query.all())
 
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
