@@ -1,7 +1,6 @@
 import { createRef, useLayoutEffect, useState } from "react";
 import Fraction from "fraction.js";
-import Collapse from '@material-ui/core/Collapse';
-import './RecipeEntry.scss'
+import './RecipeEntry.scss';
 
 import { IconButton } from "@material-ui/core";
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -11,6 +10,8 @@ import SaveIcon from '@material-ui/icons/Save';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import { convertFraToStr } from "../util/util";
 import { useRecipe } from "../util/dataState";
+import { Collapse } from "@mui/material";
+import RatingIcons from "./Rating";
 
 
 function RecipeEntry(props) {
@@ -172,6 +173,10 @@ function RecipeEntry(props) {
                                 <EditIcon className="recipe-icon" />
                             }
                         </IconButton>
+                    </div>
+
+                    <div className="recipe-extras">
+                        <RatingIcons value={recipe.rating} onChange={ev => recipe.rating = ev.target.value}/>
                     </div>
                 </div>
             </Collapse>

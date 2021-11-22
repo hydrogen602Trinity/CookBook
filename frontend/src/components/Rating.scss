@@ -1,0 +1,19 @@
+
+.rating {
+    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+
+
+    .rating-icon {
+        font-size: 3rem;
+    }
+
+    .rating-icon-outer {
+        justify-content: center;
+        align-items: center;
+    }
+}
