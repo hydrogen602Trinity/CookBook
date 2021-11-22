@@ -104,7 +104,7 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
         self.logout()
         self.login(self.admin)
@@ -143,8 +143,8 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 1,
                 'unit': None
-            }], 'rating': None},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}
+            }], 'rating': None, 'prepTime': None},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}
             ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
@@ -157,7 +157,7 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 1,
                 'unit': None
-            }], 'rating': None}, response.json)
+            }], 'rating': None, 'prepTime': None}, response.json)
 
     def test_create2(self):
         data = {
@@ -169,7 +169,8 @@ class RecipeCase(TestCase):
                 'denom': 2,
                 'unit': 'g'
             }],
-            'rating': 3
+            'rating': 3,
+            'prepTime': 60
         }
 
         response = self.client.post(self.API_NODE, json=data)
@@ -190,8 +191,8 @@ class RecipeCase(TestCase):
                 'num': 1,
                 'denom': 1,
                 'unit': 'g'
-            }], 'rating': 3},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}
+            }], 'rating': 3, 'prepTime': 60},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}
             ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
@@ -204,7 +205,7 @@ class RecipeCase(TestCase):
                 'num': 1,
                 'denom': 1,
                 'unit': 'g'
-            }], 'rating': 3}, response.json)
+            }], 'rating': 3, 'prepTime': 60}, response.json)
 
     def test_create_invalid(self):
         invalid_data = [
@@ -241,6 +242,16 @@ class RecipeCase(TestCase):
                     'denom': 1
                 }],
                 'rating': 0
+            },
+            {
+                'name': 'Cooked Eggs',
+                'notes': 'Cook for 4 and and a half for a liquid inside',
+                'ingredients': [{
+                    'name': 'eggs',
+                    'num': 2,
+                    'denom': 1
+                }],
+                'prepTime': -10
             }
         ]
 
@@ -254,7 +265,7 @@ class RecipeCase(TestCase):
             response = self.client.get(self.API_NODE)
 
             self.assert200(response)
-            self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+            self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_delete(self):
         self.login(self.user)
@@ -262,7 +273,7 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
         self.logout()
         self.assert401(self.client.delete(self.GET_API_NODE(1)))
@@ -288,7 +299,7 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_no_exist(self):
         self.login(self.user)
@@ -307,7 +318,7 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_create(self):
         response = self.client.put(self.API_NODE, json={
@@ -332,7 +343,8 @@ class RecipeCase(TestCase):
                 'denom': 3,
                 'unit': 'g'
             }],
-            'rating': 1
+            'rating': 1,
+            'prepTime': 90
         })
         self.assert201(response)
 
@@ -346,8 +358,8 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 3,
                 'unit': 'g'
-            }], 'rating': 1},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None},
+            }], 'rating': 1, 'prepTime': 90},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None},
         ], response.json)
 
 
@@ -362,7 +374,7 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs Edited', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs Edited', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_2(self):
         self.login(self.user)
@@ -411,7 +423,8 @@ class RecipeCase(TestCase):
                 'denom': 1,
                 'unit': 'g'
             }],
-            'rating': 4
+            'rating': 4, 
+            'prepTime': None
         }, response.json)
 
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)

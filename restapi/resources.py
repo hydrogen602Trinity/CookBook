@@ -31,6 +31,13 @@ def custom_range_int(s: str) -> int:
     return n
 
 
+def positive_int(s: str) -> int:
+    n = int(s)
+    if n < 0:
+        raise TypeError(f'Int must be positive or 0, got {n}')
+    return n
+
+
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
 class RecipeResource(Resource):
 
@@ -41,6 +48,7 @@ class RecipeResource(Resource):
     recipe_parser.add_argument('recipe_tagList', location='json', type=list)
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
     recipe_parser.add_argument('rating', type=custom_range_int, help='Rating from 1 to 5', default=None)
+    recipe_parser.add_argument('prepTime', type=positive_int, help='Prep time in min', default=None)
 
     updated_recipe_parser = recipe_parser.copy()
     updated_recipe_parser.add_argument('id', type=int, default=None, help="Recipe ID")
@@ -55,7 +63,7 @@ class RecipeResource(Resource):
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
         data = require_truthy_values(self.recipe_parser.parse_args(), 
-                                     exceptions=('ingredients', 'recipe_tagList', 'rating'))
+                                     exceptions=('ingredients', 'recipe_tagList', 'rating', 'prepTime'))
 
         ingredients = []
         for ingredient in data['ingredients']:
@@ -66,7 +74,9 @@ class RecipeResource(Resource):
                                           ingredient.get('unit') or None))
 
 
-        newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user, rating=data['rating'])
+        newRecipe = Recipe(data['name'], data['notes'], ingredients, 
+                           current_user, rating=data['rating'], 
+                           prepTime=data['prepTime'])
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
@@ -86,9 +96,11 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            data = require_truthy_values(data, exceptions=('ingredients', 'id', 'recipe_tagList', 'rating'))
+            data = require_truthy_values(data, exceptions=('ingredients', 'id', 'recipe_tagList', 'rating', 'prepTime'))
 
-            newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user, rating=data['rating'])
+            newRecipe = Recipe(data['name'], data['notes'], ingredients, 
+                               current_user, rating=data['rating'],
+                               prepTime=data['prepTime'])
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201
@@ -100,6 +112,7 @@ class RecipeResource(Resource):
             if data['notes']: recipe.notes = data['notes']
             if data['ingredients'] is not None: recipe.ingredients = ingredients
             if data['rating']: recipe.rating = data['rating']
+            if data['prepTime']: recipe.prepTime = data['prepTime']
             db.session.commit()
             return f'{recipe.id}', 200
         else:

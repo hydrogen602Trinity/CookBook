@@ -81,7 +81,8 @@ class Recipe(db.Model):
             'name': self.name,
             'notes': self.notes,
             'ingredients': [i.toJson() for i in self.ingredients],
-            'rating': self.rating
+            'rating': self.rating,
+            'prepTime': self.prepTime
         }
     
     def declareTags(self, t: List[Tag]) -> None:
