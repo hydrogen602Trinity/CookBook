@@ -8,7 +8,7 @@ from flask_login import current_user
 from datetime import date
 from werkzeug.security import generate_password_hash
 
-from models import Ingredient, Recipe, db, User, Meal
+from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
@@ -23,14 +23,32 @@ api_blueprint = Blueprint(
 api = Api(api_blueprint)
 
 
+def custom_range_int(s: str) -> int:
+    n = int(s)
+    # n has to be in 1, 2, 3, 4, 5
+    if n < 1 or n >= 6:
+        raise TypeError(f'Int out of range(1,6), got {n}')
+    return n
+
+
+def positive_int(s: str) -> int:
+    n = int(s)
+    if n < 0:
+        raise TypeError(f'Int must be positive or 0, got {n}')
+    return n
+
+
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
 class RecipeResource(Resource):
 
     recipe_parser = reqparse.RequestParser()
     recipe_parser.add_argument('name', type=str, help='Recipe name')
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
-    recipe_parser.add_argument('ingredients', default=[], location='json', type=list)
-    recipe_parser.add_argument('recipe_tagList', default=[], location='json', type=list)
+    recipe_parser.add_argument('ingredients', location='json', type=list)
+    recipe_parser.add_argument('recipe_tagList', location='json', type=list)
+    recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
+    recipe_parser.add_argument('rating', type=custom_range_int, help='Rating from 1 to 5', default=None)
+    recipe_parser.add_argument('prepTime', type=positive_int, help='Prep time in min', default=None)
 
     updated_recipe_parser = recipe_parser.copy()
     updated_recipe_parser.add_argument('id', type=int, default=None, help="Recipe ID")
@@ -44,7 +62,8 @@ class RecipeResource(Resource):
     @require_auth
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
-        data = require_truthy_values(self.recipe_parser.parse_args(), exceptions=('ingredients', 'recipe_tagList'))
+        data = require_truthy_values(self.recipe_parser.parse_args(), 
+                                     exceptions=('ingredients', 'recipe_tagList', 'rating', 'prepTime'))
 
         ingredients = []
         for ingredient in data['ingredients']:
@@ -55,7 +74,9 @@ class RecipeResource(Resource):
                                           ingredient.get('unit') or None))
 
 
-        newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user)
+        newRecipe = Recipe(data['name'], data['notes'], ingredients, 
+                           current_user, rating=data['rating'], 
+                           prepTime=data['prepTime'])
         db.session.add(newRecipe)
         db.session.commit()
         return '', 201
@@ -63,10 +84,10 @@ class RecipeResource(Resource):
     @require_auth
     @optional_param_check(False, 'recipe_id')
     def put(self, _=None):
-        data = require_truthy_values(self.updated_recipe_parser.parse_args(), exceptions=('ingredients', 'id', 'recipe_tagList'))
+        data = self.updated_recipe_parser.parse_args()
 
         ingredients = []
-        for ingredient in data['ingredients']:
+        for ingredient in data['ingredients'] or []:
             ingredient = require_keys_with_set_types(self.ingredient_requirements, ingredient)
             ingredients.append(Ingredient(ingredient['name'], 
                                             Fraction(ingredient['num'], 
@@ -75,7 +96,11 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            newRecipe = Recipe(data['name'], data['notes'], ingredients, current_user)
+            data = require_truthy_values(data, exceptions=('ingredients', 'id', 'recipe_tagList', 'rating', 'prepTime'))
+
+            newRecipe = Recipe(data['name'], data['notes'], ingredients, 
+                               current_user, rating=data['rating'],
+                               prepTime=data['prepTime'])
             db.session.add(newRecipe)
             db.session.commit()
             return f'{newRecipe.id}', 201
@@ -83,9 +108,11 @@ class RecipeResource(Resource):
         recipe: Optional[Recipe] = db.session.query(Recipe).filter(Recipe.user_id == current_user.id, Recipe.id == data['id']).one_or_none()
 
         if recipe:
-            recipe.name = data['name']
-            recipe.notes = data['notes']
-            recipe.ingredients = ingredients
+            if data['name']: recipe.name = data['name']
+            if data['notes']: recipe.notes = data['notes']
+            if data['ingredients'] is not None: recipe.ingredients = ingredients
+            if data['rating']: recipe.rating = data['rating']
+            if data['prepTime']: recipe.prepTime = data['prepTime']
             db.session.commit()
             return f'{recipe.id}', 200
         else:
@@ -93,7 +120,7 @@ class RecipeResource(Resource):
 
     @require_auth
     def get(self, recipe_id: Optional[int] = None):
-        q = db.session.query(Recipe).filter(Recipe.user_id == current_user.id)
+        q = db.session.query(Recipe).filter(Recipe.user_id == current_user.id).order_by(Recipe.name)
         # from time import sleep
         # sleep(60)  # simulate slow internet 
         if recipe_id:

@@ -18,6 +18,8 @@ export function useRecipe(recipe) {
     recipe = {
         name: '',
         notes: '',
+        rating: null,
+        prepTime: null,
         ...recipe,
         ingredients: (recipe && recipe.ingredients) ? recipe.ingredients.map(i => new Ingredient(i)) : [],
     };
@@ -95,6 +97,26 @@ export function useRecipe(recipe) {
         };
     }
 
+    async function sendRating(rating) {
+        let data = {id: state.id, rating: rating}
+        let result = null;
+        try {
+            result = await fetchControlAPI('recipe', 'PUT', data);
+            if (!isInteger(result)) {
+                throw new Error('Expected PUT /recipe to return int, but got ' + result);
+            }
+        }
+        catch (err) {
+            if (err instanceof AuthError) {
+                sendToLogin();
+                return null;
+            }
+            console.error('sendRecipe', err);
+            setError(err + '');
+            throw err;
+        }
+    }
+
     const obj = {
         get id() {
             return state.id;
@@ -110,6 +132,21 @@ export function useRecipe(recipe) {
         },
         set notes(prop) {
             setState({notes: prop});
+        },
+        get rating() {
+            return state.rating;
+        },
+        set rating(prop) {
+            prop = parseInt(prop);
+            setState({rating: prop});
+            sendRating(prop);
+        },
+        get prepTime() {
+            return state.prepTime
+        },
+        set prepTime(prop) {
+            prop = (prop === null || prop === '') ? null : parseInt(prop);
+            setState({prepTime: prop});
         },
         get ingredients() {
             return proxy;

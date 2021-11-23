@@ -50,7 +50,7 @@ class Recipe(db.Model):
     style: str = db.Column(db.String(10), nullable=True)
     prepTime: int = db.Column(db.Integer, nullable=True)
     difficulty: int = db.Column(db.Integer, nullable=True)
-    rating: int = db.Column(db.Integer, nullable=True)
+    rating: int = db.Column(db.Integer, db.CheckConstraint('1 <= rating AND rating <= 5'), nullable=True)
     # utensils: List[String] = db.Column()    Need List
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
@@ -58,9 +58,10 @@ class Recipe(db.Model):
     recipe_Tags: List[Tag] = db.relationship('Tag', secondary=recipeTags, back_populates="assocRecipes")
     meals: List[Meal] = db.relationship('Meal', backref='recipe', cascade='all, delete, delete-orphan', passive_deletes=True)
 
-    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User, courseType: Optional[str] = None, 
-                    style: Optional[str] = None, prepTime: Optional[int] = None, difficulty: Optional[int] = None,
-                    rating: Optional[int] = None) -> None:
+    def __init__(self, name: str, notes: str, ingredients: List[Ingredient], user: User, 
+                 courseType: Optional[str] = None, style: Optional[str] = None, 
+                 prepTime: Optional[int] = None, difficulty: Optional[int] = None, 
+                 rating: Optional[int] = None) -> None:
         self.name = name
         self.user_id = user.id
         self.notes = notes
@@ -79,7 +80,9 @@ class Recipe(db.Model):
             'id': self.id,
             'name': self.name,
             'notes': self.notes,
-            'ingredients': [i.toJson() for i in self.ingredients]
+            'ingredients': [i.toJson() for i in self.ingredients],
+            'rating': self.rating,
+            'prepTime': self.prepTime
         }
     
     def declareTags(self, t: List[Tag]) -> None:

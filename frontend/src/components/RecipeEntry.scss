@@ -120,4 +120,39 @@
     select {
         -webkit-appearance: none;
     }
+
+    .recipe-extra {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-evenly;     
+    }
+
+    .recipe-prepTime {
+        width: 100%;
+        // border: 1px solid red;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2em;
+
+        .value {
+            width: 3ex;
+            display: inline-block;
+            text-align: right;
+            font-size: inherit;
+            
+            select {
+                padding: 0;
+                text-align: right;
+                font-size: 1em;
+            }
+        }
+
+        span.value {
+            width: 2.5ex;
+        }
+    }
 }

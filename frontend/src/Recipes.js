@@ -23,7 +23,7 @@ const updateRecipesTrigger = createTrigger();
 
 
 export default function Recipes() {
-    const [searchTerm, setSearchTerm] = useState('default');
+    const [searchTerm, setSearchTerm] = useState('');
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
     const [ isLoading, recipesData, error ] = useFetchAPI(searchTerm ? `recipe?search=${encodeURIComponent(searchTerm)}` : 'recipe', [updateRecipesTriggerValue]);
 
