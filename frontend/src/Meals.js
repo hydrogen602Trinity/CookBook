@@ -9,26 +9,50 @@ import Collapse from '@mui/material/Collapse';
 import { Button, CircularProgress } from '@material-ui/core';
 import { TransitionGroup } from 'react-transition-group';
 import './Meals.scss';
+import useTrigger from 'react-use-trigger/useTrigger';
+import createTrigger from 'react-use-trigger';
+import { useFetchAPI } from './util/fetchAPI';
+import { useMemo } from 'react';
 
 function TimelineItemWrap(props) {
     return (
     <TimelineItem>
         <TimelineSeparator>
             <TimelineDot color="primary" variant={props.variant ? props.variant : 'filled'}/>
-            <TimelineConnector />
+            { props.last ? null : <TimelineConnector />}
         </TimelineSeparator>
         <TimelineContent>{props.children}</TimelineContent>
     </TimelineItem>
     )
 }
 
+const updateMealsTrigger = createTrigger();
+
+
+function convertDate(s) {
+    const tmp = new Date(s).toGMTString();
+    return tmp.substring(0, tmp.length-13);
+}
+
+
+function breakUpByDate(meals) {
+    if (!meals) { return {} };
+    const out = {};
+    for (let meal of meals) {
+        if (!(meal.day in out)) {
+            out[meal.day] = [];
+        }
+        out[meal.day].push(meal);
+    }
+    return out;
+}
+
 
 export default function Meals() {
-    const isLoading = false;
-    const meals = [
-        {id: 0, day: '2021-10-01'}, 
-        {id: 1, day: '2021-10-02'}, 
-        {id: 2, day: '2021-10-02'}];
+    const updateMealsTriggerValue = useTrigger(updateMealsTrigger);
+    const [ isLoading, mealsData, error ] = useFetchAPI('meal', [updateMealsTriggerValue]);
+
+    const groupedMeals = useMemo(() => breakUpByDate(mealsData), [mealsData]);
 
     return (
     <div className="frame meal-main">
@@ -55,20 +79,24 @@ export default function Meals() {
             {isLoading ? 
                 <CircularProgress className="circular-progress"/>
             : 
-            <div className="container">
-            <Timeline>
-            <TransitionGroup>
-                <Collapse key={'date'} >
-                    <TimelineItemWrap variant="outlined">{'2021-10-02'}</TimelineItemWrap>
-                </Collapse>
-                {meals.map((meal, i) => 
-                    <Collapse key={meal.id} >
-                        <TimelineItemWrap>{JSON.stringify(meal)}</TimelineItemWrap>
-                    </Collapse>)}
-            </TransitionGroup>
-            </Timeline>
-            </div>
-            }
+            Object.entries(groupedMeals).map(([date, meals]) =>
+                <div className="container" key={date}>
+                <Timeline>
+                <TransitionGroup>
+                    <Collapse key={date}>
+                        <TimelineItemWrap variant="outlined">{convertDate('2021-10-02')}</TimelineItemWrap>
+                    </Collapse>
+                    {meals.map((meal, i) => 
+                        <Collapse key={meal.id} >
+                            <TimelineItemWrap last={i + 1 === meals.length}>
+                                <p>{meal.label}</p>
+                                <p>{meal.recipe_name}</p>
+                            </TimelineItemWrap>
+                        </Collapse>)}
+                </TransitionGroup>
+                </Timeline>
+                </div>
+            )}
         </div>
     </div>
     )

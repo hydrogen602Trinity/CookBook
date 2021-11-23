@@ -519,7 +519,17 @@ class MealCase(TestCase):
 
     def test_get(self):
         response = self.client.get(self.API_NODE)
+        self.assert401(response)
 
+        self.login(self.admin)
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+
+        self.assertEqual([], response.json)
+        self.logout()
+
+        self.login(self.user)
+        response = self.client.get(self.API_NODE)
         self.assert200(response)
 
         self.assertEqual([{
@@ -527,48 +537,67 @@ class MealCase(TestCase):
             'label': 'meal 1', 
             'day': '2021-11-16', 
             'user_id': 1, 
-            'recipe_id': 1
+            'recipe_id': 1,
+            'recipe_name': 'Scrambled Eggs'
         }], response.json)
 
     def test_create(self):
         data = {
             'label': 'meal 1', 
             'day': '2020-01-01', 
-            'user_id': 1, 
             'recipe_id': 1
         }
+
+        response = self.client.post(self.API_NODE, json=data)
+        self.assert401(response)
+
+        self.login(self.admin)
+        d = data.copy()
+        d['label'] = 'admin'
+        response = self.client.post(self.API_NODE, json=d)
+        self.assert201(response)
+
+        self.logout()
+
+        self.login(self.user)
+
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
+
+        newID = int(response.get_data().decode().strip().replace('"',''))
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
         self.assertEqual([
             {
+                'id': newID,
+                'label': 'meal 1', 
+                'day': '2020-01-01', 
+                'user_id': 1, 
+                'recipe_id': 1,
+                'recipe_name': 'Scrambled Eggs'
+            },
+            {
                 'id': 1, 
                 'label': 'meal 1', 
                 'day': '2021-11-16', 
                 'user_id': 1, 
-                'recipe_id': 1
-            },
-            {
-                'id': 2,
-                'label': 'meal 1', 
-                'day': '2020-01-01', 
-                'user_id': 1, 
-                'recipe_id': 1
+                'recipe_id': 1,
+                'recipe_name': 'Scrambled Eggs'
             }
         ], response.json)
 
-        response = self.client.get(self.GET_API_NODE(2))
+        response = self.client.get(self.GET_API_NODE(newID))
         self.assert200(response)
         self.assertEqual(
             {
-                'id': 2,
+                'id': newID,
                 'label': 'meal 1', 
                 'day': '2020-01-01', 
                 'user_id': 1, 
-                'recipe_id': 1
+                'recipe_id': 1,
+                'recipe_name': 'Scrambled Eggs'
             }
         , response.json)
 
@@ -579,6 +608,17 @@ class MealCase(TestCase):
             'user_id': 1, 
             'recipe_id': 1
         }
+
+        response = self.client.delete(self.GET_API_NODE(2))
+        self.assert401(response)
+
+        self.login(self.admin)
+        response = self.client.delete(self.GET_API_NODE(2))
+        self.assert404(response)
+        self.logout()
+
+        self.login(self.user)
+
         response = self.client.post(self.API_NODE, json=data)
 
         self.assert201(response)
@@ -590,7 +630,8 @@ class MealCase(TestCase):
                 'label': 'meal 10', 
                 'day': '2020-09-30', 
                 'user_id': 1, 
-                'recipe_id': 1
+                'recipe_id': 1,
+                'recipe_name': 'Scrambled Eggs'
             }, response.json)
 
         response = self.client.delete(self.GET_API_NODE(2))

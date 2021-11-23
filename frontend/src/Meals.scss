@@ -77,22 +77,43 @@
 
         .container {
             background-color: var(--beige);
-        }
-
-        .MuiTimelineDot-filledPrimary {
-            background-color: black;
-        }
-
-        .MuiTimelineDot-outlinedPrimary {
-            border-color: black;
+            margin-bottom: 20px;
+            border: 0px;
         }
 
         .MuiTimeline-root {
             align-items: flex-start;
+            
+            > div {
+                width: 100%;
+
+                .MuiTimelineDot-filledPrimary {
+                    background-color: black;
+                }
+        
+                .MuiTimelineDot-outlinedPrimary {
+                    border-color: black;
+                }
+            }
         }
 
-        .MuiTimelineItem-root:before {
-            content: none;
+        .MuiTimelineItem-root {
+            padding-left: 1ex;
+
+            &:before {
+                content: none;
+            }
+        }
+
+        .MuiTimelineContent-root {
+            width: 100%;
+            overflow-wrap: anywhere;
+            font-size: larger;
+            text-transform: capitalize;
+
+            p {
+                margin: 0px;
+            }
         }
 
         h3, p {

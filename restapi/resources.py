@@ -205,57 +205,66 @@ class MealResource(Resource):
     meal_parser = reqparse.RequestParser()
     meal_parser.add_argument('label', type=str, help='Breakfast, Lunch, Dinner, etc.')
     meal_parser.add_argument('day', type=date.fromisoformat, help='Date')
-    meal_parser.add_argument('user_id', type=int, help='Creator')
     meal_parser.add_argument('recipe_id', type=int, help='Recipe for the Meal')
 
     meal_parser_w_id = meal_parser.copy()
     meal_parser_w_id.add_argument('id', type=int, default=None, help="Meal ID")
 
+    @require_auth
     @optional_param_check(False, 'meal_id')
     def post(self, _=None):
         data = require_truthy_values(self.meal_parser.parse_args())
 
-        newMeal = Meal(data['label'], data['day'], data['user_id'], data['recipe_id'])
+        newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
         db.session.add(newMeal)
         db.session.commit()
-        return '', 201
+        return f'{newMeal.id}', 201
 
+    @require_auth
     @optional_param_check(False, 'meal_id')
     def put(self, _=None):
         data = require_truthy_values(self.meal_parser_w_id.parse_args(), exceptions=('id'))
 
         # Insert
         if data['id'] is None:
-            newMeal = Meal(data['label'], data['day'], data['user_id'], data['recipe_id'])
+            newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
             db.session.add(newMeal)
             db.session.commit()
             return f'{newMeal.id}', 201
 
-        meal: Optional[Meal] = db.session.query(Meal).get(data['id'])
+        q = db.session.query(Meal).filter(Meal.user_id == current_user.id)
+        meal: Optional[Meal] = q.filter(Meal.user_id == data['id']).one_or_none()
 
         # Update
         if meal:
             meal.label = data['label']
             meal.day = data['day']
-            meal.user_id = data['user_id']
+            meal.user_id = current_user.id
             meal.recipe_id = data['recipe_id']
             db.session.commit()
             return f'{meal.id}', 200
         else:
             return f'No object found with meal_id={data["id"]}', 404
 
+    @require_auth
     def get(self, meal_id: Optional[int] = None):
+        q = db.session.query(Meal).filter(Meal.user_id == current_user.id).order_by(Meal.day)
         # Search
         if meal_id:
-            meal = db.session.query(Meal).get(meal_id)
+            meal = q.filter(Meal.id == meal_id).one_or_none()
             handle_nonexistance(meal)
             return jsonify(meal.toJson())
         else:
-            return jsonify([meal.toJson() for meal in Meal.query.order_by(Meal.day).all()])
+            day = request.args.get('day', type=date.fromisoformat)
+            if day:
+                q = q.filter(Meal.day == day)
+            return jsonify([meal.toJson() for meal in q.all()])
 
+    @require_auth
     @optional_param_check(True, 'meal_id')
     def delete(self, meal_id: Optional[int] = None):
-        meal: Optional[Meal] = db.session.query(Meal).get(meal_id)
+        q = db.session.query(Meal).filter(Meal.user_id == current_user.id)
+        meal: Optional[Meal] = q.filter(Meal.id == meal_id).one_or_none()
         if meal:
             db.session.delete(meal)
             db.session.commit()

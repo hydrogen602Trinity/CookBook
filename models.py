@@ -48,7 +48,7 @@ class Recipe(db.Model):
     name: str = db.Column(db.String(128), nullable=False)
     courseType: str = db.Column(db.String(15), nullable=True)
     style: str = db.Column(db.String(10), nullable=True)
-    prepTime: int = db.Column(db.Integer, nullable=True)
+    prepTime: int = db.Column(db.Integer, db.CheckConstraint('0 <= "prepTime"'), nullable=True)
     difficulty: int = db.Column(db.Integer, nullable=True)
     rating: int = db.Column(db.Integer, db.CheckConstraint('1 <= rating AND rating <= 5'), nullable=True)
     # utensils: List[String] = db.Column()    Need List
@@ -210,11 +210,11 @@ class Meal(db.Model):
     label: str = db.Column(db.String(20))
     day: str = db.Column(db.Date)
 
-    def __init__(self, label: str, day: date, user_id: Optional[int] = None, recipe_id: Optional[int] = None) -> None:
+    def __init__(self, label: str, day: date, user: Union[User, int], recipe: Union[Recipe, int]) -> None:
         self.label = label
         self.day = day
-        self.user_id = user_id if user_id else None
-        self.recipe_id = recipe_id if recipe_id else None
+        self.user_id = user if isinstance(user, int) else user.id
+        self.recipe_id = recipe if isinstance(recipe, int) else recipe.id
 
     def __repr__(self) -> str:
         return f'Meal(id={self.id}, label={self.label}, day={self.day})'
@@ -225,5 +225,6 @@ class Meal(db.Model):
             'label': self.label,
             'day': self.day.isoformat(),
             'user_id': self.user_id,
-            'recipe_id': self.recipe_id
+            'recipe_id': self.recipe_id,
+            'recipe_name': self.recipe.name
         }
