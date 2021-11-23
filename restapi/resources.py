@@ -251,7 +251,7 @@ class MealResource(Resource):
             handle_nonexistance(meal)
             return jsonify(meal.toJson())
         else:
-            return jsonify([meal.toJson() for meal in Meal.query.all()])
+            return jsonify([meal.toJson() for meal in Meal.query.order_by(Meal.day).all()])
 
     @optional_param_check(True, 'meal_id')
     def delete(self, meal_id: Optional[int] = None):
