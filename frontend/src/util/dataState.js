@@ -1,7 +1,7 @@
 import useBetterState from "./classLikeState";
 import { convertFraToStr, isInteger } from "./util";
 import { AuthError, fetchControlAPI, fullPath } from "./fetchAPI";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Ingredient, serialize_ingredient } from "./dataTypes";
 import { useNavigate } from "react-router";
 import { useSnackbar } from "../components/Snackbar";
@@ -19,6 +19,7 @@ export function useRecipe(recipe) {
         name: '',
         notes: '',
         rating: null,
+        prepTime: null,
         ...recipe,
         ingredients: (recipe && recipe.ingredients) ? recipe.ingredients.map(i => new Ingredient(i)) : [],
     };
@@ -139,6 +140,13 @@ export function useRecipe(recipe) {
             prop = parseInt(prop);
             setState({rating: prop});
             sendRating(prop);
+        },
+        get prepTime() {
+            return state.prepTime
+        },
+        set prepTime(prop) {
+            prop = (prop === null || prop === '') ? null : parseInt(prop);
+            setState({prepTime: prop});
         },
         get ingredients() {
             return proxy;

@@ -12,6 +12,9 @@ import { convertFraToStr } from "../util/util";
 import { useRecipe } from "../util/dataState";
 import { Collapse } from "@mui/material";
 import RatingIcons from "./Rating";
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import NativeSelect from '@mui/material/NativeSelect';
+import InputBase from '@mui/material/InputBase';
 
 
 function RecipeEntry(props) {
@@ -102,6 +105,22 @@ function RecipeEntry(props) {
         
     }
 
+    const onChangePrepTimeHour = ev => {
+        const hours = parseInt(ev.target.value);
+        if (hours + '' !== 'NaN') { // cause NaN != NaN
+            const min = recipe.prepTime % 60;
+            recipe.prepTime = min + 60 * hours;
+        }
+    }
+
+    const onChangePrepTimeMin = ev => {
+        const min = parseInt(ev.target.value);
+        if (min + '' !== 'NaN') { // cause NaN != NaN
+            const hours = parseInt(recipe.prepTime / 60);
+            recipe.prepTime = min + 60 * hours;
+        }
+    }
+
     return (
         <div onClick={expand} is-expanded={isExpanded ? '' : undefined} className="recipe-entry">
             <div className="recipe-field">
@@ -142,6 +161,45 @@ function RecipeEntry(props) {
                         {recipe.notes}
                     </p>
                     }
+                    <div className="recipe-prepTime">
+                        <AccessTimeIcon />
+                        <div>
+                            {/* <input className="value" type="number" 
+                                    value={parseInt(recipe.prepTime / 60)}
+                                    onChange={onChangePrepTimeHour}
+                            /> */}
+                            { edit ?
+                                <NativeSelect value={parseInt(recipe.prepTime / 60)}
+                                    onChange={onChangePrepTimeHour}
+                                    className="value"
+                                    IconComponent={null}
+                                    input={<InputBase />}>
+                                    {[0, 1, 2, 3, 4, 5, 6].map(e => <option value={e} key={e}>{e}</option>)}
+                                </NativeSelect>
+                            : 
+                                <span className="value">{parseInt(recipe.prepTime / 60)}</span>
+                            }
+                            <span>h</span>
+                        </div>
+                        <div>
+                                                            {/* <input className="value" type="number" 
+                                       value={recipe.prepTime % 60}
+                                       onChange={onChangePrepTimeMin}
+                                /> */}
+                            { edit ?
+                                <NativeSelect value={recipe.prepTime % 60}
+                                    onChange={onChangePrepTimeMin}
+                                    className="value"
+                                    IconComponent={null}
+                                    input={<InputBase />}>
+                                    {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 55].map(e => <option value={e} key={e}>{e}</option>)}
+                                </NativeSelect>
+                            :
+                                <span className="value">{recipe.prepTime % 60}</span>
+                            }
+                            <span>m</span>
+                        </div>
+                    </div>
                     
                     <div className="recipe-menu">
                         <IconButton onClick={() => {
