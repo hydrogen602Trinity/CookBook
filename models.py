@@ -46,7 +46,7 @@ class Recipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     user: User
     name: str = db.Column(db.String(128), nullable=False)
-    courseType: str = db.Column(db.String(10), nullable=True)
+    courseType: str = db.Column(db.String(15), nullable=True)
     style: str = db.Column(db.String(10), nullable=True)
     prepTime: int = db.Column(db.Integer, nullable=True)
     difficulty: int = db.Column(db.Integer, nullable=True)
