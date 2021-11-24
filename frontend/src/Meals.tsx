@@ -17,9 +17,16 @@ import './Meals.scss';
 import useTrigger from 'react-use-trigger/useTrigger';
 import createTrigger from 'react-use-trigger';
 import { useFetchAPI } from './util/fetchAPI';
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { MutableRefObject, ReactNode, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
-function TimelineItemWrap(props) {
+
+interface TimeIProps {
+    variant?: "filled" | "outlined",
+    last?: boolean,
+    children: ReactNode
+}
+
+function TimelineItemWrap(props: TimeIProps) {
     return (
     <TimelineItem>
         <TimelineSeparator>
@@ -34,15 +41,18 @@ function TimelineItemWrap(props) {
 const updateMealsTrigger = createTrigger();
 
 
-function convertDate(s) {
-    const tmp = new Date(s).toGMTString();
+function convertDate(s: string): string {
+    const tmp = (new Date(s)).toUTCString();
     return tmp.substring(0, tmp.length-13);
 }
 
+interface IGroupedMeals {
+    [index: string]: IMeal[];
+}
 
-function breakUpByDate(meals) {
+function breakUpByDate(meals?: IMeal[]): IGroupedMeals | null {
     if (!meals) { return null };
-    const out = {};
+    const out: IGroupedMeals = {};
     for (let meal of meals) {
         if (!(meal.day in out)) {
             out[meal.day] = [];
@@ -53,13 +63,13 @@ function breakUpByDate(meals) {
 }
 
 
-function getClosestDay(grouped_meals) {
+function getClosestDay(grouped_meals?: IGroupedMeals): string | null {
     if (!grouped_meals) { return null; }
     const arr = Object.keys(grouped_meals);
     const now = Date.now();
 
-    let closest = null;
-    let dis = Infinity;
+    let closest: string | null = null;
+    let dis: number = Infinity;
     for (let day of arr) {
         let thisDis = Math.abs(Date.parse(day) - now);
         if (thisDis < dis) {
@@ -79,12 +89,35 @@ function getClosestDay(grouped_meals) {
     // }
 }
 
+interface IRecipeData {
+    [index: number]: string
+}
 
-function MealEntry(props) {
+interface IMeal {
+    id: number,
+    label: string,
+    recipe_id: number,
+    user_id: number,
+    day: string
+}
+
+interface IEntryProps {
+    recipesData: IRecipeData | null,
+    date: string,
+    closestDay: string | null,
+    closestDayRef: MutableRefObject<HTMLDivElement | null>,
+    meals: IMeal[],
+    dispatch: (a: IAction) => void
+}
+
+function MealEntry(props: IEntryProps) {
     const [edit, setEdit] = useState(false);
 
+    const recipesData: IRecipeData = (props.recipesData === null) ? 
+        (() => { throw new TypeError('Data not ready yet in MealEntry'); })() : props.recipesData;
+
     const meal_types = ['Breakfast', '2nd Breakfast', 'Brunch', 'Lunch', 'Dinner', 'Other'];
-    console.log(props.recipesData)
+    // console.log(props.recipesData)
     return (
     <div className="container" ref={props.date === props.closestDay ? props.closestDayRef : undefined}>
         <IconButton className="icon-button" onClick={() => {
@@ -112,7 +145,7 @@ function MealEntry(props) {
                             <NativeSelect
                                 value={meal.label}
                                 onChange={ev => {
-                                    props.reduceState({type: 'set-label', day: props.date, data: ev.target.value})
+                                    props.dispatch({type: 'set-label', day: props.date, data: ev.target.value, id: meal.id})
                                 }}
                                 fullWidth
                                 >
@@ -121,16 +154,16 @@ function MealEntry(props) {
                             <NativeSelect
                                 value={meal.recipe_id}
                                 onChange={ev => {
-                                    props.reduceState({type: 'set-recipe', day: props.date, data: ev.target.value})
+                                    props.dispatch({type: 'set-recipe', day: props.date, data: ev.target.value, id: meal.id})
                                 }}
                                 fullWidth
                                 >
-                                {Object.entries(props.recipesData).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+                                {Object.entries(recipesData).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
                             </NativeSelect>
                         </>
                         : <>
                             <p>{meal.label}</p>
-                            <p>{props.recipesData[meal.recipe_id]}</p>
+                            <p>{recipesData[meal.recipe_id]}</p>
                         </> }
                         
                     </TimelineItemWrap>
@@ -141,38 +174,69 @@ function MealEntry(props) {
     );
 }
 
+interface IAction {
+    type: 'overwrite' | 'set-recipe' | 'set-label' | 'set-day' | null,
+    data: any,
+    day?: string,
+    id?: number
+}
 
-function reduceState(state, action) {
+function reduceState(state: IGroupedMeals | null, action: IAction) {
+    if (action.type === 'overwrite') {
+        // console.log('all meals set:', action.data);
+        return action.data;
+    }
     // if (typeof action.text !== 'string') {
     //     throw new TypeError(`SnackBar: Expected string for text, but got ${action.text}`)
     // }
     // const clean = {type: action.type, text: action.text};
+    
+    if (state === null) {
+        throw new TypeError('Meals: Cannot alter state when state is null');
+    }
+
+    // console.log('Got action:', action);
 
     switch (action.type) {
-        case 'overwrite':
-            console.log('all meals set:', action.data);
-            return action.data;
         case 'set-recipe':
-            for (let meal of state[action.day]) {
-                if (meal.id === action.id) {
-                    meal.recipe_id = action.data;
-                    break;
+            let newState = {...state};
+            if (action.day && action.id) {
+                for (let meal of newState[action.day]) {
+                    if (meal.id === action.id) {
+                        meal.recipe_id = action.data;
+                        break;
+                    }
                 }
             }
-            return state;
+            else {
+                throw new TypeError('Meals: Expected key day and id');
+            }
+            return newState;
         case 'set-label':
-            for (let meal of state[action.day]) {
-                if (meal.id === action.id) {
-                    meal.label = action.data;
-                    break;
+            let newState2 = {...state};
+            if (action.day) {
+                for (let meal of newState2[action.day]) {
+                    if (meal.id === action.id) {
+                        meal.label = action.data;
+                        break;
+                    }
                 }
             }
-            return state;
+            else {
+                throw new TypeError('Meals: Expected key day');
+            }
+            return newState2;
         case 'set-day':
-            const tmp = state[action.day];
-            delete state[action.day];
-            state[action.data] = tmp;
-            return state;
+            let newState3 = {...state};
+            if (action.day) {
+                const tmp = newState3[action.day];
+                delete newState3[action.day];
+                newState3[action.data] = tmp;
+            }
+            else {
+                throw new TypeError('Meals: Expected key day');
+            }
+            return newState3;
         case null:
             return state;
         default:
@@ -183,11 +247,11 @@ function reduceState(state, action) {
 
 export default function Meals() {
     const updateMealsTriggerValue = useTrigger(updateMealsTrigger);
-    const [ isLoading, mealsData_raw ] = useFetchAPI('meal', [updateMealsTriggerValue]);
-    const [ isLoading2, recipesData_raw ] = useFetchAPI('recipe?minimum=True', [updateMealsTriggerValue]);
+    const [ isLoading, mealsData_raw ] = useFetchAPI('meal', [updateMealsTriggerValue] as any);
+    const [ isLoading2, recipesData_raw ] = useFetchAPI('recipe?minimum=True', [updateMealsTriggerValue] as any);
 
     const recipesData = useMemo(() => {
-        const obj = {};
+        const obj: IRecipeData = {};
         if (!recipesData_raw) { return null; }
         for (let recipe of recipesData_raw) {
             obj[recipe.id] = recipe.name;
@@ -195,7 +259,7 @@ export default function Meals() {
         return obj;
     }, [recipesData_raw]);
 
-    const [mealsState, dispatch] = useReducer(reduceState, null);
+    const [mealsState, dispatch]: [IGroupedMeals, (a: IAction) => void] = useReducer(reduceState, null);
 
     // whenever data from db is refreshed, overwrite the state
     useEffect(() => {
@@ -207,7 +271,7 @@ export default function Meals() {
 
     // for auto-scrolling to closestDay
     const closestDay = useMemo(() => getClosestDay(mealsState), [mealsState]);
-    const closestDayRef = useRef(null);
+    const closestDayRef: MutableRefObject<HTMLDivElement | null> = useRef(null);
 
     useEffect(() => {
         // item.scrollIntoView({
@@ -256,7 +320,7 @@ export default function Meals() {
                     closestDay={closestDay} 
                     closestDayRef={closestDayRef} 
                     recipesData={recipesData}
-                    reduceState={reduceState}
+                    dispatch={dispatch}
                     />
             )}
         </div>
