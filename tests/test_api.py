@@ -106,6 +106,12 @@ class RecipeCase(TestCase):
         self.assert200(response)
         self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
 
+        response = self.client.get(self.API_NODE + '?minimum=True')
+
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs'}], response.json)
+
+
         self.logout()
         self.login(self.admin)
         response = self.client.get(self.API_NODE)
@@ -537,8 +543,7 @@ class MealCase(TestCase):
             'label': 'meal 1', 
             'day': '2021-11-16', 
             'user_id': 1, 
-            'recipe_id': 1,
-            'recipe_name': 'Scrambled Eggs'
+            'recipe_id': 1
         }], response.json)
 
     def test_create(self):
@@ -575,16 +580,14 @@ class MealCase(TestCase):
                 'label': 'meal 1', 
                 'day': '2020-01-01', 
                 'user_id': 1, 
-                'recipe_id': 1,
-                'recipe_name': 'Scrambled Eggs'
+                'recipe_id': 1
             },
             {
                 'id': 1, 
                 'label': 'meal 1', 
                 'day': '2021-11-16', 
                 'user_id': 1, 
-                'recipe_id': 1,
-                'recipe_name': 'Scrambled Eggs'
+                'recipe_id': 1
             }
         ], response.json)
 
@@ -596,8 +599,7 @@ class MealCase(TestCase):
                 'label': 'meal 1', 
                 'day': '2020-01-01', 
                 'user_id': 1, 
-                'recipe_id': 1,
-                'recipe_name': 'Scrambled Eggs'
+                'recipe_id': 1
             }
         , response.json)
 
@@ -630,8 +632,7 @@ class MealCase(TestCase):
                 'label': 'meal 10', 
                 'day': '2020-09-30', 
                 'user_id': 1, 
-                'recipe_id': 1,
-                'recipe_name': 'Scrambled Eggs'
+                'recipe_id': 1
             }, response.json)
 
         response = self.client.delete(self.GET_API_NODE(2))

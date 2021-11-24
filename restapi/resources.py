@@ -123,16 +123,20 @@ class RecipeResource(Resource):
         q = db.session.query(Recipe).filter(Recipe.user_id == current_user.id).order_by(Recipe.name)
         # from time import sleep
         # sleep(60)  # simulate slow internet 
+
+        # convert None to False, meaning False is default
+        minimum = bool(request.args.get('minimum', type=bool))
+
         if recipe_id:
             recipe = q.filter(Recipe.id == recipe_id).one_or_none()
             handle_nonexistance(recipe)
-            return jsonify(recipe.toJson())
+            return jsonify(recipe.toJson(minimum=minimum))
         else:
             search = request.args.get('search', type=str)
             if search:
                 q = q.filter(Recipe.name.ilike(f'%{search}%'))
             # current_app.logger.debug('Getting all recipes')
-            return jsonify([recipe.toJson() for recipe in q.filter(Recipe.deleted == False).all()])
+            return jsonify([recipe.toJson(minimum=minimum) for recipe in q.filter(Recipe.deleted == False).all()])
 
     @require_auth
     @optional_param_check(True, 'recipe_id')

@@ -75,15 +75,21 @@ class Recipe(db.Model):
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
 
-    def toJson(self) -> Dict[str, Any]:
-        return {
-            'id': self.id,
-            'name': self.name,
-            'notes': self.notes,
-            'ingredients': [i.toJson() for i in self.ingredients],
-            'rating': self.rating,
-            'prepTime': self.prepTime
-        }
+    def toJson(self, minimum: bool = False) -> Dict[str, Any]:
+        if minimum:
+            return {
+                'id': self.id,
+                'name': self.name
+            }
+        else:
+            return {
+                'id': self.id,
+                'name': self.name,
+                'notes': self.notes,
+                'ingredients': [i.toJson() for i in self.ingredients],
+                'rating': self.rating,
+                'prepTime': self.prepTime
+            }
     
     def declareTags(self, t: List[Tag]) -> None:
         self.tags.extend(t)
@@ -225,6 +231,6 @@ class Meal(db.Model):
             'label': self.label,
             'day': self.day.isoformat(),
             'user_id': self.user_id,
-            'recipe_id': self.recipe_id,
-            'recipe_name': self.recipe.name
+            'recipe_id': self.recipe_id
+            # 'recipe_name': self.recipe.name
         }

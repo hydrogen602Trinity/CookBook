@@ -79,6 +79,23 @@
             background-color: var(--beige);
             margin-bottom: 20px;
             border: 0px;
+            position: relative;
+
+            .icon-button {
+                position: absolute;
+                top: 0;
+                right: 0;
+                z-index: 1;
+            }
+
+            .MuiNativeSelect-select {
+                font-size: larger;
+                background-color: white;
+                padding: {
+                    top: 0;
+                    bottom: 0;
+                }
+            }
         }
 
         .MuiTimeline-root {
