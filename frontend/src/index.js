@@ -7,6 +7,8 @@ import {
   Link,
   useLocation
 } from "react-router-dom";
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import AdapterDateFns from '@mui/lab/AdapterDayjs';
 
 // import './index.css';
 // import App from './App';
@@ -55,20 +57,21 @@ function NoMatch() {
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ErrorBounds>
-        <SnackbarComponent>
-          <Routes>
-            <Route path="/" element={<Index/>}/>
-            <Route path="/recipes" element={<Recipes/>}/>
-            <Route path="/users" element={<Users/>}/>
-            <Route path="/meals" element={<Meals/>}/>
-            <Route path="*" element={<NoMatch />}/>
-          </Routes>
-        </SnackbarComponent>
-      </ErrorBounds>
-    </BrowserRouter>
-    
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <BrowserRouter>
+        <ErrorBounds>
+          <SnackbarComponent>
+            <Routes>
+              <Route path="/" element={<Index/>}/>
+              <Route path="/recipes" element={<Recipes/>}/>
+              <Route path="/users" element={<Users/>}/>
+              <Route path="/meals" element={<Meals/>}/>
+              <Route path="*" element={<NoMatch />}/>
+            </Routes>
+          </SnackbarComponent>
+        </ErrorBounds>
+      </BrowserRouter>
+    </LocalizationProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

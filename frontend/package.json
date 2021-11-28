@@ -20,6 +20,7 @@
     "@types/node": "^16.11.10",
     "@types/react": "^17.0.36",
     "@types/react-dom": "^17.0.11",
+    "dayjs": "^1.10.7",
     "fraction.js": "^4.1.1",
     "node-sass": "^6.0.1",
     "react": "^17.0.2",

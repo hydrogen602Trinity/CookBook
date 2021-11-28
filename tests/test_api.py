@@ -545,6 +545,70 @@ class MealCase(TestCase):
             'user_id': 1, 
             'recipe_id': 1
         }], response.json)
+    
+    def test_put(self):
+        data = {
+            'id': 1, 
+            'label': 'meal 5', 
+            'day': '2021-11-16', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }
+
+        response = self.client.put(self.API_NODE, json=data)
+        self.assert401(response)
+
+        self.login(self.user)
+
+
+        response = self.client.put(self.API_NODE, json=data)
+        self.assert200(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+
+        self.assertEqual([{
+            'id': 1, 
+            'label': 'meal 5', 
+            'day': '2021-11-16', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }], response.json)
+
+        data = [{
+            'id': 1, 
+            'label': 'meal 10', 
+            'day': '2021-11-16', 
+            'user_id': 1, 
+            'recipe_id': 1
+        },
+        {
+            'label': 'meal 7', 
+            'day': '2021-11-17', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }]
+
+        response = self.client.put(self.API_NODE, json=data)
+        self.assert200(response)
+
+        response = self.client.get(self.API_NODE)
+        self.assert200(response)
+
+        self.assertEqual([{
+            'id': 1, 
+            'label': 'meal 10', 
+            'day': '2021-11-16', 
+            'user_id': 1, 
+            'recipe_id': 1
+        },
+        {
+            'id': 2, 
+            'label': 'meal 7', 
+            'day': '2021-11-17', 
+            'user_id': 1, 
+            'recipe_id': 1
+        }], response.json)
 
     def test_create(self):
         data = {
@@ -607,7 +671,6 @@ class MealCase(TestCase):
         data = {
             'label': 'meal 10', 
             'day': '2020-09-30', 
-            'user_id': 1, 
             'recipe_id': 1
         }
 

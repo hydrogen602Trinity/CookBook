@@ -15,6 +15,9 @@ export class AuthError extends Error {
     // }
 }
 
+export class APIError extends Error {
+}
+
 
 export function makeAuthErrorHandler(asyncFunc, onFailure) {
     return async function (...args) {
@@ -94,10 +97,19 @@ export async function fetchControlAPI(path, method, data, json = true) {
         credentials: 'include',
         body: JSON.stringify(data)
     });
+    if (!response.ok) {
+        console.error(response.status, response.statusText);
+        let t = await response.text();
+        console.error(t);
+    }
+
     if (response.status === 401) {
         throw new AuthError("Got a 401");
     }
-    console.log(response);
+    if (!response.ok) {
+        throw new APIError(`${response.status}`);
+    }
+    // console.log(response);
     return json ? response.json() : response.text();
 }
 

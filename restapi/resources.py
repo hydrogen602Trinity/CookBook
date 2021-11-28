@@ -1,12 +1,14 @@
 from fractions import Fraction
-from typing import Optional
+from typing import List, Optional
 from flask import request
 from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
-from flask import Blueprint
+from flask import Blueprint, abort
 from flask_login import current_user
 from datetime import date
 from werkzeug.security import generate_password_hash
+from marshmallow import Schema, fields, validate, ValidationError
+import json
 
 from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
@@ -206,18 +208,47 @@ class AccountResource(Resource):
 @add_resource(api, '/meal', '/meal/<int:meal_id>')
 class MealResource(Resource):
 
-    meal_parser = reqparse.RequestParser()
-    meal_parser.add_argument('label', type=str, help='Breakfast, Lunch, Dinner, etc.')
-    meal_parser.add_argument('day', type=date.fromisoformat, help='Date')
-    meal_parser.add_argument('recipe_id', type=int, help='Recipe for the Meal')
+    # meal_parser = reqparse.RequestParser()
+    # meal_parser.add_argument('label', type=str, help='Breakfast, Lunch, Dinner, etc.')
+    # meal_parser.add_argument('day', type=date.fromisoformat, help='Date')
+    # meal_parser.add_argument('recipe_id', type=int, help='Recipe for the Meal')
 
-    meal_parser_w_id = meal_parser.copy()
-    meal_parser_w_id.add_argument('id', type=int, default=None, help="Meal ID")
+    # meal_parser_w_id = meal_parser.copy()
+    # meal_parser_w_id.add_argument('id', type=int, default=None, help="Meal ID")
+
+    # this is attempting to use Marshmellow as reqparse is deprecated
+    class MealSchema(Schema):
+        label = fields.Str(validate=validate.Length(max=20), required=True)
+        day = fields.Date(required=True)
+        recipe_id = fields.Int(validate=validate.Range(min=1), required=True)
+        user_id = fields.Int(validate=validate.Range(min=1), missing=None)
+        id = fields.Int(validate=validate.Range(min=1), missing=None)
+    
+    __one_meal = MealSchema()
+    __many_meals = MealSchema(many=True)
+
+    @classmethod
+    def __parse(cls, consider_many: bool = False):
+        raw = request.get_json(force=True)
+        raw = json.loads(raw) if isinstance(raw, str) else raw
+        try:
+            return cls.__one_meal.load(raw)
+        except ValidationError as e:
+            if consider_many:
+                try:
+                    return cls.__many_meals.load(raw)
+                except ValidationError as e2:
+                    print(e2)
+            # print(e, e.field_name, e.data, e.args, e.normalized_messages())
+            print(e.messages)
+            print(raw, type(raw))
+            abort(400, str(e))
 
     @require_auth
     @optional_param_check(False, 'meal_id')
     def post(self, _=None):
-        data = require_truthy_values(self.meal_parser.parse_args())
+        data = self.__parse()
+        #data = require_truthy_values(self.meal_parser.parse_args())
 
         newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
         db.session.add(newMeal)
@@ -227,28 +258,40 @@ class MealResource(Resource):
     @require_auth
     @optional_param_check(False, 'meal_id')
     def put(self, _=None):
-        data = require_truthy_values(self.meal_parser_w_id.parse_args(), exceptions=('id'))
+        data_pre = self.__parse(consider_many=True)
+        #data = require_truthy_values(self.meal_parser_w_id.parse_args(), exceptions=('id'))
 
-        # Insert
-        if data['id'] is None:
-            newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
-            db.session.add(newMeal)
-            db.session.commit()
-            return f'{newMeal.id}', 201
-
+        data_ls = data_pre if isinstance(data_pre, list) else [data_pre]
         q = db.session.query(Meal).filter(Meal.user_id == current_user.id)
-        meal: Optional[Meal] = q.filter(Meal.user_id == data['id']).one_or_none()
+        
+        ids: List[int] = []
+        for data in data_ls:
+            # print(current_user.id, data['id'], type(data['id']))
+            # print(q.filter(Meal.user_id == data['id']).all())
+            # print(db.session.query(Meal).filter(Meal.user_id == data['id']).all())
+            # Insert
+            if data['id'] is None:
+                newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
+                db.session.add(newMeal)
+                
+                # return f'{newMeal.id}', 201
+                ids.append(newMeal.id)
+            else:
+                meal: Optional[Meal] = q.filter(Meal.id == data['id']).one_or_none()
 
-        # Update
-        if meal:
-            meal.label = data['label']
-            meal.day = data['day']
-            meal.user_id = current_user.id
-            meal.recipe_id = data['recipe_id']
-            db.session.commit()
-            return f'{meal.id}', 200
-        else:
-            return f'No object found with meal_id={data["id"]}', 404
+                # Update
+                if meal:
+                    meal.label = data['label']
+                    meal.day = data['day']
+                    meal.user_id = current_user.id
+                    meal.recipe_id = data['recipe_id']
+                    # return f'{meal.id}', 200
+                    ids.append(meal.id)
+                else:
+                    return f'No object found with meal_id={data["id"]}', 404
+        
+        db.session.commit()
+        return ids, 200
 
     @require_auth
     def get(self, meal_id: Optional[int] = None):
