@@ -6,6 +6,7 @@ from flask_restful import Resource, Api, reqparse
 from flask import Blueprint
 from flask_login import current_user
 from datetime import date
+from math import ceil
 
 from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
@@ -27,8 +28,8 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
 
     amt1 = ing1.amount
     amt2 = ing2.amount
-    unit1 = ing1.amount
-    unit2 = ing2.amount
+    unit1 = ing1.unit
+    unit2 = ing2.unit
 
     # Convert to Mililiters
     ml1 = False
@@ -58,20 +59,21 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
         ml2 = True
     
     if unit1 == "lb" and unit2 == "lb":
-        return Ingredient(name, amt1+amt2, "lb")
+        return Ingredient(name, ceil(amt1+amt2), "lb")
     elif ml1 and ml2:
-        return Ingredient(name, amt1+amt2, "ml")
+        return Ingredient(name, ceil(amt1+amt2), "ml")
     else:
         print(f"Error - Unable to combine ingredients of type {unit1} and {unit2}")
         return Ingredient("Error", 0)
 
-def create_shoppinglist(meals: List[Meal]) -> List[Ingredient]:
-    
+def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
+
     shopList = []
     # Note: Figure out the dark sorcery behind tablespoons and teaspoons
     for meal in meals:
-        recipe: Optional[Recipe] = db.session.query(Recipe).filter(meal.recipe_id == data['id']).one_or_none()
+        recipe: Optional[Recipe] = db.session.query(Recipe).filter(meal.recipe_id == Recipe.id).one_or_none()
         if recipe:
+            print(recipe.name)
             for ingredient in recipe.ingredients:
                 shopList.append(ingredient)
 
@@ -81,7 +83,9 @@ def create_shoppinglist(meals: List[Meal]) -> List[Ingredient]:
     prev = Ingredient("", 0)
     for item in shopList:
         if item.name == prev.name:
-            item = combineIngredients(item, prev)
+            newItem = combineIngredients(item.name, item, prev)
+            item.amount = newItem.amount
+            item.unit = newItem.unit
             shopList.remove(prev)
         prev = item
 
