@@ -83,8 +83,17 @@ def setup_database(app: Flask):
         db.session.commit()
 
         #print(recipe.ingredients)
-
         # print('all:', Ingredient.query.all())
+
+        # Create Tags
+        spicyTag = Tag('Spicy')
+        db.session.add(spicyTag)
+        mildTag = Tag('Mild')
+        db.session.add(mildTag)
+        vegetarianTag = Tag('Vegetarian')
+        db.session.add(vegetarianTag)
+
+        db.session.commit()
 
         # Name = 0
         # Rating = 1
@@ -123,7 +132,13 @@ def setup_database(app: Flask):
                     ingredients_list = ingredients_string.split(",")
                     ingredients = []
                     for string in ingredients_list:
-                        ingredients.append(Ingredient(string, 1))
+                        ingredAndAmts = string.split("-")
+                        if len(ingredAndAmts) >= 3:
+                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1], ingredAndAmts[2]))
+                        elif len(ingredAndAmts) == 2:
+                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1]))
+                        else: 
+                            ingredients.append(Ingredient(ingredAndAmts[0], 1))
                     style = "N/A"
                     # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
                     newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
@@ -132,6 +147,10 @@ def setup_database(app: Flask):
                 else: line_count += 1
 
         print('all:', Recipe.query.all())
+
+def addTags(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = None):
+    with app.app_context():
+        print("Hello World")
 
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
