@@ -132,13 +132,14 @@ def setup_database(app: Flask):
                     ingredients_list = ingredients_string.split(",")
                     ingredients = []
                     for string in ingredients_list:
-                        ingredAndAmts = string.split("-")
-                        if len(ingredAndAmts) >= 3:
-                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1], ingredAndAmts[2]))
-                        elif len(ingredAndAmts) == 2:
-                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1]))
-                        else: 
-                            ingredients.append(Ingredient(ingredAndAmts[0], 1))
+                        ingredients.append(Ingredient(string, 1))
+                        #ingredAndAmts = string.split("-")
+                        #if len(ingredAndAmts) >= 3:
+                        #    ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1], ingredAndAmts[2]))
+                        #elif len(ingredAndAmts) == 2:
+                        #    ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1]))
+                        #else: 
+                        #    ingredients.append(Ingredient(ingredAndAmts[0], 1))
                     style = "N/A"
                     # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
                     newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
