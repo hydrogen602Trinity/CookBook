@@ -153,6 +153,8 @@ def addTags(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = Non
     with app.app_context():
         print("Hello World")
 
+#"Chicken-8-lb,Onion-1,Garlic-2,Salt-1-tsp"
+#"Beef-3-lb,Soy Sauce-1/3-cup,Ginger-1-tbsp,Scallion-6,Noodles"
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
     app = CustomFlask(__name__)
