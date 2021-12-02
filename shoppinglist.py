@@ -63,8 +63,7 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
     elif ml1 and ml2:
         return Ingredient(name, ceil(amt1+amt2), "ml")
     else:
-        print(f"Error - Unable to combine ingredients of type {unit1} and {unit2}")
-        return Ingredient("Error", 0)
+        raise ValueError(f"Error - Unable to combine ingredients of type {unit1} and {unit2}")
 
 def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
 
