@@ -7,6 +7,7 @@ from flask import Blueprint
 from flask_login import current_user
 from datetime import date
 from math import ceil
+from typing import List
 
 from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
@@ -64,7 +65,7 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
     else:
         raise ValueError(f"Error - Unable to combine ingredients of type {unit1} and {unit2}")
 
-def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
+def create_shoppinglist(meals: List[Meal]) -> List[Ingredient]:
 
     shopList = []
     # Note: Figure out the dark sorcery behind tablespoons and teaspoons
