@@ -1,4 +1,4 @@
-from models import Ingredient, Recipe, User
+from models import Ingredient, Recipe, User, Tag
 import restapi
 from typing import Optional
 from flask import Flask
@@ -83,8 +83,17 @@ def setup_database(app: Flask):
         db.session.commit()
 
         #print(recipe.ingredients)
-
         # print('all:', Ingredient.query.all())
+
+        # Create Tags
+        spicyTag = Tag('Spicy')
+        db.session.add(spicyTag)
+        mildTag = Tag('Mild')
+        db.session.add(mildTag)
+        vegetarianTag = Tag('Vegetarian')
+        db.session.add(vegetarianTag)
+
+        db.session.commit()
 
         # Name = 0
         # Rating = 1
@@ -102,6 +111,8 @@ def setup_database(app: Flask):
                     line_count += 1
                     name = f"{row[0]}"
                     rating = len(f"{row[1]}")
+                    if rating < 1 or rating > 5:
+                        rating = None
                     diff_string = f"{row[2]}"
                     difficulty = 0
                     if diff_string == "Super Simple":
@@ -123,7 +134,13 @@ def setup_database(app: Flask):
                     ingredients_list = ingredients_string.split(",")
                     ingredients = []
                     for string in ingredients_list:
-                        ingredients.append(Ingredient(string, 1))
+                        ingredAndAmts = string.split("-")
+                        if len(ingredAndAmts) >= 3:
+                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1], ingredAndAmts[2]))
+                        elif len(ingredAndAmts) == 2:
+                            ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1]))
+                        else: 
+                            ingredients.append(Ingredient(ingredAndAmts[0], 1))
                     style = "N/A"
                     # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
                     newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
@@ -131,8 +148,11 @@ def setup_database(app: Flask):
                     db.session.commit()
                 else: line_count += 1
 
-        print('all:', Recipe.query.all())
+        #print('all:', Recipe.query.all())
 
+def addTags(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = None):
+    with app.app_context():
+        print("Hello World")
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
     app = CustomFlask(__name__)
