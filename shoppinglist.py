@@ -7,10 +7,10 @@ from flask import Blueprint
 from flask_login import current_user
 from datetime import date
 from math import ceil
+from typing import List
 
 from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
-from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 def sortIngredients(i: Ingredient) -> str:
     return i.name
@@ -65,7 +65,7 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
     else:
         raise ValueError(f"Error - Unable to combine ingredients of type {unit1} and {unit2}")
 
-def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
+def create_shoppinglist(meals: List[Meal]) -> List[Ingredient]:
 
     shopList = []
     # Note: Figure out the dark sorcery behind tablespoons and teaspoons
@@ -80,7 +80,7 @@ def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
 
     # Search for Ingredients with the Same Name
     prev = Ingredient("", 0)
-    for item in shopList:
+    for item in shopList.copy():
         if item.name == prev.name:
             newItem = combineIngredients(item.name, item, prev)
             item.amount = newItem.amount
