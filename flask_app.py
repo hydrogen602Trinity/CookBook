@@ -150,9 +150,27 @@ def setup_database(app: Flask):
 
         #print('all:', Recipe.query.all())
 
-def addTags(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = None):
+def insertTag(app: Flask, tagName: str):
     with app.app_context():
-        print("Hello World")
+        newTag = Tag(tagName)
+        db.session.add(newTag)
+        db.session.commit()
+
+def addRecipeTag(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = None):
+    with app.app_context():
+        if tagID:
+            targetTag = db.session.query(Tag).filter(Tag.id == tagID)
+        else: targetTag = db.session.query(Tag).filter(Tag.type == tagName)
+        if targetTag:
+            targetTag.assocRecipes.append(recipe_id)
+
+def addUserTag(app: Flask, user_id: int, tagName: str, tagID: Optional[int] = None):
+    with app.app_context():
+        if tagID:
+            targetTag = db.session.query(Tag).filter(Tag.id == tagID)
+        else: targetTag = db.session.query(Tag).filter(Tag.type == tagName)
+        if targetTag:
+            targetTag.assocUsers.append(user_id)
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
     app = CustomFlask(__name__)
