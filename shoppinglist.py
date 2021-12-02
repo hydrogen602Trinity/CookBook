@@ -10,7 +10,6 @@ from math import ceil
 
 from models import Ingredient, Recipe, db, User, Meal, Tag
 from restapi.auth_util import require_admin, require_auth
-from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
 def sortIngredients(i: Ingredient) -> str:
     return i.name
@@ -80,7 +79,7 @@ def create_shoppinglist(meals: list[Meal]) -> list[Ingredient]:
 
     # Search for Ingredients with the Same Name
     prev = Ingredient("", 0)
-    for item in shopList:
+    for item in shopList.copy():
         if item.name == prev.name:
             newItem = combineIngredients(item.name, item, prev)
             item.amount = newItem.amount
