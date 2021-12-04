@@ -37,6 +37,30 @@ def positive_int(s: str) -> int:
         raise TypeError(f'Int must be positive or 0, got {n}')
     return n
 
+@add_resource(api, '/recipetags/<int:recipe_id>/<int:tag_id>')
+class TagManager(Resource):
+
+    def get(self, recipe_id: Optional[int] = None, tag_id: Optional[int] = None):
+        q = db.session.query(recipeTags).order_by(recipeTags.recipe_id)
+        if recipe_id and tag_id:
+            recipe_tagList = q.filter(recipeTags.recipe_id == recipe_id)
+            handle_nonexistance(recipe_tagList)
+            return recipe_tagList, 200
+        else:
+            return recipe_tagList, 200
+
+    def put(self, recipe_id: int, tag_id: int):
+        recipe: Optional[Recipe] = db.session.query(Recipe).filter(Recipe.id == recipe_id).one_or_none()
+        bob = recipe.recipe_Tags
+        tag: Optional[Tag] = db.session.query(Tag).filter(Tag.id == tag_id).one_or_none()
+
+        if recipe and tag:
+            recipe.recipe_Tags.append(tag)
+            bub = recipe.recipe_Tags
+            db.session.commit()
+            return 201
+        else:
+            return f'No object found with recipe_id={recipe_id} or tag_id={tag_id}', 404
 
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
 class RecipeResource(Resource):
@@ -45,7 +69,7 @@ class RecipeResource(Resource):
     recipe_parser.add_argument('name', type=str, help='Recipe name')
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
     recipe_parser.add_argument('ingredients', location='json', type=list)
-    recipe_parser.add_argument('recipe_tagList', location='json', type=list)
+    recipe_parser.add_argument('recipe_Tags', location='json', type=list, default=[])
     recipe_parser.add_argument('notes', type=str, help='Recipe notes & instructions')
     recipe_parser.add_argument('rating', type=custom_range_int, help='Rating from 1 to 5', default=None)
     recipe_parser.add_argument('prepTime', type=positive_int, help='Prep time in min', default=None)
@@ -63,7 +87,7 @@ class RecipeResource(Resource):
     @optional_param_check(False, 'recipe_id')
     def post(self, _=None):
         data = require_truthy_values(self.recipe_parser.parse_args(), 
-                                     exceptions=('ingredients', 'recipe_tagList', 'rating', 'prepTime'))
+                                     exceptions=('ingredients', 'recipe_Tags', 'rating', 'prepTime'))
 
         ingredients = []
         for ingredient in data['ingredients']:
@@ -96,7 +120,7 @@ class RecipeResource(Resource):
         # or None converts empty str to None
 
         if data['id'] is None:
-            data = require_truthy_values(data, exceptions=('ingredients', 'id', 'recipe_tagList', 'rating', 'prepTime'))
+            data = require_truthy_values(data, exceptions=('ingredients', 'id', 'recipe_Tags', 'rating', 'prepTime'))
 
             newRecipe = Recipe(data['name'], data['notes'], ingredients, 
                                current_user, rating=data['rating'],
@@ -144,7 +168,6 @@ class RecipeResource(Resource):
             return '', 204
         else:
             return f'No object found with recipe_id={recipe_id}', 404
-
 
 @add_resource(api, '/account')
 class AccountResource(Resource):
@@ -197,7 +220,6 @@ class AccountResource(Resource):
         db.session.delete(current_user)
         db.session.commit()
         return '', 204
-
 
 @add_resource(api, '/meal', '/meal/<int:meal_id>')
 class MealResource(Resource):

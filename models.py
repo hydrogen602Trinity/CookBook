@@ -51,7 +51,6 @@ class Recipe(db.Model):
     prepTime: int = db.Column(db.Integer, nullable=True)
     difficulty: int = db.Column(db.Integer, nullable=True)
     rating: int = db.Column(db.Integer, db.CheckConstraint('1 <= rating AND rating <= 5'), nullable=True)
-    # utensils: List[String] = db.Column()    Need List
     notes: str = db.Column(db.String(4096), nullable=False)
     deleted: bool = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
 
@@ -71,6 +70,7 @@ class Recipe(db.Model):
         self.prepTime = prepTime
         self.difficulty = difficulty if difficulty else None
         self.rating = rating
+        self.recipe_Tags = []
     
     def __repr__(self) -> str:
         return f'Recipe(id={self.id}, name={self.name})'
@@ -80,13 +80,11 @@ class Recipe(db.Model):
             'id': self.id,
             'name': self.name,
             'notes': self.notes,
+            'recipeTags': [i.toJson() for i in self.recipe_Tags],
             'ingredients': [i.toJson() for i in self.ingredients],
             'rating': self.rating,
             'prepTime': self.prepTime
         }
-    
-    def declareTags(self, t: List[Tag]) -> None:
-        self.tags.extend(t)
 
 
 class Ingredient(db.Model):
@@ -193,9 +191,9 @@ class Tag(db.Model):
     def toJson(self) -> Dict[str, Any]:
         return {
             'id': self.id,
-            'tagType': self.tagType,
-            'assocUsers': [i.toJson() for i in self.assocUsers],
-            'assocRecipes': [i.toJson() for i in self.assocRecipes]
+            'tagType': self.tagType
+            #'assocUsers': [i.toJson() for i in self.assocUsers],
+            #'assocRecipes': [i.toJson() for i in self.assocRecipes]
         }
 
 class Meal(db.Model):

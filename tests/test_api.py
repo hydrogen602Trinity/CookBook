@@ -1,10 +1,11 @@
 from datetime import date
 from typing import Type
-from models import Meal, Recipe, Ingredient, User
+from models import Meal, Recipe, Ingredient, User, Tag
 from shoppinglist import create_shoppinglist, combineIngredients, sortIngredients
 from math import ceil
 from util import curry
 from flask_app import create_app as flask_create_app
+from typing import List
 from database import db
 
 from flask.testing import FlaskClient
@@ -27,10 +28,11 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
         app = flask_create_app(testing=True, db_name=self.SQLALCHEMY_DATABASE_URI)
 
         with app.app_context():
-            self.GET_API_NODE = \
-                lambda arg: url_for_rest(resource_path, _external=False, **{id_name: arg})
-            self.API_NODE = self.GET_API_NODE(None)
-        
+            if not isinstance(id_name, list):
+                self.GET_API_NODE = \
+                    lambda arg: url_for_rest(resource_path, _external=False, **{id_name: arg})
+                self.API_NODE = self.GET_API_NODE(None)
+
             self.LOGIN_NODE = url_for_rest('resources.loginresource', _external=False)
         return app
     
@@ -70,24 +72,12 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
         db.session.add(recipe)
         db.session.commit()
 
-        #cornbread = Recipe('Cornbread', 'Instructions Go Here', [
-        #    Ingredient('Butter', '1/4', 'cup'), Ingredient('Milk', 1, 'cup'), Ingredient('Eggs', 1), Ingredient('Cornmeal', '5/4', 'cup'),
-        #    Ingredient('Flour', 1, 'cup'), Ingredient('Sugar', '1/2', 'cup'), Ingredient('Baking Powder', 1, 'tbsp'), Ingredient('Salt', 1, 'tsp')
-        #], user, 'Side Dish', 'Basic', 40, 2)
-
-        #db.session.add(cornbread)
-        #db.session.commit()
-
-        #blueberryPie = Recipe('Blueberry Pie', 'Instructions Go Here', [
-        #    Ingredient('Flour', '9/4', 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', '2/3', 'cup'), Ingredient('Sugar', '1/2', 'cup'),
-        #    Ingredient('Cinnamon', '1/2', 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
-        #], user, 'Dessert', 'Basic', 120, 2)
-
-        #db.session.add(blueberryPie)
-        #db.session.commit()
-
         meal = Meal('meal 1', date(2021, 11, 16), user.id, recipe.id)
         db.session.add(meal)
+        db.session.commit()
+
+        tag = Tag('Spicy')
+        db.session.add(tag)
         db.session.commit()
 
         if os.getenv('TESTING') == '1':
@@ -108,7 +98,6 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
         self.assertStatus(response, 204)
     return cls
 
-
 @setup_helper('resources.reciperesource', 'recipe_id')
 class RecipeCase(TestCase):
     client: FlaskClient
@@ -121,7 +110,8 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 
+            'recipeTags':[], 'rating': None, 'prepTime': None}], response.json)
 
         self.logout()
         self.login(self.admin)
@@ -160,8 +150,8 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 1,
                 'unit': None
-            }], 'rating': None, 'prepTime': None},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}
+            }], 'recipeTags': [], 'rating': None, 'prepTime': None},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}
             ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
@@ -174,7 +164,7 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 1,
                 'unit': None
-            }], 'rating': None, 'prepTime': None}, response.json)
+            }], 'recipeTags': [], 'rating': None, 'prepTime': None}, response.json)
 
     def test_create2(self):
         data = {
@@ -208,8 +198,8 @@ class RecipeCase(TestCase):
                 'num': 1,
                 'denom': 1,
                 'unit': 'g'
-            }], 'rating': 3, 'prepTime': 60},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}
+            }], 'recipeTags': [], 'rating': 3, 'prepTime': 60},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}
             ], response.json)
         
         response = self.client.get(self.GET_API_NODE(2))
@@ -222,7 +212,7 @@ class RecipeCase(TestCase):
                 'num': 1,
                 'denom': 1,
                 'unit': 'g'
-            }], 'rating': 3, 'prepTime': 60}, response.json)
+            }], 'recipeTags': [], 'rating': 3, 'prepTime': 60}, response.json)
 
     def test_create_invalid(self):
         invalid_data = [
@@ -282,7 +272,8 @@ class RecipeCase(TestCase):
             response = self.client.get(self.API_NODE)
 
             self.assert200(response)
-            self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+            self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 
+                'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_delete(self):
         self.login(self.user)
@@ -290,7 +281,7 @@ class RecipeCase(TestCase):
         response = self.client.get(self.API_NODE)
 
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
         self.logout()
         self.assert401(self.client.delete(self.GET_API_NODE(1)))
@@ -316,7 +307,7 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_no_exist(self):
         self.login(self.user)
@@ -335,7 +326,7 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_create(self):
         response = self.client.put(self.API_NODE, json={
@@ -359,7 +350,7 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 3,
                 'unit': 'g'
-            }],
+            }], 'recipeTags': [], 
             'rating': 1,
             'prepTime': 90
         })
@@ -375,10 +366,9 @@ class RecipeCase(TestCase):
                 'num': 2,
                 'denom': 3,
                 'unit': 'g'
-            }], 'rating': 1, 'prepTime': 90},
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None},
+            }], 'recipeTags': [], 'rating': 1, 'prepTime': 90},
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None},
         ], response.json)
-
 
     def test_put_1(self):
         self.login(self.user)
@@ -391,7 +381,8 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs Edited', 'notes': 'Break and beat eggs', 'ingredients': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs Edited', 'notes': 'Break and beat eggs', 'ingredients': [], 
+            'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_2(self):
         self.login(self.user)
@@ -439,12 +430,33 @@ class RecipeCase(TestCase):
                 'id': 2,
                 'denom': 1,
                 'unit': 'g'
-            }],
+            }], 'recipeTags': [], 
             'rating': 4, 
             'prepTime': None
         }, response.json)
 
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)
+
+@setup_helper('resources.tagmanager', ['recipe_id', 'tag_id'])
+class RecipeTagCase(TestCase):
+    client: FlaskClient
+
+    def test_put(self):
+        self.login(self.user)
+
+        self.GET_API_NODE = \
+                lambda arg1, arg2: url_for_rest('resources.tagmanager', _external=False, recipe_id=arg1, tag_id=arg2)
+        
+        self.RECIPE_API_NODE = \
+                lambda arg: url_for_rest('resources.reciperesource', _external=False, recipe_id=arg)
+
+        response = self.client.put(self.GET_API_NODE(1, 1))
+        self.assert200(response)
+
+        response = self.client.get(self.RECIPE_API_NODE(1))
+        self.assert200(response)
+        self.assertEqual({'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs','recipeTags': [{'id': 1, 'tagType': 'Spicy'}],
+            'ingredients': [], 'rating': None, 'prepTime': None}, response.json)
 
 @setup_helper('resources.userresource', 'user_id')
 class UserCase(TestCase):
