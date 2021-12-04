@@ -219,20 +219,29 @@ class MealResource(Resource):
     # this is attempting to use Marshmellow as reqparse is deprecated
     class MealSchema(Schema):
         label = fields.Str(validate=validate.Length(max=20), required=True)
+        # 'Breakfast', '2nd Breakfast', 'Brunch', 'Lunch', 'Dinner', 'Other'
         day = fields.Date(required=True)
         recipe_id = fields.Int(validate=validate.Range(min=1), required=True)
         user_id = fields.Int(validate=validate.Range(min=1), missing=None)
         id = fields.Int(validate=validate.Range(min=1), missing=None)
-    
+
+    class MealSchemaOptionalRecipe(MealSchema):
+        recipe_id = fields.Int(validate=validate.Range(min=1), missing=None)
+        label = fields.Str(validate=validate.Length(max=20), missing='Breakfast')
+
+    __one_meal_no_recipe = MealSchemaOptionalRecipe()
     __one_meal = MealSchema()
     __many_meals = MealSchema(many=True)
 
     @classmethod
-    def __parse(cls, consider_many: bool = False):
+    def __parse(cls, consider_many: bool = False, optional_recipe: bool = False):
         raw = request.get_json(force=True)
         raw = json.loads(raw) if isinstance(raw, str) else raw
         try:
-            return cls.__one_meal.load(raw)
+            if optional_recipe:
+                return cls.__one_meal_no_recipe.load(raw)
+            else:
+                return cls.__one_meal.load(raw)
         except ValidationError as e:
             if consider_many:
                 try:
@@ -247,10 +256,19 @@ class MealResource(Resource):
     @require_auth
     @optional_param_check(False, 'meal_id')
     def post(self, _=None):
-        data = self.__parse()
+        data = self.__parse(optional_recipe=True)
         #data = require_truthy_values(self.meal_parser.parse_args())
 
-        newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
+        if data['recipe_id'] is None:
+            recipe1 = db.session.query(Recipe).filter(Recipe.user_id == current_user.id).limit(1).one_or_none()
+            if recipe1 is None:
+                abort(400, 'Cannot create meal when there are no recipes')
+
+            recipe_id = recipe1.id
+        else:
+            recipe_id = data['recipe_id']    
+
+        newMeal = Meal(data['label'], data['day'], current_user.id, recipe_id)
         db.session.add(newMeal)
         db.session.commit()
         return f'{newMeal.id}', 201
@@ -263,7 +281,7 @@ class MealResource(Resource):
 
         data_ls = data_pre if isinstance(data_pre, list) else [data_pre]
         q = db.session.query(Meal).filter(Meal.user_id == current_user.id)
-        
+
         ids: List[int] = []
         for data in data_ls:
             # print(current_user.id, data['id'], type(data['id']))
@@ -273,7 +291,7 @@ class MealResource(Resource):
             if data['id'] is None:
                 newMeal = Meal(data['label'], data['day'], current_user.id, data['recipe_id'])
                 db.session.add(newMeal)
-                
+
                 # return f'{newMeal.id}', 201
                 ids.append(newMeal.id)
             else:
@@ -289,7 +307,7 @@ class MealResource(Resource):
                     ids.append(meal.id)
                 else:
                     return f'No object found with meal_id={data["id"]}', 404
-        
+
         db.session.commit()
         return ids, 200
 
@@ -349,7 +367,7 @@ class TagResource(Resource):
             db.session.add(newTag)
             db.session.commit()
             return f'{newTag.id}', 201
-        
+
         tag: Optional[Tag] = db.session.query(Tag).get(data['id'])
 
         # Update
@@ -361,7 +379,7 @@ class TagResource(Resource):
             return f'{tag.id}', 200
         else:
             return f'No object found with tag_id={data["id"]}', 404
-        
+
     def get(self, tag_id: Optional[int] = None):
         # Search
         if tag_id:

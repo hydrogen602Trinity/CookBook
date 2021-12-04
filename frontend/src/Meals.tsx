@@ -3,9 +3,12 @@ import './Meals.scss';
 import useTrigger from 'react-use-trigger/useTrigger';
 import createTrigger from 'react-use-trigger';
 import { useFetchAPI } from './util/fetchAPI';
-import { MutableRefObject, useEffect, useMemo, useReducer, useRef } from 'react';
+import { MutableRefObject, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import MealEntry from './components/MealEntry';
 import { useFetchControlAPI } from './util/fetchAPI2';
+import { MealNewDayPopup } from './components/Form';
+import { Dayjs } from 'dayjs';
+import { useSnackbar } from './components/Snackbar';
 
 
 const updateMealsTrigger = createTrigger();
@@ -165,11 +168,19 @@ export default function Meals() {
         return obj;
     }, [recipesData_raw]);
 
+    const snackbar = useSnackbar();
 
     const [mealsStateAll, dispatch]: [IState, (a: IAction) => void] = useReducer(reduceState, {data: null, updated: []});
     const mealsState = mealsStateAll.data;
 
     const sendMealPlan = useFetchControlAPI('meal', 'PUT', data => {});
+    const addMealPlan = useFetchControlAPI('meal', 'POST', data => {
+        updateMealsTrigger();
+    });
+
+    const addMealPlanDay = (day: string) => {
+        addMealPlan(JSON.stringify({day: day}));
+    }
 
     const sendDB = () => {
         //sendMealPlan();
@@ -208,6 +219,8 @@ export default function Meals() {
         }
     }, [closestDay]);
 
+    const [showNew, setShowNew] = useState(false);
+
     return (
     <div className="frame meal-main">
         <div className="header">
@@ -218,7 +231,9 @@ export default function Meals() {
                 <Button className="actions-buttons" onClick={() => console.log('search')}>
                     <i className="fas fa-search" style={{color: 'black'}}></i>
                 </Button>
-                <Button className="actions-buttons" onClick={() => console.log('add')}>
+                <Button className="actions-buttons" onClick={() => {
+                    setShowNew(true);
+                }}>
                     <i className="fas fa-plus" style={{color: 'black'}}></i>
                 </Button>
             </div>
@@ -243,9 +258,26 @@ export default function Meals() {
                     recipesData={recipesData}
                     dispatch={dispatch}
                     updateDB={sendDB}
+                    addMealPlanDay={addMealPlanDay}
                     />
             )}
         </div>
+
+        <MealNewDayPopup
+            show={showNew}
+            callback={(data: Dayjs) => {
+                const s = data.format('YYYY-MM-DD');
+
+                if (s in mealsState) {
+                    snackbar({type: 'warning', text: 'Meal plan for day already exists'});
+                    return;
+                }
+
+                addMealPlanDay(s);
+            }
+            } 
+            handleClose={() => setShowNew(false) }
+        />
     </div>
     )
 }

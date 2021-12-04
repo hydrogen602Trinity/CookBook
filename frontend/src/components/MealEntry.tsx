@@ -42,7 +42,8 @@ export interface IEntryProps {
     closestDayRef: MutableRefObject<HTMLDivElement | null>,
     meals: IMeal[],
     dispatch: (a: IAction) => void,
-    updateDB: () => void
+    updateDB: () => void,
+    addMealPlanDay: (day: string) => void
 }
 
 function convertDate(s: string): string {
@@ -63,7 +64,6 @@ export default function MealEntry(props: IEntryProps) {
     <div className="container meal-entry" ref={props.date === props.closestDay ? props.closestDayRef : undefined}>
         <IconButton className="icon-button" onClick={() => {
             if (edit) {
-                console.log('TODO: Send info to db');
                 props.updateDB();
             }
             setEdit(!edit);
@@ -113,7 +113,10 @@ export default function MealEntry(props: IEntryProps) {
             { edit ? <Collapse key={'new'}>
                 <TimelineItemWrap last={true}>
                     <p>Add Meal</p>
-                    <Button className="actions-buttons" onClick={() => console.log('add')}>
+                    <Button className="actions-buttons" onClick={() => {
+                        // add
+                        props.addMealPlanDay(props.date);
+                    }}>
                         <i className="fas fa-plus" style={{color: 'black'}}></i>
                     </Button>
                 </TimelineItemWrap>
