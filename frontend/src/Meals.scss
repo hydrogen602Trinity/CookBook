@@ -1,0 +1,141 @@
+.meal-main {
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    .header, .bar, .main {
+        padding: 10px;
+    }
+
+    .header {
+        
+        grid-area: header;
+        background-color: var(--yellow);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 1;
+
+        h1 {
+            margin: 0.5em;
+            margin-left: 5%;
+        }
+
+        button {
+            border: 0;
+            background-color: transparent;
+            font-size: var(--iconSize);
+            margin-right: 5%;
+            padding: 1%;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            margin-right: 2rem;
+            width: 33%;
+            height: 100%;
+        }
+
+        .actions-buttons {
+            border-radius: 3rem;
+            height: 100%;
+        }
+    }
+
+    .bar {
+
+        grid-area: bar;
+        background-color: var(--black);
+        display: flex;
+        justify-content: space-around;
+
+        button {
+            background-color: var(--orange);
+            border: 0px;
+            border-radius: 0.7em;
+            font-size: x-large;
+            width: 15%;
+            padding: 1em;
+        }
+    }
+
+
+    .main {
+        grid-area: main;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-y: scroll;
+        /*font-size: 8px;*/
+        text-transform: uppercase;
+        padding-top: 20px !important;
+
+        .container {
+            background-color: var(--beige);
+            margin-bottom: 20px;
+            border: 0px;
+            position: relative;
+
+            .icon-button {
+                position: absolute;
+                top: 0;
+                right: 0;
+                z-index: 1;
+            }
+
+            .MuiNativeSelect-select {
+                font-size: larger;
+                background-color: white;
+                padding: {
+                    top: 0;
+                    bottom: 0;
+                }
+            }
+        }
+
+        .MuiTimeline-root {
+            align-items: flex-start;
+            
+            > div {
+                width: 100%;
+
+                .MuiTimelineDot-filledPrimary {
+                    background-color: black;
+                }
+        
+                .MuiTimelineDot-outlinedPrimary {
+                    border-color: black;
+                }
+            }
+        }
+
+        .MuiTimelineItem-root {
+            padding-left: 1ex;
+
+            &:before {
+                content: none;
+            }
+        }
+
+        .MuiTimelineContent-root {
+            width: 100%;
+            overflow-wrap: anywhere;
+            font-size: larger;
+            text-transform: capitalize;
+
+            p {
+                margin: 0px;
+            }
+        }
+
+        h3, p {
+            font-size: inherit;
+            text-align: left;
+        }
+    }
+}

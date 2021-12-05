@@ -4,8 +4,11 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Link
+  Link,
+  useLocation
 } from "react-router-dom";
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import AdapterDateFns from '@mui/lab/AdapterDayjs';
 
 // import './index.css';
 // import App from './App';
@@ -15,6 +18,7 @@ import Users from './Users';
 import ErrorBounds from './components/ErrorBounds';
 import { SnackbarComponent } from './components/Snackbar';
 import useLogin from './util/login';
+import Meals from './Meals';
 // import { cleanQuotes } from './util/util';
 
 function Index() {
@@ -38,20 +42,36 @@ function Index() {
   </div>);
 }
 
+function NoMatch() {
+  let location = useLocation();
+
+  return (
+    <div style={{padding: '1em'}}>
+      <h1>404</h1>
+      <h3>
+        No match for <code>{location.pathname}</code>
+      </h3>
+    </div>
+  );
+}
+
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ErrorBounds>
-        <SnackbarComponent>
-          <Routes>
-            <Route path="/" element={<Index/>}/>
-            <Route path="/recipes" element={<Recipes/>}/>
-            <Route path="/users" element={<Users/>}/>
-          </Routes>
-        </SnackbarComponent>
-      </ErrorBounds>
-    </BrowserRouter>
-    
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <BrowserRouter>
+        <ErrorBounds>
+          <SnackbarComponent>
+            <Routes>
+              <Route path="/" element={<Index/>}/>
+              <Route path="/recipes" element={<Recipes/>}/>
+              <Route path="/users" element={<Users/>}/>
+              <Route path="/meals" element={<Meals/>}/>
+              <Route path="*" element={<NoMatch />}/>
+            </Routes>
+          </SnackbarComponent>
+        </ErrorBounds>
+      </BrowserRouter>
+    </LocalizationProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );
