@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Type
 from models import Meal, Recipe, Ingredient, User
+from shoppinglist import create_shoppinglist, combineIngredients, sortIngredients
+from math import ceil
 from util import curry
 from flask_app import create_app as flask_create_app
 from database import db
@@ -9,7 +11,6 @@ from flask.testing import FlaskClient
 from flask_testing import TestCase
 from flask_restful import url_for as url_for_rest
 import os
-
 
 @curry(3)
 def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
@@ -68,6 +69,22 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
         recipe = Recipe('Scrambled Eggs', 'Break and beat eggs', [], user)
         db.session.add(recipe)
         db.session.commit()
+
+        #cornbread = Recipe('Cornbread', 'Instructions Go Here', [
+        #    Ingredient('Butter', '1/4', 'cup'), Ingredient('Milk', 1, 'cup'), Ingredient('Eggs', 1), Ingredient('Cornmeal', '5/4', 'cup'),
+        #    Ingredient('Flour', 1, 'cup'), Ingredient('Sugar', '1/2', 'cup'), Ingredient('Baking Powder', 1, 'tbsp'), Ingredient('Salt', 1, 'tsp')
+        #], user, 'Side Dish', 'Basic', 40, 2)
+
+        #db.session.add(cornbread)
+        #db.session.commit()
+
+        #blueberryPie = Recipe('Blueberry Pie', 'Instructions Go Here', [
+        #    Ingredient('Flour', '9/4', 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', '2/3', 'cup'), Ingredient('Sugar', '1/2', 'cup'),
+        #    Ingredient('Cinnamon', '1/2', 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
+        #], user, 'Dessert', 'Basic', 120, 2)
+
+        #db.session.add(blueberryPie)
+        #db.session.commit()
 
         meal = Meal('meal 1', date(2021, 11, 16), user.id, recipe.id)
         db.session.add(meal)
@@ -435,7 +452,6 @@ class RecipeCase(TestCase):
 
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)
 
-
 @setup_helper('resources.userresource', 'user_id')
 class UserCase(TestCase):
     client: FlaskClient
@@ -517,7 +533,6 @@ class UserCase(TestCase):
 
         response = self.client.get(self.GET_API_NODE(3))
         self.assert404(response)
-
 
 @setup_helper('resources.mealresource', 'meal_id')
 class MealCase(TestCase):
@@ -704,4 +719,15 @@ class MealCase(TestCase):
         response = self.client.get(self.GET_API_NODE(2))
         self.assert404(response)
 
+@setup_helper('resources.mealresource', 'meal_id')
+class ShoppingTest(TestCase):
+    client: FlaskClient
+    
+    def test_createList(self):
 
+        meal2 = Meal('meal 2', date(2021, 11, 16), 1, 1)
+        meal3 = Meal('meal 3', date(2021, 11, 16), 1, 2)
+        
+        #ingredients = create_shoppinglist([meal2, meal3])
+
+        #self.assertEqual(ingredients, [])
