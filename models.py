@@ -86,6 +86,7 @@ class Recipe(db.Model):
                 'id': self.id,
                 'name': self.name,
                 'notes': self.notes,
+                'recipeTags': [i.toJson() for i in self.recipe_Tags],
                 'ingredients': [i.toJson() for i in self.ingredients],
                 'rating': self.rating,
                 'prepTime': self.prepTime
@@ -202,7 +203,7 @@ class Tag(db.Model):
                 'id': self.id,
                 'tagType': self.tagType,
                 'assocUsers': [i.toJson() for i in self.assocUsers],
-                'assocRecipes': [i.toJson() for i in self.assocRecipes]
+                'assocRecipes': [i.toJson(minimum=True) for i in self.assocRecipes]
             }
         else:
             return {

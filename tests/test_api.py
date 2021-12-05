@@ -331,7 +331,8 @@ class RecipeCase(TestCase):
 
         response = self.client.get(self.API_NODE)
         self.assert200(response)
-        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
+        self.assertEqual([{'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'ingredients': [], 
+            'recipeTags': [], 'rating': None, 'prepTime': None}], response.json)
 
     def test_put_create(self):
         response = self.client.put(self.API_NODE, json={
@@ -469,8 +470,7 @@ class RecipeTagCase(TestCase):
         response = self.client.get(self.TAG_API_NODE(None) + '?showAssociates=True')
         self.assert200(response)
         self.assertEqual([{'id': 1, 'tagType': 'Spicy', 'assocUsers': [], 'assocRecipes': [
-            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'recipeTags': [{'id': 1, 'tagType': 'Spicy'}],
-            'ingredients': [], 'rating': None, 'prepTime': None}]
+            {'id': 1, 'name': 'Scrambled Eggs'}]
         }], response.json)
 
 
