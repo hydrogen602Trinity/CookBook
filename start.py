@@ -29,7 +29,7 @@ stopDB = obj['stopDB']
 
 
 def print_usage():
-    print('Usage: {} install|test|init|run|run-front'.format(sys.argv[0]))
+    print('Usage: {} install|test|init|init-all|run|run-front'.format(sys.argv[0]))
     print('Usage: {} pg start|stop'.format(sys.argv[0]))
 
 
@@ -185,6 +185,10 @@ elif sys.argv[1] == 'test':
 
 elif sys.argv[1] == 'init':
     os.environ['INIT_DB'] = '1'
+    main()
+
+elif sys.argv[1] == 'init-all':
+    os.environ['INIT_DB'] = '2'
     main()
 
 elif sys.argv[1] == 'run':

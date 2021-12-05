@@ -12,15 +12,68 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import DatePicker from '@mui/lab/DatePicker';
+
 
 import "./Form.scss";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useBetterState from '../util/classLikeState';
+import dayjs from 'dayjs';
 
 // props need to have
 // show => bool
 // handleClose => fn that hides
 // callback => fn that receives state
+
+export function MealNewDayPopup(props) {
+    const init_state = '';
+    const handleClose = props.handleClose;
+    const handleCreate = () => {
+        props.callback(state);
+        handleClose();
+        setState(init_state);
+    };
+
+    const [state, setState] = useState(dayjs());
+
+    const handleChange = value => { 
+        setState(value); 
+    }
+
+    useEffect(() => {
+        if (props.show) {
+            setState(dayjs());
+        }
+    }, [props.show]);
+
+    return (
+        <Dialog open={props.show} onClose={handleClose} maxWidth="sm" fullWidth className="meal-new-day-popup">
+            <DialogTitle>New Day Meal Plan</DialogTitle>
+            <DialogContent>
+                {/* <TextField
+                    autoFocus
+                    margin="dense"
+                    id="search-term"
+                    label="Search Term"
+                    fullWidth
+                    variant="outlined"
+                    value={state}
+                    onChange={handleChange}
+                /> */}
+                <DatePicker
+                    label="New Day"
+                    value={state}
+                    onChange={handleChange}
+                    renderInput={(params) => <TextField {...params} />}
+                />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={handleCreate}>Create</Button>
+            </DialogActions>
+        </Dialog>
+        );
+}
 
 export function SearchPopup(props) {
     const init_state = '';
