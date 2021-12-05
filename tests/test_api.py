@@ -119,7 +119,6 @@ class RecipeCase(TestCase):
         self.assert200(response)
         self.assertEqual([], response.json)
 
-
     def test_create(self):
         data = {
             'name': 'Cooked Eggs',
@@ -437,7 +436,7 @@ class RecipeCase(TestCase):
 
         self.assertEqual(db.session.query(Ingredient).filter(Ingredient.recipe_id == 2).count(), 1)
 
-@setup_helper('resources.tagmanager', ['recipe_id', 'tag_id'])
+@setup_helper('resources.recipetagmanager', ['recipe_id', 'tag_id'])
 class RecipeTagCase(TestCase):
     client: FlaskClient
 
@@ -445,18 +444,29 @@ class RecipeTagCase(TestCase):
         self.login(self.user)
 
         self.GET_API_NODE = \
-                lambda arg1, arg2: url_for_rest('resources.tagmanager', _external=False, recipe_id=arg1, tag_id=arg2)
+            lambda arg1, arg2: url_for_rest('resources.recipetagmanager', _external=False, recipe_id=arg1, tag_id=arg2)
         
         self.RECIPE_API_NODE = \
-                lambda arg: url_for_rest('resources.reciperesource', _external=False, recipe_id=arg)
+            lambda arg: url_for_rest('resources.reciperesource', _external=False, recipe_id=arg)
 
         response = self.client.put(self.GET_API_NODE(1, 1))
         self.assert200(response)
 
         response = self.client.get(self.RECIPE_API_NODE(1))
         self.assert200(response)
-        self.assertEqual({'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs','recipeTags': [{'id': 1, 'tagType': 'Spicy'}],
+        self.assertEqual({'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'recipeTags': [{'id': 1, 'tagType': 'Spicy'}],
             'ingredients': [], 'rating': None, 'prepTime': None}, response.json)
+        
+        self.TAG_API_NODE = \
+            lambda arg: url_for_rest('resources.tagresource', _external=False, tag_id=arg)
+
+        response = self.client.get(self.TAG_API_NODE(None) + '?showAssociates=True')
+        self.assert200(response)
+        self.assertEqual([{'id': 1, 'tagType': 'Spicy', 'assocUsers': [], 'assocRecipes': [
+            {'id': 1, 'name': 'Scrambled Eggs', 'notes': 'Break and beat eggs', 'recipeTags': [{'id': 1, 'tagType': 'Spicy'}],
+            'ingredients': [], 'rating': None, 'prepTime': None}]
+        }], response.json)
+
 
 @setup_helper('resources.userresource', 'user_id')
 class UserCase(TestCase):
@@ -474,8 +484,8 @@ class UserCase(TestCase):
         self.assert200(response)
 
         self.assertEqual([
-            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'},
-            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin'}
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de', 'userTags': []},
+            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin', 'userTags': []}
         ], response.json)
 
     def test_create(self):
@@ -498,15 +508,15 @@ class UserCase(TestCase):
         response = self.client.get(self.API_NODE)
         self.assert200(response)
         self.assertEqual([
-            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de'},
-            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin'},
-            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de', 'userTags': []},
+            {'email': 'admin@test.de', 'id': 2, 'name': 'Admin', 'userTags': []},
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de', 'userTags': []}
         ], response.json)
 
         response = self.client.get(self.GET_API_NODE(3))
         self.assert200(response)
         self.assertEqual(
-            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de', 'userTags': []}
         , response.json)
 
     def test_delete(self):
@@ -524,7 +534,7 @@ class UserCase(TestCase):
         response = self.client.get(self.GET_API_NODE(3))
         self.assert200(response)
         self.assertEqual(
-            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de'}
+            {'id': 3, 'name': 'Moritz Mustermann', 'email': 'nein@weissnicht.de', 'userTags': []}
         , response.json)
 
         self.logout()
@@ -539,6 +549,27 @@ class UserCase(TestCase):
 
         response = self.client.get(self.GET_API_NODE(3))
         self.assert404(response)
+
+@setup_helper('resources.usertagmanager', ['user_id', 'tag_id'])
+class UserTagCase(TestCase):
+    client: FlaskClient
+
+    def test_put(self):
+        self.login(self.admin)
+
+        self.GET_API_NODE = \
+                lambda arg1, arg2: url_for_rest('resources.usertagmanager', _external=False, user_id=arg1, tag_id=arg2)
+        
+        self.USER_API_NODE = \
+                lambda arg: url_for_rest('resources.userresource', _external=False, user_id=arg)
+
+        response = self.client.put(self.GET_API_NODE(1, 1))
+        self.assert200(response)
+
+        response = self.client.get(self.USER_API_NODE(1))
+        self.assert200(response)
+        self.assertEqual(
+            {'id': 1, 'name': 'Max Mustermann', 'email': 'max.mustermann@t-online.de', 'userTags': [{'id': 1, 'tagType': 'Spicy'}]}, response.json)
 
 @setup_helper('resources.mealresource', 'meal_id')
 class MealCase(TestCase):

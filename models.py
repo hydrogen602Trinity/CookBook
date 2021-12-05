@@ -157,7 +157,7 @@ class User(UserMixin, db.Model):
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
         self.is_admin = is_admin
-        # self.tags = tags if tags else None
+        self.user_Tags = []
         #self.meals = meals if meals else None
 
     def __repr__(self) -> str:
@@ -167,7 +167,8 @@ class User(UserMixin, db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'email': self.email
+            'email': self.email,
+            'userTags': [i.toJson() for i in self.user_Tags]
         }
 
 class Tag(db.Model):
@@ -188,13 +189,19 @@ class Tag(db.Model):
     def __repr__(self) -> str:
         return f'Tag(id={self.id}, tagType={self.tagType})'
 
-    def toJson(self) -> Dict[str, Any]:
-        return {
-            'id': self.id,
-            'tagType': self.tagType
-            #'assocUsers': [i.toJson() for i in self.assocUsers],
-            #'assocRecipes': [i.toJson() for i in self.assocRecipes]
-        }
+    def toJson(self, showAssociates: bool = False) -> Dict[str, Any]:
+        if showAssociates:
+            return {
+                'id': self.id,
+                'tagType': self.tagType,
+                'assocUsers': [i.toJson() for i in self.assocUsers],
+                'assocRecipes': [i.toJson() for i in self.assocRecipes]
+            }
+        else:
+            return {
+                'id': self.id,
+                'tagType': self.tagType
+            }
 
 class Meal(db.Model):
 

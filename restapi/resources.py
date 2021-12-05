@@ -38,7 +38,7 @@ def positive_int(s: str) -> int:
     return n
 
 @add_resource(api, '/recipetags/<int:recipe_id>/<int:tag_id>')
-class TagManager(Resource):
+class RecipeTagManager(Resource):
 
     def get(self, recipe_id: Optional[int] = None, tag_id: Optional[int] = None):
         q = db.session.query(recipeTags).order_by(recipeTags.recipe_id)
@@ -47,20 +47,42 @@ class TagManager(Resource):
             handle_nonexistance(recipe_tagList)
             return recipe_tagList, 200
         else:
-            return recipe_tagList, 200
+            return q, 200
 
     def put(self, recipe_id: int, tag_id: int):
         recipe: Optional[Recipe] = db.session.query(Recipe).filter(Recipe.id == recipe_id).one_or_none()
-        bob = recipe.recipe_Tags
         tag: Optional[Tag] = db.session.query(Tag).filter(Tag.id == tag_id).one_or_none()
 
         if recipe and tag:
             recipe.recipe_Tags.append(tag)
-            bub = recipe.recipe_Tags
             db.session.commit()
             return 201
         else:
             return f'No object found with recipe_id={recipe_id} or tag_id={tag_id}', 404
+
+@add_resource(api, 'usertags/<int:user_id>/<int:tag_id>')
+class UserTagManager(Resource):
+
+    def get(self, user_id: Optional[int] = None, tag_id: Optional[int] = None):
+        q = db.session.query(userTags).order_by(userTags.user_id)
+        if user_id and tag_id:
+            user_tagList = q.filter(userTags.user_id == user_id)
+            handle_nonexistance(user_tagList)
+            return user_tagList, 200
+        else:
+            return q, 200
+    
+    def put(self, user_id: int, tag_id: int):
+        user: Optional[User] = db.session.query(User).filter(User.id == user_id).one_or_none()
+        tag: Optional[Tag] = db.session.query(Tag).filter(Tag.id == tag_id).one_or_none()
+
+        if user and tag:
+            bob = user.user_Tags
+            user.user_Tags.append(tag)
+            db.session.commit()
+            return 201
+        else:
+            return f'No object found with user_id={user_id} or tag_id={tag_id}', 404
 
 @add_resource(api, '/recipe', '/recipe/<int:recipe_id>')
 class RecipeResource(Resource):
@@ -329,13 +351,14 @@ class TagResource(Resource):
             return f'No object found with tag_id={data["id"]}', 404
         
     def get(self, tag_id: Optional[int] = None):
+        showAssociates = bool(request.args.get('showAssociates', type=bool))
         # Search
         if tag_id:
             tag = db.session.query(Tag).get(tag_id)
             handle_nonexistance(tag)
-            return jsonify(tag.toJson())
+            return jsonify(tag.toJson(showAssociates=showAssociates))
         else:
-            return jsonify([tag.toJson() for tag in Tag.query.all()])
+            return jsonify([tag.toJson(showAssociates=showAssociates) for tag in Tag.query.all()])
 
     @optional_param_check(True, 'tag_id')
     def delete(self, tag_id: Optional[int] = None):
