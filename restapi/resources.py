@@ -135,8 +135,11 @@ class RecipeResource(Resource):
             return jsonify(recipe.toJson(minimum=minimum))
         else:
             search = request.args.get('search', type=str)
+            search_i = request.args.get('searchi', type=str)
             if search:
                 q = q.filter(Recipe.name.ilike(f'%{search}%'))
+            if search_i:
+                q = q.join(Recipe.ingredients).filter(Ingredient.name.ilike(f'%{search_i}%'))
             # current_app.logger.debug('Getting all recipes')
             return jsonify([recipe.toJson(minimum=minimum) for recipe in q.filter(Recipe.deleted == False).all()])
 

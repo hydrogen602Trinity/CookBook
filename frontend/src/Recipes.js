@@ -23,9 +23,19 @@ const updateRecipesTrigger = createTrigger();
 
 
 export default function Recipes() {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(['', '']);
     const updateRecipesTriggerValue = useTrigger(updateRecipesTrigger);
-    const [ isLoading, recipesData, error ] = useFetchAPI(searchTerm ? `recipe?search=${encodeURIComponent(searchTerm)}` : 'recipe', [updateRecipesTriggerValue]);
+
+    const [ isLoading, recipesData, error ] = useFetchAPI((() => {
+        const [recipe, ingredient] = searchTerm;
+
+        const r = recipe ? `search=${encodeURIComponent(recipe)}` : '';
+        const i = ingredient ? `searchi=${encodeURIComponent(ingredient)}` : '';
+
+        const prefix = 'recipe' + ((r || i) ? '?' : '');
+
+        return prefix + r + ((r && i) ? '&' : '') + i;
+    })(), [updateRecipesTriggerValue]);
 
     const [recipes, setRecipes] = useState([]);
 
@@ -74,22 +84,28 @@ export default function Recipes() {
                 <button>Edit</button>
                 <button>Delete</button>
             </div> */}
-            
+
             <div className="main" id="content">
                 <TransitionGroup>
-                    {searchTerm ? 
+                    {(searchTerm[0] || searchTerm[1])  ? 
                     <Slide direction="down" container={ref.current}>
                         <div className="search-term">
                             <div>
                                 <span>
                                     <Button className="actions-buttons" onClick={() => setShowSearch(true)}>
                                         <i className="fas fa-search" style={{color: 'black'}}></i>
-                                    </Button>{searchTerm}
+                                    </Button>
+                                    {searchTerm[0]}
                                 </span>
-                                <Button onClick={() => setSearchTerm('')}>
+                                <Button onClick={() => setSearchTerm(['', ''])}>
                                     <i className="fas fa-times"></i>
                                 </Button>
                             </div>
+                            {searchTerm[1] ? 
+                            <div>
+                                <span>Ingredient: {searchTerm[1]}</span>
+                            </div>
+                            : null}
                         </div>
                     </Slide>
                     : null }
