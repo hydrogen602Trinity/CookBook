@@ -1,4 +1,4 @@
-from models import Ingredient, Meal, Recipe, User
+from models import Ingredient, Meal, Recipe, User, Tag
 import restapi
 from typing import Optional
 from flask import Flask
@@ -94,8 +94,17 @@ def setup_database(app: Flask, load_csv: bool = False):
         db.session.commit()
 
         #print(recipe.ingredients)
-
         # print('all:', Ingredient.query.all())
+
+        # Create Tags
+        spicyTag = Tag('Spicy')
+        db.session.add(spicyTag)
+        mildTag = Tag('Mild')
+        db.session.add(mildTag)
+        vegetarianTag = Tag('Vegetarian')
+        db.session.add(vegetarianTag)
+
+        db.session.commit()
 
         # Name = 0
         # Rating = 1
@@ -106,46 +115,54 @@ def setup_database(app: Flask, load_csv: bool = False):
         # Ingredients = 9 , in double quotes or alone if single ingredient
         if load_csv:
             with open('data_source/data_recipes.csv') as csvfile:
-                line_count = 0
-                csv_reader = csv.reader(csvfile, delimiter=',')
-                for row in csv_reader:
-                    if line_count > 0:
-                        # print(line_count)
-                        line_count += 1
-                        name = f"{row[0]}"
-                        rating = len(f"{row[1]}")
-                        rating = None if rating == 0 else rating
-                        diff_string = f"{row[2]}"
-                        difficulty = 0
-                        if diff_string == "Super Simple":
-                            difficulty = 1
-                        elif diff_string == "Fairly Easy":
-                            difficulty = 2
-                        elif diff_string == "Average":
-                            difficulty = 3
-                        elif diff_string == "Hard":
-                            difficulty = 4
-                        else:
-                            difficulty = 5
-                        notes = f"{row[3]}"
-                        courseType = f"{row[4]}"
-                        prepTime = 60
-                        if f"{row[5]}" != '':
-                            prepTime = int(row[5])
-                        ingredients_string = f"{row[9]}"
-                        ingredients_list = ingredients_string.split(",")
-                        ingredients = []
-                        for string in ingredients_list:
-                            ingredients.append(Ingredient(string, 1))
-                        style = "N/A"
-                        # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
-                        newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
-                        db.session.add(newThing)
-                        db.session.commit()
-                    else: line_count += 1
+              line_count = 0
+              csv_reader = csv.reader(csvfile, delimiter=',')
+              for row in csv_reader:
+                  if line_count > 0:
+                     # print(line_count)
+                      line_count += 1
+                      name = f"{row[0]}"
+                      rating = len(f"{row[1]}")
+                      if rating < 1 or rating > 5:
+                          rating = None
+                      diff_string = f"{row[2]}"
+                      difficulty = 0
+                      if diff_string == "Super Simple":
+                          difficulty = 1
+                      elif diff_string == "Fairly Easy":
+                          difficulty = 2
+                      elif diff_string == "Average":
+                          difficulty = 3
+                      elif diff_string == "Hard":
+                          difficulty = 4
+                      else: difficulty = 5
+                      notes = f"{row[3]}"
+                      courseType = f"{row[4]}"
+                      prepTime = 60
+                      if f"{row[5]}" != '':
+                          prepTime = int(row[5])
+                      ingredients_string = f"{row[9]}"
+                      ingredients_list = ingredients_string.split(",")
+                      ingredients = []
+                      for string in ingredients_list:
+                          ingredAndAmts = string.split("-")
+                          if len(ingredAndAmts) >= 3:
+                              ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1], ingredAndAmts[2]))
+                          elif len(ingredAndAmts) == 2:
+                              ingredients.append(Ingredient(ingredAndAmts[0], ingredAndAmts[1]))
+                          else: ingredients.append(Ingredient(ingredAndAmts[0], 1))
+                      style = "N/A"
+                      # print(name,", ",notes,", ",courseType,", ",style,", ",prepTime,", ",difficulty,", ",rating)
+                      newThing = Recipe(name, notes, ingredients, user1, courseType, style, prepTime, difficulty, rating)
+                      db.session.add(newThing)
+                      db.session.commit()
+                  else: line_count += 1
 
-        print('all:', Recipe.query.all())
+        #print('all:', Recipe.query.all())
 
+def addTags(app: Flask, recipe_id: int, tagName: str, tagID: Optional[int] = None):
+    with app.app_context():
+        print("Hello World")
 
 def create_app(testing: bool = False, db_name: Optional[str] = None) -> Flask:
     app = CustomFlask(__name__)
