@@ -1,7 +1,6 @@
 from datetime import date
 from typing import Type
 from models import Meal, Recipe, Ingredient, User, Tag
-from shoppinglist import create_shoppinglist, combineIngredients, sortIngredients
 from math import ceil
 from util import curry
 from flask_app import create_app as flask_create_app
@@ -473,7 +472,6 @@ class RecipeTagCase(TestCase):
             {'id': 1, 'name': 'Scrambled Eggs'}]
         }], response.json)
 
-
 @setup_helper('resources.userresource', 'user_id')
 class UserCase(TestCase):
     client: FlaskClient
@@ -762,15 +760,57 @@ class MealCase(TestCase):
         response = self.client.get(self.GET_API_NODE(2))
         self.assert404(response)
 
-@setup_helper('resources.mealresource', 'meal_id')
+@setup_helper('resources.shoppinglistresource', ['meal_id'])
 class ShoppingTest(TestCase):
     client: FlaskClient
     
     def test_createList(self):
 
-        meal2 = Meal('meal 2', date(2021, 11, 16), 1, 1)
-        meal3 = Meal('meal 3', date(2021, 11, 16), 1, 2)
-        
-        #ingredients = create_shoppinglist([meal2, meal3])
+        user = User('Bob Bustermann', 'bax.bustermann@t-online.de', 'unittest')
+        db.session.add(user)
+        db.session.commit()
 
-        #self.assertEqual(ingredients, [])
+        recipe2 = Recipe('Cornbread', 'Instructions Go Here', [
+            Ingredient('Butter', '1/4', 'cup'), Ingredient('Milk', 1, 'cup'), Ingredient('Eggs', 1), Ingredient('Cornmeal', '5/4', 'cup'),
+            Ingredient('Flour', 1, 'cup'), Ingredient('Sugar', '1/2', 'cup'), Ingredient('Baking Powder', 1, 'tbsp'), Ingredient('Salt', 1, 'tsp')
+        ], user, 'Side Dish', 'Basic', 40, 2)
+        db.session.add(recipe2)
+        db.session.commit()
+
+        recipe3 = Recipe('Blueberry Pie', 'Instructions Go Here', [
+            Ingredient('Flour', '9/4', 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', '2/3', 'cup'), Ingredient('Sugar', '1/2', 'cup'),
+            Ingredient('Cinnamon', '1/2', 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
+        ], user, 'Dessert', 'Basic', 120, 2)
+        db.session.add(recipe3)
+        db.session.commit()
+
+        # year - month - day
+        meal2 = Meal('meal 2', date(2021, 12, 6), 2, 1)
+        db.session.add(meal2)
+        db.session.commit()
+
+        meal3 = Meal('meal 3', date(2021, 12, 8), 2, 2)
+        db.session.add(meal3)
+        db.session.commit()
+
+        meal4 = Meal('meal 4', date(2021, 12, 9), 2, 3)
+        db.session.add(meal4)
+        db.session.commit()
+
+        start = "2021-12-06"
+        end = "2021-12-10"
+
+        self.GET_API_NODE = \
+            lambda arg1, arg2: url_for_rest('resources.shoppinglistresource', 
+                _external=False, date_start=arg1, date_end=arg2)
+        
+        response = self.client.get(self.GET_API_NODE(start, end) + '?noID=True')
+        self.assert200(response)
+        self.assertEqual([{'name': 'Baking Powder', 'num': 1, 'denom': 1, 'unit': 'tbsp'},
+            {'name': 'Blueberries', 'num': 6, 'denom': 1, 'unit': 'cup'}, {'name': 'Butter', 'num': 75, 'denom': 1, 'unit': 'ml'},
+            {'name': 'Cinnamon', 'num': 1, 'denom': 2, 'unit': 'tsp'}, {'name': 'Cornmeal', 'num': 5, 'denom': 4, 'unit': 'cup'},
+            {'name': 'Eggs', 'num': 1, 'denom': 1, 'unit': None}, {'name': 'Flour', 'num': 13, 'denom': 4, 'unit': 'cup'},
+            {'name': 'Milk', 'num': 1, 'denom': 1, 'unit': 'cup'}, {'name': 'Salt', 'num': 2, 'denom': 1, 'unit': 'tsp'},
+            {'name': 'Shortening', 'num': 2, 'denom': 3, 'unit': 'cup'}, {'name': 'Sugar', 'num': 1, 'denom': 1, 'unit': 'cup'}
+        ], response.json)
+        
