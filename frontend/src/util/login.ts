@@ -59,7 +59,7 @@ export default function useLogin() {
                 return null;
             }
         // eslint-disable-next-line
-        ), []);;
+        ), []);
     
 
     return {doLogin: doLogin, doLogout: doLogout, checkLogin: checkLogin};

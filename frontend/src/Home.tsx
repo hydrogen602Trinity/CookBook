@@ -43,7 +43,9 @@ export default function Home() {
         </div>
         
         <div className="main" id="content">
-
+            <Button onClick={() => console.log('idk')} style={{color: 'black'}}>
+                Create Shopping Plan
+            </Button>
         </div>
     </div>
     )
