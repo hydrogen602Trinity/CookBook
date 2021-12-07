@@ -50,8 +50,8 @@ function Index() {
         </li>
       </ul>
       </nav>
-      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'})}>Login Admin</button>
-      <button onClick={() => login.doLogin({email: 'max.mustermann@t-online.de', password: 'postgres'})}>Login Default</button>
+      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'}).then(_ => nav('/home'))}>Login Admin</button>
+      <button onClick={() => login.doLogin({email: 'max.mustermann@t-online.de', password: 'postgres'}).then(_ => nav('/home'))}>Login Default</button>
       <button onClick={login.doLogout}>Logout</button>
   </div>);
 }
@@ -74,9 +74,20 @@ function NavMenu() {
 
   return (
     <div className="route-menu">
-      <Button variant="text" onClick={() => nav('/')}>Home</Button>
+      <Button variant="text" onClick={() => nav('/home')}>Home</Button>
       <Button variant="text" onClick={() => nav('/recipes')}>Recipes</Button>
       <Button variant="text" onClick={() => nav('/meals')}>Meal Plan</Button>
+    </div>
+  );
+}
+
+function NavWrapper({children}) {
+  return (
+    <div className="routing">
+      <div>
+        {children}
+      </div>
+      <NavMenu />
     </div>
   );
 }
@@ -87,19 +98,19 @@ ReactDOM.render(
       <BrowserRouter>
         <ErrorBounds>
           <SnackbarComponent>
-            <div className="routing">
-              <div>
+            {/* <div className="routing">
+              <div> */}
                 <Routes>
                   <Route path="/" element={<Index/>}/>
-                  <Route path="/recipes" element={<Recipes/>}/>
-                  <Route path="/users" element={<Users/>}/>
-                  <Route path="/meals" element={<Meals/>}/>
-                  <Route path="/home" element={<Home />} />
+                  <Route path="/recipes" element={(<NavWrapper><Recipes/></NavWrapper>)}/>
+                  <Route path="/users" element={<NavWrapper><Users/></NavWrapper>}/>
+                  <Route path="/meals" element={<NavWrapper><Meals/></NavWrapper>}/>
+                  <Route path="/home" element={<NavWrapper><Home /></NavWrapper>} />
                   <Route path="*" element={<NoMatch />}/>
                 </Routes>
-              </div>
+              {/* </div>
               <NavMenu />
-            </div>
+            </div> */}
           </SnackbarComponent>
 
           

@@ -22,7 +22,7 @@ export default function Home() {
     };
 
     useEffect(() => {
-        login.checkLogin(user => {
+        login.checkLogin().then(user => {
             if (!user) {
                 sendToLogin();
             }
@@ -36,7 +36,7 @@ export default function Home() {
                 Home
             </h1>
             <div className="actions">
-                <Button className="actions-buttons" onClick={login.doLogout}>
+                <Button className="actions-buttons" onClick={() => login.doLogout().then(_ => nav('/'))}>
                     <i className="fas fa-sign-out-alt" style={{color: 'black'}}></i>
                 </Button>
             </div>

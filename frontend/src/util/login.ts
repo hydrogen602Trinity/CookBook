@@ -13,18 +13,17 @@ export interface ILoginData {
 export default function useLogin() {
     const dispatchMsg = useSnackbar();
 
-    const checkLogin = useCallback((callback: (data: any) => void) => {
+    const checkLogin = useCallback(() => 
         fetchControlAPI2('login', 'GET')
-            .then(response => {
-                response.json().then(callback)
-            }).catch(err =>
-                dispatchMsg({type: 'error', text: `Login Status Check Failed: ${err.message}`})
-            );
-    }, [dispatchMsg]);
+            .then(response => response.json()).then(user => user as (string | null)).catch(err => {
+                dispatchMsg({type: 'error', text: `Login Status Check Failed: ${err.message}`});
+                return null;
+            }
+        ), [dispatchMsg]);
 
-    const doLogin = useCallback((data: ILoginData) => {
+    const doLogin = useCallback((data: ILoginData) =>
         fetchControlAPI2('login', 'POST', data)
-            .then(response => {
+            .then(response =>
                 response.text().then(preText => {
                     let text = cleanQuotes(preText);
                     if (response.ok) {
@@ -33,18 +32,19 @@ export default function useLogin() {
                     else {
                         dispatchMsg({type: 'error', text: `Login Failed: ${text}`});
                     }
+                    return text;
                 })
-            }).catch(err => 
-                dispatchMsg({type: 'error', text: `Login Failed: ${err.message}`})
-        );
+            ).catch(err => {
+                dispatchMsg({type: 'error', text: `Login Failed: ${err.message}`});
+                return null;
+            }
         // eslint-disable-next-line
-    }, []);
+        ), []);
 
-    const doLogout = useCallback(() => {
+    const doLogout = useCallback(() =>
         fetchControlAPI2('login', 'DELETE')
-            .then(response => {
+            .then(response =>
                 response.text().then(preText => {
-                
                     let text = cleanQuotes(preText);
                     if (response.ok) {
                         dispatchMsg({type: 'success', text: 'Successfully logged out'});
@@ -52,12 +52,15 @@ export default function useLogin() {
                     else {
                         dispatchMsg({type: 'error', text: `Logout Failed: ${text}`});
                     }
+                    return text;
                 })
-            }).catch(err =>
-                dispatchMsg({type: 'error', text: `Logout Failed: ${err.message}`})
-        );
+            ).catch(err => {
+                dispatchMsg({type: 'error', text: `Logout Failed: ${err.message}`});
+                return null;
+            }
         // eslint-disable-next-line
-    }, []);
+        ), []);;
+    
 
     return {doLogin: doLogin, doLogout: doLogout, checkLogin: checkLogin};
 }
