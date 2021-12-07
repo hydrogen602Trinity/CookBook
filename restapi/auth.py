@@ -4,11 +4,13 @@ from flask_restful import Resource, reqparse
 # from flask import current_app
 # from datetime import date
 # from time import sleep
+from flask.json import jsonify
 from werkzeug.security import check_password_hash
 from flask_login import login_user, current_user, logout_user
 
 
 from models import db, User
+from restapi.auth_util import require_auth
 from .util import require_truthy_values, add_resource
 from .resources import api
 
@@ -21,7 +23,11 @@ class LoginResource(Resource):
     user_parser.add_argument('password', type=str, help='User Password')
 
     def get(self):
-        return current_user.name if current_user.is_authenticated else 'None'
+        '''
+        Check if user is logged in, returning the username if true, else None
+        Result is JSON
+        '''
+        return jsonify(current_user.name if current_user.is_authenticated else None)
 
     def post(self):
         #print('login?')
@@ -35,6 +41,7 @@ class LoginResource(Resource):
         #print('login!', current_user.name)
         return user.name, 201
     
+    @require_auth
     def delete(self):
         # logout cause why not
         if current_user.is_authenticated:

@@ -5,7 +5,8 @@ import {
   Routes,
   Route,
   Link,
-  useLocation
+  useLocation,
+  useNavigate
 } from "react-router-dom";
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import AdapterDateFns from '@mui/lab/AdapterDayjs';
@@ -20,6 +21,9 @@ import { SnackbarComponent } from './components/Snackbar';
 import useLogin from './util/login';
 import Meals from './Meals';
 // import { cleanQuotes } from './util/util';
+
+import "./index.scss";
+import { Button } from '@material-ui/core';
 
 function Index() {
   const login = useLogin();
@@ -55,20 +59,39 @@ function NoMatch() {
   );
 }
 
+function NavMenu() {
+  const nav = useNavigate();
+
+  return (
+    <div className="route-menu">
+      <Button variant="text" onClick={() => nav('/')}>Home</Button>
+      <Button variant="text" onClick={() => nav('/recipes')}>Recipes</Button>
+      <Button variant="text" onClick={() => nav('/meals')}>Meal Plan</Button>
+    </div>
+  );
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <BrowserRouter>
         <ErrorBounds>
           <SnackbarComponent>
-            <Routes>
-              <Route path="/" element={<Index/>}/>
-              <Route path="/recipes" element={<Recipes/>}/>
-              <Route path="/users" element={<Users/>}/>
-              <Route path="/meals" element={<Meals/>}/>
-              <Route path="*" element={<NoMatch />}/>
-            </Routes>
+            <div className="routing">
+              <div>
+                <Routes>
+                  <Route path="/" element={<Index/>}/>
+                  <Route path="/recipes" element={<Recipes/>}/>
+                  <Route path="/users" element={<Users/>}/>
+                  <Route path="/meals" element={<Meals/>}/>
+                  <Route path="*" element={<NoMatch />}/>
+                </Routes>
+              </div>
+              <NavMenu />
+            </div>
           </SnackbarComponent>
+
+          
         </ErrorBounds>
       </BrowserRouter>
     </LocalizationProvider>

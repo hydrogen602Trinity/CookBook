@@ -12,8 +12,7 @@ export function useFetchControlAPI(path: string, method: 'GET' | 'PUT' | 'POST' 
         nav('/');
     };
 
-    
-    
+
     return useCallback(async (data: any) => {
         let result = null;
         try {
@@ -34,5 +33,5 @@ export function useFetchControlAPI(path: string, method: 'GET' | 'PUT' | 'POST' 
         }
 
         return callback(result);
-    }, [path, method, json]);
+    }, [path, method, json, callback]);
 }
