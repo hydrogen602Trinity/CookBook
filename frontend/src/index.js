@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import {
   BrowserRouter,
@@ -20,6 +20,7 @@ import ErrorBounds from './components/ErrorBounds';
 import { SnackbarComponent } from './components/Snackbar';
 import useLogin from './util/login';
 import Meals from './Meals';
+import Home from './Home';
 // import { cleanQuotes } from './util/util';
 
 import "./index.scss";
@@ -27,6 +28,15 @@ import { Button } from '@material-ui/core';
 
 function Index() {
   const login = useLogin();
+
+  const nav = useNavigate();
+  useEffect(() => {
+      login.checkLogin(user => {
+          if (user) {
+              nav('/home');
+          }
+      });
+  }, [login, nav]);
 
   return (      
   <div>
@@ -84,6 +94,7 @@ ReactDOM.render(
                   <Route path="/recipes" element={<Recipes/>}/>
                   <Route path="/users" element={<Users/>}/>
                   <Route path="/meals" element={<Meals/>}/>
+                  <Route path="/home" element={<Home />} />
                   <Route path="*" element={<NoMatch />}/>
                 </Routes>
               </div>

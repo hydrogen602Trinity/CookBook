@@ -4,10 +4,16 @@ import { fetchControlAPI2 } from './fetchAPI';
 import { cleanQuotes } from './util';
 
 
+export interface ILoginData {
+    email: string,
+    password: string
+}
+
+
 export default function useLogin() {
     const dispatchMsg = useSnackbar();
 
-    const checkLogin = useCallback(callback => {
+    const checkLogin = useCallback((callback: (data: any) => void) => {
         fetchControlAPI2('login', 'GET')
             .then(response => {
                 response.json().then(callback)
@@ -16,7 +22,7 @@ export default function useLogin() {
             );
     }, [dispatchMsg]);
 
-    const doLogin = useCallback(data => {
+    const doLogin = useCallback((data: ILoginData) => {
         fetchControlAPI2('login', 'POST', data)
             .then(response => {
                 response.text().then(preText => {
