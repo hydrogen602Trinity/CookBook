@@ -228,9 +228,9 @@ export default function Meals() {
                 Meal Planner
             </h1>
             <div className="actions">
-                <Button className="actions-buttons" onClick={() => console.log('search')}>
+                {/* <Button className="actions-buttons" onClick={() => console.log('search')}>
                     <i className="fas fa-search" style={{color: 'black'}}></i>
-                </Button>
+                </Button> */}
                 <Button className="actions-buttons" onClick={() => {
                     setShowNew(true);
                 }}>

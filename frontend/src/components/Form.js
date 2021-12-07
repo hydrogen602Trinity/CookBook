@@ -80,12 +80,13 @@ export function SearchPopup(props) {
 
     const handleClose = props.handleClose;
     const handleCreate = () => {
-        props.callback(state);
+        props.callback([state,ingredient]);
         handleClose();
         setState(init_state);
     };
 
     const [state, setState] = useState('');
+    const [ingredient, setIngredient] = useState('');
 
     const handleChange = ev => { setState(ev.target.value); }
 
@@ -97,11 +98,20 @@ export function SearchPopup(props) {
                 autoFocus
                 margin="dense"
                 id="search-term"
-                label="Search Term"
+                label="Recipe"
                 fullWidth
                 variant="outlined"
                 value={state}
                 onChange={handleChange}
+            />
+            <TextField
+                margin="dense"
+                id="search-term2"
+                label="Or Search by Ingredient"
+                fullWidth
+                variant="outlined"
+                value={ingredient}
+                onChange={ev => setIngredient(ev.target.value)}
             />
             {/* <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
                 <SearchIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
