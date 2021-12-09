@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import {
   BrowserRouter,
   Routes,
   Route,
   Link,
-  useLocation
+  useLocation,
+  useNavigate
 } from "react-router-dom";
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import AdapterDateFns from '@mui/lab/AdapterDayjs';
@@ -19,10 +20,23 @@ import ErrorBounds from './components/ErrorBounds';
 import { SnackbarComponent } from './components/Snackbar';
 import useLogin from './util/login';
 import Meals from './Meals';
+import Home from './Home';
 // import { cleanQuotes } from './util/util';
+
+import "./index.scss";
+import { Button } from '@material-ui/core';
 
 function Index() {
   const login = useLogin();
+
+  const nav = useNavigate();
+  useEffect(() => {
+      login.checkLogin(user => {
+          if (user) {
+              nav('/home');
+          }
+      });
+  }, [login, nav]);
 
   return (      
   <div>
@@ -36,8 +50,8 @@ function Index() {
         </li>
       </ul>
       </nav>
-      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'})}>Login Admin</button>
-      <button onClick={() => login.doLogin({email: 'max.mustermann@t-online.de', password: 'postgres'})}>Login Default</button>
+      <button onClick={() => login.doLogin({email: 'jrotter@trinity.edu', password: 'postgres'}).then(_ => nav('/home'))}>Login Admin</button>
+      <button onClick={() => login.doLogin({email: 'max.mustermann@t-online.de', password: 'postgres'}).then(_ => nav('/home'))}>Login Default</button>
       <button onClick={login.doLogout}>Logout</button>
   </div>);
 }
@@ -55,20 +69,51 @@ function NoMatch() {
   );
 }
 
+function NavMenu() {
+  const nav = useNavigate();
+
+  return (
+    <div className="route-menu">
+      <Button variant="text" onClick={() => nav('/home')}>Home</Button>
+      <Button variant="text" onClick={() => nav('/recipes')}>Recipes</Button>
+      <Button variant="text" onClick={() => nav('/meals')}>Meal Plan</Button>
+    </div>
+  );
+}
+
+function NavWrapper({children}) {
+  return (
+    <div className="routing">
+      <div>
+        {children}
+      </div>
+      <NavMenu />
+    </div>
+  );
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <BrowserRouter>
         <ErrorBounds>
           <SnackbarComponent>
-            <Routes>
-              <Route path="/" element={<Index/>}/>
-              <Route path="/recipes" element={<Recipes/>}/>
-              <Route path="/users" element={<Users/>}/>
-              <Route path="/meals" element={<Meals/>}/>
-              <Route path="*" element={<NoMatch />}/>
-            </Routes>
+            {/* <div className="routing">
+              <div> */}
+                <Routes>
+                  <Route path="/" element={<Index/>}/>
+                  <Route path="/recipes" element={(<NavWrapper><Recipes/></NavWrapper>)}/>
+                  <Route path="/users" element={<NavWrapper><Users/></NavWrapper>}/>
+                  <Route path="/meals" element={<NavWrapper><Meals/></NavWrapper>}/>
+                  <Route path="/home" element={<NavWrapper><Home /></NavWrapper>} />
+                  <Route path="*" element={<NoMatch />}/>
+                </Routes>
+              {/* </div>
+              <NavMenu />
+            </div> */}
           </SnackbarComponent>
+
+          
         </ErrorBounds>
       </BrowserRouter>
     </LocalizationProvider>

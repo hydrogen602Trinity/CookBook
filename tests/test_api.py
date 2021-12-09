@@ -35,20 +35,20 @@ def setup_helper(resource_path: str, id_name: str, cls: Type[TestCase]):
 
             self.LOGIN_NODE = url_for_rest('resources.loginresource', _external=False)
         return app
-    
+
     @method_setter
     def login(self, user_email: str):
         assert isinstance(user_email, str), \
             f'Expected email as string, but got {type(user_email)}'
         response = self.client.post(self.LOGIN_NODE, 
             json={'email': user_email, 'password': 'unittest'})
-        
+
         self.assert201(response)
 
     @method_setter
     def logout(self):
         response = self.client.delete(self.LOGIN_NODE)
-        
+
         self.assert201(response)
 
     @method_setter

@@ -1,20 +1,22 @@
-import { createContext, forwardRef, useContext, useReducer } from 'react';
+import { createContext, forwardRef, useContext, useReducer, ReactNode } from 'react';
 import { Snackbar } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 
 
-const Alert = forwardRef((props, ref) => 
-    <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
-  );
+export interface ISnackbarMsg {
+    type: 'error' | 'warning' | 'info' | 'success' | null,
+    text: string
+}
 
-const SnackbarContext = createContext();
+
+const SnackbarContext = createContext((msg: ISnackbarMsg) => {});
 // this will return dispatchMsg with arguments of state
 export const useSnackbar = () => useContext(SnackbarContext);
 
 
-const initialState = {type: null, text: ''};
+const initialState: ISnackbarMsg = {type: null, text: ''};
 
-function reducer(state, action) {
+function reducer(_: ISnackbarMsg, action: ISnackbarMsg) {
     if (typeof action.text !== 'string') {
         throw new TypeError(`SnackBar: Expected string for text, but got ${action.text}`)
     }
@@ -36,7 +38,7 @@ function reducer(state, action) {
     }
 }
 
-function getAutoHideDuration(state) {
+function getAutoHideDuration(state: ISnackbarMsg): number | null {
     switch (state.type) {
         case 'error':
             return null; // never auto hide    
@@ -54,7 +56,11 @@ function getAutoHideDuration(state) {
 }
 
 
-export function SnackbarComponent(props) {
+export interface IProps {
+    children: ReactNode
+}
+
+export function SnackbarComponent(props: IProps) {
     const [state, dispatchMsg] = useReducer(reducer, initialState);
 
     const handleClose = () => {
@@ -70,9 +76,9 @@ export function SnackbarComponent(props) {
             onClose={handleClose}
             key={state.text} // correct?
             anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}>
-            <Alert onClose={handleClose} severity={state.type} sx={{ width: '100%' }}>
+            <MuiAlert elevation={6} variant="filled" onClose={handleClose} severity={state.type === null ? undefined : state.type} sx={{ width: '100%' }}>
                 {state.text}
-            </Alert>
+            </MuiAlert>
         </Snackbar>
     </SnackbarContext.Provider>
     );
