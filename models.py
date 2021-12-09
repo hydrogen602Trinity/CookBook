@@ -91,9 +91,6 @@ class Recipe(db.Model):
                 'rating': self.rating,
                 'prepTime': self.prepTime
             }
-    
-    def declareTags(self, t: List[Tag]) -> None:
-        self.tags.extend(t)
 
 class Ingredient(db.Model):
 
@@ -129,14 +126,22 @@ class Ingredient(db.Model):
         self._num = f.numerator
         self._denom = f.denominator
     
-    def toJson(self) -> Dict[str, Any]:
-        return {
-            'id': self.id,
-            'name': self.name,
-            'num': self._num,
-            'denom': self._denom,
-            'unit': self.unit
-        }
+    def toJson(self, noID: bool = False) -> Dict[str, Any]:
+        if noID:
+            return {
+                'name': self.name,
+                'num': self._num,
+                'denom': self._denom,
+                'unit': self.unit
+            }
+        else:
+            return {
+                'id': self.id,
+                'name': self.name,
+                'num': self._num,
+                'denom': self._denom,
+                'unit': self.unit
+            }
 
 
 userTags = db.Table('userTags',
