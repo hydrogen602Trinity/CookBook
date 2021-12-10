@@ -1,6 +1,8 @@
 import { useEffect, useState, createRef, forwardRef } from 'react';
+import { fetchControlAPI, makeAuthErrorHandler, useFetchAPI } from './util/fetchAPI';
 import Grow from '@material-ui/core/Grow';
-import { useFetchAPI } from './util/fetchAPI';
+import createTrigger from "react-use-trigger";
+import useTrigger from "react-use-trigger/useTrigger";
 import Button from '@mui/material/Button';
 import useLogin from './util/login';
 import * as React from 'react';
@@ -12,10 +14,20 @@ import {
     useNavigate
   } from "react-router-dom";
 import "./Login.scss";
+//import "./Users"
+import { NewUser } from './components/Form';
+import { useSnackbar } from './components/Snackbar';
+
 
 export default function Login(props) {
     //const [,  ] = useState([]);
     const login = useLogin();
+    const updateUsersTrigger = createTrigger();
+    const dispatchMsg = useSnackbar();
+    const sendToLogin = () => {
+        dispatchMsg({type: 'error', text: 'Authentication Required'});
+        nav('/');
+    };
     const nav = useNavigate();
     useEffect(() => {
         login.checkLogin(user => {
@@ -25,12 +37,19 @@ export default function Login(props) {
         });
     }, [login, nav]);
 
+    const createUser = makeAuthErrorHandler(async data => {
+        let result = await fetchControlAPI('account', 'POST', data);
+        updateUsersTrigger();
+        return result;
+    }, sendToLogin);
+
     const init_state = {
         'password': '',
         'email': ''
     };
     const handleChange = (field) => (ev) => { setState({[field]: ev.target.value});}
     const [state, setState] = useBetterState(init_state);
+    const [showForm, setShowForm] = useState(false);
     //const [showPass, setShowPass] = useState(false);
     
     return (
@@ -45,7 +64,11 @@ export default function Login(props) {
         
         <div className="loginNav frame-footer"> 
             <div className = "loginComponent">
-                
+                <NewUser 
+                    show={showForm} 
+                    handleClose={() => setShowForm(false)} 
+                    callback={createUser}
+                    />
                 <TextField
                     margin="dense"
                     id="user-email"
@@ -68,7 +91,8 @@ export default function Login(props) {
                     onChange={handleChange('password')}
 
                 />
-                <Button variant="outlined" onClick ={() => login.doLogin(state).then(_ => nav('/home'))}> Login</Button>    
+                <Button variant="outlined" onClick ={() => login.doLogin(state).then(_ => nav('/home'))}> Login</Button>
+                <Button variant="text" onClick ={() => setShowForm(true)}> New User</Button>     
             </div>
 
         </div>
