@@ -47,7 +47,7 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
             amt1 *= 5
             ml1 = True
 
-        if unit1 == "ml":
+        if unit2 == "ml":
             ml2 = True
         elif unit2 == "cup":
             amt2 *= 237

@@ -13,10 +13,27 @@ export function useFetchControlAPI(path: string, method: 'GET' | 'PUT' | 'POST' 
     };
 
 
-    return useCallback(async (data: any) => {
+    return useCallback(async (data: any, path_sub?: string) => {
+        if (data && method === 'GET') {
+            throw new Error("GET function can't send body (data)")
+        }
+
+        let final_path = path;
+        if (path_sub) {
+            if (path[path.length-1] === '/' && path_sub[0] === '/') {
+                final_path = path + path_sub.substring(1)
+            }
+            else if (path[path.length-1] !== '/' && path_sub[0] !== '/') {
+                final_path = path + '/' + path_sub
+            }
+            else {
+                final_path = path + path_sub
+            }
+        }
+        
         let result = null;
         try {
-            result = await fetchControlAPI(path, method, data, json);
+            result = await fetchControlAPI(final_path, method, data, json);
         }
         catch (err) {
             if (err instanceof AuthError) {

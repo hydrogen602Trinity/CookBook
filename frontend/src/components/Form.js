@@ -25,6 +25,58 @@ import dayjs from 'dayjs';
 // handleClose => fn that hides
 // callback => fn that receives state
 
+export function Select2Dates(props) {
+    const handleClose = props.handleClose;
+    const handleCreate = () => {
+        props.callback([state1, state2]);
+        handleClose();
+        setState1(dayjs());
+        setState2(dayjs());
+    };
+
+    const [state1, setState1] = useState(dayjs());
+    const [state2, setState2] = useState(dayjs());
+
+    const handleChange1 = value => { 
+        setState1(value); 
+    }
+
+    const handleChange2 = value => { 
+        setState2(value); 
+    }
+
+    useEffect(() => {
+        if (props.show) {
+            setState1(dayjs());
+            setState2(dayjs());
+        }
+    }, [props.show]);
+
+    return (
+        <Dialog open={props.show} onClose={handleClose} maxWidth="sm" fullWidth className="date-popup">
+            <DialogTitle>Select Start and End Day</DialogTitle>
+            <DialogContent>
+                <DatePicker
+                    label="Start Day"
+                    value={state1}
+                    onChange={handleChange1}
+                    renderInput={(params) => <TextField {...params} />}
+                />
+                <DatePicker
+                    label="End Day"
+                    value={state2}
+                    onChange={handleChange2}
+                    renderInput={(params) => <TextField {...params} />}
+                />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={handleCreate}>Submit</Button>
+            </DialogActions>
+        </Dialog>
+        );
+}
+
 export function MealNewDayPopup(props) {
     const init_state = '';
     const handleClose = props.handleClose;

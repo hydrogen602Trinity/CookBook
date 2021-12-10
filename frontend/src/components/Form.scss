@@ -9,3 +9,16 @@
         overflow-y: unset !important;
     }
 }
+
+.date-popup {
+    .MuiDialogContent-root {
+        overflow-y: unset !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        > * {
+            margin-bottom: 2ex;
+        }
+    }
+}
