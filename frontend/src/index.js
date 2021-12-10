@@ -19,6 +19,7 @@ import Users from './Users';
 import ErrorBounds from './components/ErrorBounds';
 import { SnackbarComponent } from './components/Snackbar';
 import useLogin from './util/login';
+import Login from './Login';
 import Meals from './Meals';
 import Home from './Home';
 // import { cleanQuotes } from './util/util';
@@ -101,7 +102,7 @@ ReactDOM.render(
             {/* <div className="routing">
               <div> */}
                 <Routes>
-                  <Route path="/" element={<Index/>}/>
+                  <Route path="/" element={<Login/>}/>
                   <Route path="/recipes" element={(<NavWrapper><Recipes/></NavWrapper>)}/>
                   <Route path="/users" element={<NavWrapper><Users/></NavWrapper>}/>
                   <Route path="/meals" element={<NavWrapper><Meals/></NavWrapper>}/>
