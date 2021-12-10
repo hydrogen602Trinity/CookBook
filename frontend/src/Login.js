@@ -22,7 +22,7 @@ import { useSnackbar } from './components/Snackbar';
 export default function Login(props) {
     //const [,  ] = useState([]);
     const login = useLogin();
-    const updateUsersTrigger = createTrigger();
+    
     const dispatchMsg = useSnackbar();
     const sendToLogin = () => {
         dispatchMsg({type: 'error', text: 'Authentication Required'});
@@ -39,7 +39,6 @@ export default function Login(props) {
 
     const createUser = makeAuthErrorHandler(async data => {
         let result = await fetchControlAPI('account', 'POST', data);
-        updateUsersTrigger();
         return result;
     }, sendToLogin);
 
