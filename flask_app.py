@@ -48,7 +48,7 @@ def setup_database(app: Flask, load_csv: bool = False):
         db.session.add(cornbread)
         db.session.commit()
 
-        blueberryPie = Recipe('Blueberry Pie', 'Instructions Go Here', [
+        blueberryPie = Recipe('Blueberry Pie', 'Preheat oven to 375 degrees F (190 degrees C). Mix sugar, cornstarch, salt, and cinnamon, and sprinkle over blueberries. Line pie dish with one pie crust. Pour berry mixture into the crust, and dot with butter. Cut remaining pastry into 1/2 - 3/4 inch wide strips, and make lattice top. Crimp and flute edges. Bake pie on lower shelf of oven for about 50 minutes, or until crust is golden brown.', [
             Ingredient('Flour', '9/4', 'cup'), Ingredient('Salt', 1, 'tsp'), Ingredient('Shortening', '2/3', 'cup'), Ingredient('Sugar', '1/2', 'cup'),
             Ingredient('Cinnamon', '1/2', 'tsp'), Ingredient('Blueberries', 6, 'cup'), Ingredient('Butter', 1, 'tbsp')
         ], user1, 'Dessert', 'Basic', 120, 2)
