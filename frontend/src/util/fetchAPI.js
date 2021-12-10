@@ -102,7 +102,7 @@ export async function fetchControlAPI(path, method, data, json = true) {
         options.body = JSON.stringify(data);
     }
 
-    const response = await fetch(fullPath(path), );
+    const response = await fetch(fullPath(path), options);
     if (!response.ok) {
         console.error(response.status, response.statusText);
         let t = await response.text();

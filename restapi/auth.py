@@ -38,7 +38,6 @@ class LoginResource(Resource):
             return 'Username or password invalid', 404
 
         login_user(user)
-        #print('login!', current_user.name)
         return user.name, 201
 
     def delete(self):

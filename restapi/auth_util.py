@@ -1,6 +1,7 @@
 from typing import Callable, TypeVar
 from flask_login import current_user
 from functools import wraps
+# from flask import request
 
 
 F = TypeVar('F', bound=Callable)
@@ -13,6 +14,7 @@ def require_auth(f: F) -> F:
 
     @wraps(f)
     def wrapper(*args, **kwargs):
+        # print(f'{request.method}: {request.path}, {current_user} {request.cookies}')
         if current_user.is_authenticated:
             return f(*args, **kwargs)
         else:
