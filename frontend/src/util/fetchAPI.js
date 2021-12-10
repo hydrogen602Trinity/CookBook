@@ -86,7 +86,8 @@ export async function fetchControlAPI(path, method, data, json = true) {
     if (method !== 'GET' && method !== 'POST' && method !== 'PUT' && method !== 'DELETE') {
         throw new Error('Unknown HTTP Method');
     }
-    const response = await fetch(fullPath(path), {
+
+    const options = {
         method: method, // *GET, POST, PUT, DELETE, etc.
         // mode: 'cors', // no-cors, *cors, same-origin
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -94,9 +95,14 @@ export async function fetchControlAPI(path, method, data, json = true) {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
-        body: JSON.stringify(data)
-    });
+        credentials: 'include'
+    }
+
+    if (method !== 'GET') {
+        options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(fullPath(path), );
     if (!response.ok) {
         console.error(response.status, response.statusText);
         let t = await response.text();

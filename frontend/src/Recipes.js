@@ -14,8 +14,6 @@ import { Slide } from '@mui/material';
 import { TransitionGroup } from 'react-transition-group';
 import Collapse from '@mui/material/Collapse';
 
-
-
 // import RecipeEditor from './components/RecipeEditor';
 
 
