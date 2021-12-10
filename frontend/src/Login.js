@@ -1,11 +1,9 @@
-import { useEffect, useState, createRef, forwardRef } from 'react';
-import { fetchControlAPI, makeAuthErrorHandler, useFetchAPI } from './util/fetchAPI';
-import Grow from '@material-ui/core/Grow';
-import createTrigger from "react-use-trigger";
-import useTrigger from "react-use-trigger/useTrigger";
+import { useEffect, useState} from 'react';
+import { fetchControlAPI, makeAuthErrorHandler} from './util/fetchAPI';
+
 import Button from '@mui/material/Button';
 import useLogin from './util/login';
-import * as React from 'react';
+
 import "./Theme.scss"
 
 import useBetterState from './util/classLikeState';
