@@ -43,7 +43,7 @@ export default function Home() {
         });
     }, [checkLoginTriggerValue, login]);
 
-    const getShoppingList = useFetchControlAPI('/shoppinglist', 'GET', data => {
+    const getShoppingList = useFetchControlAPI('shoppinglist', 'GET', data => {
         setShopList(data);
     });
 
