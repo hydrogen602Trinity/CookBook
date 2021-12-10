@@ -20,7 +20,7 @@ def sortIngredients(i: Ingredient) -> str:
 # Teaspoon (tsp)
 # Tablespoon (tbsp)
 # Cup
-# Ounces (oz)
+# Ounces (oz) - not used
 # Pounds (lb)
 # Others
 
@@ -33,33 +33,34 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
 
     # Convert to Mililiters
     ml1 = False
-    if unit1 == "ml":
-        ml1 = True
-    elif unit1 == "cup":
-        amt1 *= 237
-        ml1 = True
-    elif unit1 == "tbsp":
-        amt1 *= 15
-        ml1 = True
-    elif unit1 == "tsp":
-        amt1 *= 5
-        ml1 = True
-
     ml2 = False
-    if unit1 == "ml":
-        ml2 = True
-    elif unit2 == "cup":
-        amt2 *= 237
-        ml2 = True
-    elif unit2 == "tbsp":
-        amt2 *= 15
-        ml2 = True
-    elif unit2 == "tsp":
-        amt2 *= 5
-        ml2 = True
+    if not (unit1 == unit2):
+        if unit1 == "ml":
+            ml1 = True
+        elif unit1 == "cup":
+            amt1 *= 237
+            ml1 = True
+        elif unit1 == "tbsp":
+            amt1 *= 15
+            ml1 = True
+        elif unit1 == "tsp":
+            amt1 *= 5
+            ml1 = True
+
+        if unit1 == "ml":
+            ml2 = True
+        elif unit2 == "cup":
+            amt2 *= 237
+            ml2 = True
+        elif unit2 == "tbsp":
+            amt2 *= 15
+            ml2 = True
+        elif unit2 == "tsp":
+            amt2 *= 5
+            ml2 = True
     
-    if unit1 == "lb" and unit2 == "lb":
-        return Ingredient(name, ceil(amt1+amt2), "lb")
+    if unit1 == unit2:
+        return Ingredient(name, amt1+amt2, unit1)
     elif ml1 and ml2:
         return Ingredient(name, ceil(amt1+amt2), "ml")
     else:
@@ -68,7 +69,6 @@ def combineIngredients(name: str, ing1: Ingredient, ing2: Ingredient) -> Ingredi
 def create_shoppinglist(meals: List[Meal]) -> List[Ingredient]:
 
     shopList = []
-    # Note: Figure out the dark sorcery behind tablespoons and teaspoons
     for meal in meals:
         recipe: Optional[Recipe] = db.session.query(Recipe).filter(meal.recipe_id == Recipe.id).one_or_none()
         if recipe:

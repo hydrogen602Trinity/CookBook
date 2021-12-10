@@ -5,12 +5,13 @@ from flask.json import jsonify
 from flask_restful import Resource, Api, reqparse
 from flask import Blueprint, abort
 from flask_login import current_user
-from datetime import date
+from datetime import datetime, date
 from werkzeug.security import generate_password_hash
 from marshmallow import Schema, fields, validate, ValidationError
+from shoppinglist import create_shoppinglist
 import json
 
-from models import Ingredient, Recipe, db, User, Meal, Tag
+from models import Ingredient, Recipe, db, User, Meal, Tag, recipeTags, userTags
 from restapi.auth_util import require_admin, require_auth
 from .util import optional_param_check, require_keys_with_set_types, require_truthy_values, handle_nonexistance, add_resource
 
@@ -181,8 +182,11 @@ class RecipeResource(Resource):
             return jsonify(recipe.toJson(minimum=minimum))
         else:
             search = request.args.get('search', type=str)
+            search_i = request.args.get('searchi', type=str)
             if search:
                 q = q.filter(Recipe.name.ilike(f'%{search}%'))
+            if search_i:
+                q = q.join(Recipe.ingredients).filter(Ingredient.name.ilike(f'%{search_i}%'))
             # current_app.logger.debug('Getting all recipes')
             return jsonify([recipe.toJson(minimum=minimum) for recipe in q.filter(Recipe.deleted == False).all()])
 
@@ -443,3 +447,16 @@ class TagResource(Resource):
             return '', 204
         else:
             return f'No object found with tag_id={tag_id}', 404
+
+@add_resource(api, '/shoppinglist/<string:date_start>/<string:date_end>')
+class ShoppingListResource(Resource):
+    def get(self, date_start: str, date_end: str):
+        noID = bool(request.args.get('noID', type=bool))
+
+        dateStart = date.fromisoformat(date_start)
+        dateEnd = date.fromisoformat(date_end)
+        meals = db.session.query(Meal).filter(Meal.day >= dateStart, Meal.day <= dateEnd).order_by(Meal.id).all()
+        if meals:
+            shoppingList = create_shoppinglist(meals)
+            return jsonify([ingredient.toJson(noID=noID) for ingredient in shoppingList])
+        else: return []
