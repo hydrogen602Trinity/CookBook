@@ -1,3 +1,7 @@
+# CookBook
+
+This project is a cookbook WebApp which has a React frontend (designed for mobile) to view recipes and plan meals and then stores that information in a postgres DB using flask for the server.
+
 # How to Run
 
 `python run.py`
@@ -14,22 +18,3 @@ This command is compatible with both python 2 and 3. It will look for python3 it
 Open two terminals:
 Run `python run.py run` in one
 Run `python run.py run-front` in the other
-
-# Project Structure
-
-## models
-
-database tables & stuff
-
-## templates
-
-html
-
-## views
-
-- `api.py` -> rest api
-- `core.py` -> serving the frontend
-
-## restapi/resources
-
-allows for rest api calls
