@@ -4,17 +4,17 @@ This project is a cookbook WebApp which has a React frontend (designed for mobil
 
 # How to Run
 
-`python run.py`
+`python start.py`
 
 This command is compatible with both python 2 and 3. It will look for python3 itself.
 
 ## Installing dependencies
-`python run.py install`
+`python start.py install`
 
 ## Testing
-`python run.py test`
+`python start.py test`
 
 ## Running
 Open two terminals:
-Run `python run.py run` in one
-Run `python run.py run-front` in the other
+Run `python start.py run` in one
+Run `python start.py run-front` in the other
